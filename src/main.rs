@@ -44,12 +44,7 @@ fn main() {
         },
     });
 
-    let font = SimplePixelFont {
-        version: FV0000,
-        alignment: Alignment::Height,
-        size: 4,
-        characters: characters,
-    };
+    let font = SimplePixelFont::new(FV0000, Alignment::Height, 4, characters);
 
     let mut file = fs::OpenOptions::new()
         .read(true)

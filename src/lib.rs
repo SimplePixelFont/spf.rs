@@ -1,24 +1,32 @@
 pub(crate) mod byte;
 
+use std::collections::HashMap;
+
 use byte::Byte;
 
+/// Magic bytes of .spf files
 pub const MAGIC_BYTES: [u8; 3] = [102, 115, 70];
 
+/// specifies the .spf file format version
 #[derive(Debug)]
 pub enum FormatVersion {
     FV0000,
 }
+/// Specifies the default alignment for all characters in a font
 #[derive(PartialEq, Debug)]
 pub enum Alignment {
     Height,
     Width,
 }
+/// This will be deprecated in v0.1.0, in favor of using u8's
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Pixel {
     Filled,
     Empty,
 }
-
+/// Represents a bitmap for a character in your font.
+/// Note: This is a one dimensional vector, you can use the `get_pixel()` method to get a two dimensional-like interface.
+/// Note: Only the first `width * height` items are used, the rest are ignored when encoding and decoding from/to a `Vec<u8>`
 #[derive(Debug, Clone)]
 pub struct Bitmap {
     pub width: u8,
@@ -27,6 +35,7 @@ pub struct Bitmap {
 }
 
 impl Bitmap {
+    /// Returns the pixel at x, y. (0, 0) being the top-left corner.
     pub fn get_pixel(&self, x: u8, y: u8) -> Pixel {
         return self.data[(x + y * self.width) as usize];
     }
@@ -53,22 +62,50 @@ impl Bitmap {
         return buffer;
     }
 }
+/// Represents a charater in the font.
 #[derive(Clone, Debug)]
 pub struct Character {
     pub utf8: char,
     pub size: u8,
     pub bitmap: Bitmap,
 }
-
+/// Main structure that supports encoding and decoding with its defined methods.
 #[derive(Debug)]
 pub struct SimplePixelFont {
     pub version: FormatVersion,
     pub alignment: Alignment,
     pub size: u8,
     pub characters: Vec<Character>,
+
+    #[cfg(feature = "cache")]
+    pub(crate) cache: HashMap<char, usize>,
 }
 
 impl SimplePixelFont {
+    pub fn new(
+        format_version: FormatVersion,
+        alignment: Alignment,
+        size: u8,
+        characters: Vec<Character>,
+    ) -> Self {
+        #[cfg(feature = "cache")]
+        return Self {
+            version: format_version,
+            alignment: alignment,
+            size: size,
+            characters: characters,
+            cache: HashMap::new(),
+        };
+
+        #[cfg(not(feature = "cache"))]
+        Self {
+            version: format_version,
+            alignment: alignment,
+            size: size,
+            characters: characters,
+        }
+    }
+    /// Encodes the structure into a `Vec<u8>` that can then be written to a file using `std::fs`
     pub fn to_vec_u8(&self) -> Vec<u8> {
         let mut buffer: Vec<u8> = Vec::new();
         buffer.push(102);
@@ -113,6 +150,7 @@ impl SimplePixelFont {
         return buffer;
     }
 
+    /// Decodes a `Vec<u8>` and parses it into a struct, this method will check and make sure checksums are correct.
     pub fn from_vec_u8(buffer: Vec<u8>) -> Option<Self> {
         let mut local_buffer = buffer.clone();
         let mut file_checksum: [u8; 3] = [0, 0, 0];
@@ -127,6 +165,7 @@ impl SimplePixelFont {
         return Some(SimplePixelFont::unchecked_from_vec_u8(buffer));
     }
 
+    /// Decodes a `Vec<u8>` and parses it into a struct, this method will ignore the checksum values.
     pub fn unchecked_from_vec_u8(buffer: Vec<u8>) -> Self {
         let mut buffer = buffer.clone();
         buffer.remove(5);
@@ -149,6 +188,9 @@ impl SimplePixelFont {
                 data: vec![],
             },
         };
+
+        #[cfg(feature = "cache")]
+        let mut cache: HashMap<char, usize> = HashMap::new();
 
         let mut iter = chunks.next();
         while !iter.is_none() {
@@ -242,6 +284,9 @@ impl SimplePixelFont {
                         }
                     }
 
+                    #[cfg(feature = "cache")]
+                    cache.insert(current_character.utf8, characters.len());
+
                     characters.push(current_character.clone());
                     current_character.bitmap.data = vec![];
                     character_definition_stage = 0;
@@ -251,6 +296,16 @@ impl SimplePixelFont {
             current_index += 1;
         }
 
+        #[cfg(feature = "cache")]
+        return Self {
+            version: format_version,
+            alignment: alignment,
+            size: size,
+            characters: characters,
+            cache: cache,
+        };
+
+        #[cfg(not(feature = "cache"))]
         Self {
             version: format_version,
             alignment: alignment,
