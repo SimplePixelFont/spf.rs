@@ -1,5 +1,8 @@
 pub(crate) mod byte;
 
+#[cfg(feature = "printer")]
+pub mod printer;
+
 use std::collections::HashMap;
 
 use byte::Byte;
@@ -18,12 +21,6 @@ pub enum Alignment {
     Height,
     Width,
 }
-/// This will be deprecated in v0.1.0, in favor of using u8's
-#[derive(PartialEq, Debug, Clone, Copy)]
-pub enum Pixel {
-    Filled,
-    Empty,
-}
 /// Represents a bitmap for a character in your font.
 /// Note: This is a one dimensional vector, you can use the `get_pixel()` method to get a two dimensional-like interface.
 /// Note: Only the first `width * height` items are used, the rest are ignored when encoding and decoding from/to a `Vec<u8>`
@@ -31,12 +28,12 @@ pub enum Pixel {
 pub struct Bitmap {
     pub width: u8,
     pub height: u8,
-    pub data: Vec<Pixel>,
+    pub data: Vec<u8>,
 }
 
 impl Bitmap {
     /// Returns the pixel at x, y. (0, 0) being the top-left corner.
-    pub fn get_pixel(&self, x: u8, y: u8) -> Pixel {
+    pub fn get_pixel(&self, x: u8, y: u8) -> u8 {
         return self.data[(x + y * self.width) as usize];
     }
     pub(crate) fn segment_into_u8s(&self) -> Vec<u8> {
@@ -50,7 +47,7 @@ impl Bitmap {
             let mut byte = byte::Byte { bits: [false; 8] };
             let mut index: usize = 0;
             for pixel in chunk {
-                byte.bits[index] = pixel == &Pixel::Filled;
+                byte.bits[index] = pixel == &1;
                 index += 1;
             }
             for index in 8 - remainder..8 {
@@ -269,11 +266,7 @@ impl SimplePixelFont {
                         let mut counter = 0;
                         for bit in current_byte.bits {
                             if !(i == bytes_used - 1 && counter >= 8 - remainder) {
-                                if bit {
-                                    current_character.bitmap.data.push(Pixel::Filled);
-                                } else {
-                                    current_character.bitmap.data.push(Pixel::Empty);
-                                }
+                                current_character.bitmap.data.push(bit as u8);
                             }
                             counter += 1;
                         }

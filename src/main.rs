@@ -1,5 +1,5 @@
+use printer::Printer;
 use spf::FormatVersion::*;
-use spf::Pixel::*;
 use spf::*;
 use std::fs;
 use std::io::{Read, Write};
@@ -13,10 +13,7 @@ fn main() {
         bitmap: Bitmap {
             width: 4,
             height: 4,
-            data: vec![
-                Filled, Filled, Filled, Filled, Filled, Empty, Empty, Filled, Filled, Empty, Empty,
-                Filled, Filled, Filled, Filled, Filled,
-            ],
+            data: vec![0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1],
         },
     });
     characters.push(Character {
@@ -25,10 +22,7 @@ fn main() {
         bitmap: Bitmap {
             width: 5,
             height: 4,
-            data: vec![
-                Filled, Empty, Filled, Empty, Filled, Filled, Empty, Filled, Empty, Filled, Filled,
-                Empty, Filled, Empty, Filled, Filled, Filled, Filled, Filled, Filled,
-            ],
+            data: vec![1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
         },
     });
     characters.push(Character {
@@ -37,10 +31,7 @@ fn main() {
         bitmap: Bitmap {
             width: 4,
             height: 4,
-            data: vec![
-                Empty, Filled, Filled, Empty, Empty, Empty, Empty, Empty, Filled, Empty, Empty,
-                Filled, Empty, Filled, Filled, Empty,
-            ],
+            data: vec![0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0],
         },
     });
 
@@ -58,6 +49,11 @@ fn main() {
     file.read_to_end(&mut buffer).unwrap();
     file.read(&mut buffer).unwrap();
     println!("{:?}", buffer);
-    let font = SimplePixelFont::from_vec_u8(buffer);
+    let font = SimplePixelFont::from_vec_u8(buffer).unwrap();
     println!("{:?}", font);
+    let printer = Printer {
+        font: font,
+        letter_spacing: 1,
+    };
+    println!("{:?}", printer.new_text("ow".to_string()));
 }

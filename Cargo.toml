@@ -1,13 +1,14 @@
 [package]
 name = "spf"
-version = "0.0.2"
+version = "0.1.0"
 description = ".spf (Simple Pixel Font) file parsing, and useful api's to go alongside."
 repository = "https://github.com/The-Nice-One/spf.rs"
 license-file = "LICENSE"
 edition = "2021"
 
 [features]
-default = ["cache"]
+default = ["printer"]
 cache = []
+printer = ["cache"]
 
 [dependencies]
