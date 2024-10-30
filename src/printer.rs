@@ -1,5 +1,5 @@
-use super::Character;
-use super::SimplePixelFont;
+use super::core::Character;
+use super::core::SimplePixelFont;
 
 /// A Surface is a extended Bitmap struct with blitting and manipulation methods.
 ///
@@ -171,12 +171,21 @@ impl Surface {
     }
 }
 
+/// Printer is a struct for generating `Surface`'s
+///
+/// A `Printer` struct will hold a `SimplePixelFont` struct to decide the font to
+/// use when generating a Surface. It also has a letter_spacing field to decide
+/// how apart each character should be printed from.
 pub struct Printer {
     pub font: SimplePixelFont,
     pub letter_spacing: usize,
 }
 
 impl Printer {
+    /// Returns a `Surface` from a `String`
+    ///
+    /// This method will use the characters defined in the `SimplePixelFont` struct
+    /// field, and place the bitmaps next to each other in a generated `Surface`
     pub fn new_text(&self, text: String) -> Surface {
         let characters: Vec<char> = text.chars().collect();
         let mut fetched_character: Vec<Character> = vec![];
