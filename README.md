@@ -1,84 +1,65 @@
-A very simple parser for Simple Pixel Fonts (spf), this crate will include multiple helpful api's in the future for rendering texts as images.
-Learn more about the SPF Project at https://github.com/SimplePixelFont
+A very simple and concrete parser for `*.spf` (SimplePixelFont) files for Rust. spf.rs provides
+simple encoding and decoding for `*.spf` binary representation through a `Vec<u8>`. And also
+includes optional features to conveiniently create a texture from a font rendering, which
+can then be used in your favorite game engine / graphics framework.
 
-### Usage
-creates a .spf file with the characters 'o', 'w', and '😊'
+### Example
+Creates a new `SimplePixelFont` struct and adds the characters `o`, `w`, and `😊`.
 ```rs
-use spf::FormatVersion::*;
-use spf::Pixel::*;
-use spf::*;
-use std::fs;
-use std::io::{Read, Write};
-use std::vec;
+use spf::core::*;
 
 fn main() {
-    let mut characters = Vec::new();
-    characters.push(Character {
-        utf8: 'o',
-        size: 4,
-        bitmap: Bitmap {
-            width: 4,
-            height: 4,
-            data: vec![
-                Filled, Filled, Filled, Filled, Filled, Empty, Empty, Filled, Filled, Empty, Empty,
-                Filled, Filled, Filled, Filled, Filled,
-            ],
-        },
-    });
-    characters.push(Character {
-        utf8: 'w',
-        size: 5,
-        bitmap: Bitmap {
-            width: 5,
-            height: 4,
-            data: vec![
-                Filled, Empty, Filled, Empty, Filled, Filled, Empty, Filled, Empty, Filled, Filled,
-                Empty, Filled, Empty, Filled, Filled, Filled, Filled, Filled, Filled,
-            ],
-        },
-    });
-    characters.push(Character {
-        utf8: '😊',
-        size: 4,
-        bitmap: Bitmap {
-            width: 4,
-            height: 4,
-            data: vec![
-                Empty, Filled, Filled, Empty, Empty, Empty, Empty, Empty, Filled, Empty, Empty,
-                Filled, Empty, Filled, Filled, Empty,
-            ],
-        },
-    });
-
-    let font = SimplePixelFont {
-        version: FV0000,
-        alignment: Alignment::Height,
-        size: 4,
-        characters: characters,
-    };
-
-    let mut file = fs::OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open("./utf8ToyFont.spf")
-        .unwrap();
-
-    file.write_all(&font.to_vec_u8()).unwrap();
+    let mut font = SimplePixelFont::new(FV0000, Alignment::Height, 4);
+    font.add_character(Character::inferred(
+        'o',
+        Bitmap::inferred(&[
+            true, true, true, true,
+            true, false, false, true,
+            true, false, false, true,
+            true, true, true, true,
+        ]),
+    ));
+    font.add_character(Character::inferred(
+        'w',
+        Bitmap::inferred(&[
+            true, false, true, false, true,
+            true, false, true, false, true,
+            true, false, true, false, true,
+            true, true, true, true, true,
+        ]),
+    ));
+    font.add_character(Character::inferred(
+        '😊',
+        Bitmap::inferred(&[
+            false, true, true, false,
+            false, false, false, false,
+            true, false, false, true,
+            false, true, true, false,
+        ]),
+    ));
 }
 ```
-You can then read the file via:
+We can then encode the struct and use `std::fs` to write to a file:
 ```rs
-    ...
-    let mut file = fs::OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open("./utf8ToyFont.spf")
-        .unwrap();
-
-    let mut buffer: Vec<u8> = vec![];
-    file.read_to_end(&mut buffer).unwrap();
-    file.read(&mut buffer).unwrap();
-    let font = SimplePixelFont::from_vec_u8(buffer);
+let mut file = std::fs::OpenOptions::new()
+    .write(true)
+    .create(true)
+    .open("./utf8ToyFont.spf")
+    .unwrap();
+file.write_all(&font.to_vec_u8()).unwrap();
 ```
+Or we can load an exsisting .spf file using `std::fs` aswell:
+```rs
+let mut file = fs::OpenOptions::new()
+    .read(true)
+    .create(true)
+    .open("./utf8ToyFont.spf")
+    .unwrap();
+let mut buffer: Vec<u8> = vec![];
+file.read(&mut buffer).unwrap();
+let font = SimplePixelFont::from_vec_u8(buffer);
+```
+### Support Format Versions
+| Format Version | Stability |
+| --- | --- |
+| `FV0000` (Vanilla) | ✔ |
