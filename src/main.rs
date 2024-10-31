@@ -1,41 +1,33 @@
-use printer::Printer;
-use spf::FormatVersion::*;
-use spf::*;
+use spf::core::FormatVersion::*;
+use spf::core::*;
+use spf::printer::Printer;
 use std::fs;
 use std::io::{Read, Write};
 use std::vec;
 
 fn main() {
-    let mut characters = Vec::new();
-    characters.push(Character {
-        utf8: 'o',
-        size: 4,
-        bitmap: Bitmap {
-            width: 4,
-            height: 4,
-            data: vec![0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1],
-        },
-    });
-    characters.push(Character {
-        utf8: 'w',
-        size: 5,
-        bitmap: Bitmap {
-            width: 5,
-            height: 4,
-            data: vec![1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
-        },
-    });
-    characters.push(Character {
-        utf8: '😊',
-        size: 4,
-        bitmap: Bitmap {
-            width: 4,
-            height: 4,
-            data: vec![0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0],
-        },
-    });
-
-    let font = SimplePixelFont::new(FV0000, Alignment::Height, 4, characters);
+    let mut font = SimplePixelFont::new(FV0000, Alignment::Height, 4);
+    font.add_character(Character::inferred(
+        'o',
+        Bitmap::inferred(&[
+            true, true, true, true, true, false, false, true, true, false, false, true, true, true,
+            true, true,
+        ]),
+    ));
+    font.add_character(Character::inferred(
+        'w',
+        Bitmap::inferred(&[
+            true, false, true, false, true, true, false, true, false, true, true, false, true,
+            false, true, true, true, true, true, true,
+        ]),
+    ));
+    font.add_character(Character::inferred(
+        '😊',
+        Bitmap::inferred(&[
+            false, true, true, false, false, false, false, false, true, false, false, true, false,
+            true, true, false,
+        ]),
+    ));
 
     let mut file = fs::OpenOptions::new()
         .read(true)

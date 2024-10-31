@@ -20,13 +20,51 @@ pub enum Alignment {
 pub struct Bitmap {
     pub width: u8,
     pub height: u8,
-    pub data: Vec<u8>,
+    pub data: Vec<bool>,
+    inferred: bool,
 }
 
 impl Bitmap {
-    /// Returns the pixel at x, y. (0, 0) being the top-left corner.
-    pub fn get_pixel(&self, x: u8, y: u8) -> u8 {
-        return self.data[(x + y * self.width) as usize];
+    pub fn new(width: u8, height: u8, data: Vec<bool>) -> Self {
+        Self {
+            width: width,
+            height: height,
+            data: data,
+            inferred: false,
+        }
+    }
+    /// Creates an inferred `Bitmap` struct which dimensions are unknown.
+    ///
+    /// This function is provided to make creating bitmaps for character much easier.
+    /// Rather then providing the width and height, this Bitmap will automatically choose
+    /// the right dimensions for the character bitmap depending on the `SimplePixelFont`
+    /// struct `alignment`, and `size` fields. As such it is advised to use only inferred
+    /// `Bitmap`'s when you use the `unchecked_add_character` or `add_character` methods of
+    /// a `SimplePixelFont`
+    ///
+    /// # Example
+    /// ```
+    /// let font = SimplePixelFont::new(FormatVersion::FV0000, Alignment::Height, 4);
+    /// font.unchecked_add_character("o", Bitmap::inferred(&[
+    ///     false, true, true, false,
+    ///     true, false, false, true,
+    ///     true, false, false, true,
+    ///     false, true, true, false
+    /// ]));
+    /// ```
+    pub fn inferred(data: &[bool]) -> Self {
+        Self {
+            width: 0,
+            height: 0,
+            data: data.to_owned(),
+            inferred: true,
+        }
+    }
+    /// Returns a boolean depending if the Bitmap is inferred or not.
+    ///
+    /// Inferred Bitmap's can only be used when creating inferred characters.
+    pub fn is_inferred(&self) -> bool {
+        return self.inferred;
     }
     pub(crate) fn segment_into_u8s(&self) -> Vec<u8> {
         let mut chunks = self.data.chunks(8);
@@ -39,7 +77,7 @@ impl Bitmap {
             let mut byte = byte::Byte { bits: [false; 8] };
             let mut index: usize = 0;
             for pixel in chunk {
-                byte.bits[index] = pixel == &1;
+                byte.bits[index] = *pixel;
                 index += 1;
             }
             for index in 8 - remainder..8 {
@@ -58,6 +96,26 @@ pub struct Character {
     pub size: u8,
     pub bitmap: Bitmap,
 }
+
+impl Character {
+    pub fn new(utf8: char, size: u8, bitmap: Bitmap) -> Self {
+        Self {
+            utf8: utf8,
+            size: size,
+            bitmap: bitmap,
+        }
+    }
+    pub fn inferred(utf8: char, bitmap: Bitmap) -> Self {
+        if bitmap.is_inferred() {
+            return Self {
+                utf8: utf8,
+                size: 0,
+                bitmap: bitmap,
+            };
+        }
+        panic!("Not an inferred bitmap.")
+    }
+}
 /// Main structure that supports encoding and decoding with its defined methods.
 #[derive(Debug)]
 pub struct SimplePixelFont {
@@ -67,22 +125,17 @@ pub struct SimplePixelFont {
     pub characters: Vec<Character>,
 
     #[cfg(feature = "cache")]
-    pub(crate) cache: HashMap<char, usize>,
+    pub cache: HashMap<char, usize>,
 }
 
 impl SimplePixelFont {
-    pub fn new(
-        format_version: FormatVersion,
-        alignment: Alignment,
-        size: u8,
-        characters: Vec<Character>,
-    ) -> Self {
+    pub fn new(format_version: FormatVersion, alignment: Alignment, size: u8) -> Self {
         #[cfg(feature = "cache")]
         return Self {
             version: format_version,
             alignment: alignment,
             size: size,
-            characters: characters,
+            characters: Vec::new(),
             cache: HashMap::new(),
         };
 
@@ -92,6 +145,18 @@ impl SimplePixelFont {
             alignment: alignment,
             size: size,
             characters: characters,
+        }
+    }
+    pub fn add_character(&mut self, character: Character) {
+        if character.bitmap.is_inferred() {
+            if self.alignment == Alignment::Height {
+                let width = (character.bitmap.data.len() as u16 / self.size as u16) as u8;
+                self.characters.push(Character::new(
+                    character.utf8,
+                    width,
+                    Bitmap::new(width, self.size, character.bitmap.data),
+                ));
+            }
         }
     }
     /// Encodes the structure into a `Vec<u8>` that can then be written to a file using `std::fs`
@@ -175,6 +240,7 @@ impl SimplePixelFont {
                 width: 0,
                 height: 0,
                 data: vec![],
+                inferred: false,
             },
         };
 
@@ -258,7 +324,7 @@ impl SimplePixelFont {
                         let mut counter = 0;
                         for bit in current_byte.bits {
                             if !(i == bytes_used - 1 && counter >= 8 - remainder) {
-                                current_character.bitmap.data.push(bit as u8);
+                                current_character.bitmap.data.push(bit);
                             }
                             counter += 1;
                         }
