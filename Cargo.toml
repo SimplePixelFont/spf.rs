@@ -6,6 +6,10 @@ repository = "https://github.com/The-Nice-One/spf.rs"
 license-file = "LICENSE"
 edition = "2021"
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [features]
 default = ["printer"]
 cache = []

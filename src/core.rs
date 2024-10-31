@@ -25,12 +25,34 @@ pub struct Bitmap {
 }
 
 impl Bitmap {
-    pub fn new(width: u8, height: u8, data: Vec<bool>) -> Self {
-        Self {
-            width: width,
-            height: height,
-            data: data,
-            inferred: false,
+    /// Creates a standard non-inferred `Bitmap` struct with all fields.
+    ///
+    /// This function is provided to create a `Bitmap` for characters providing all
+    /// fields; width, height, and data. The `Bitmap` returned will have the inffered
+    /// field set to false and can also be used within the `add_character` method of a
+    /// `SimplePixelFont` struct. Keep in mind that this function requires a `Vec<u8>`
+    /// for the data field instead of a `&[u8]` like the `Bitmap::inferred()` function.
+    ///
+    /// # Example:
+    /// ```
+    /// let bitmap = Bitmap::new(4, 4, vec![
+    ///     0, 0, 0, 0,
+    ///     0, 1, 1, 0,
+    ///     0, 1, 1, 0,
+    ///     0, 0, 0, 0
+    /// ]);
+    ///
+    /// assert_eq!(bitmap.is_inferred(), false);
+    pub fn new(width: u8, height: u8, data: Vec<bool>) -> Result<Self, String> {
+        if width as usize * height as usize == data.len() {
+            return Ok(Self {
+                width: width,
+                height: height,
+                data: data,
+                inferred: false,
+            });
+        } else {
+            return Err("Bitmap width*height does not equal data.len()!".to_string());
         }
     }
     /// Creates an inferred `Bitmap` struct which dimensions are unknown.
@@ -98,11 +120,15 @@ pub struct Character {
 }
 
 impl Character {
-    pub fn new(utf8: char, size: u8, bitmap: Bitmap) -> Self {
-        Self {
-            utf8: utf8,
-            size: size,
-            bitmap: bitmap,
+    pub fn new(utf8: char, size: u8, bitmap: Bitmap) -> Result<Self, String> {
+        if !bitmap.is_inferred() {
+            Ok(Self {
+                utf8: utf8,
+                size: size,
+                bitmap: bitmap,
+            })
+        } else {
+            Err("Bitmap provided is inferred, use Character::inferred() instead!".to_string())
         }
     }
     pub fn inferred(utf8: char, bitmap: Bitmap) -> Self {
@@ -124,11 +150,22 @@ pub struct SimplePixelFont {
     pub size: u8,
     pub characters: Vec<Character>,
 
+    #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
     #[cfg(feature = "cache")]
     pub cache: HashMap<char, usize>,
 }
 
 impl SimplePixelFont {
+    /// Creates a new `SimplePixelFont` struct with the header properties.
+    ///
+    /// This function will return a `SimplePixelFont` struct with its format version,
+    /// character alignment, and size, The struct will have no characters defined, you
+    /// may use the `add_character` method to add characters to the struct.
+    ///
+    /// # Example
+    /// ```
+    /// let font = SimplePixelFont::new(FormatVersion::FV0000, Alignment::Width, 8);
+    /// ```
     pub fn new(format_version: FormatVersion, alignment: Alignment, size: u8) -> Self {
         #[cfg(feature = "cache")]
         return Self {
@@ -147,16 +184,66 @@ impl SimplePixelFont {
             characters: characters,
         }
     }
-    pub fn add_character(&mut self, character: Character) {
+    /// Adds a new character to the `SimplePixelFont` struct.
+    ///
+    /// This method will automatically handle both inffered and non-infferred
+    /// characters and set their appropiate dimensions if possible (for inffered characters).
+    /// If the method fails to add character an error will be returned and character will
+    /// not be added. If `cache` feature is enabled, this method will also add the character
+    /// to the `cache` HashMap field.
+    pub fn add_character(&mut self, character: Character) -> Result<(), String> {
         if character.bitmap.is_inferred() {
             if self.alignment == Alignment::Height {
-                let width = (character.bitmap.data.len() as u16 / self.size as u16) as u8;
-                self.characters.push(Character::new(
-                    character.utf8,
-                    width,
-                    Bitmap::new(width, self.size, character.bitmap.data),
-                ));
+                let remainder = (character.bitmap.data.len() as u16 % self.size as u16) as u8;
+                if remainder == 0 {
+                    let width = (character.bitmap.data.len() as u16 / self.size as u16) as u8;
+                    self.characters.push(
+                        Character::new(
+                            character.utf8,
+                            width,
+                            Bitmap::new(width, self.size, character.bitmap.data).unwrap(),
+                        )
+                        .unwrap(),
+                    );
+                    #[cfg(feature = "cache")]
+                    self.cache.insert(character.utf8, self.characters.len() - 1);
+                    return Ok(());
+                } else {
+                    return Err("Character's bitmap dimensions cannot be inffered.".to_string());
+                }
+            } else {
+                todo!();
+                Ok(())
             }
+        } else {
+            if self.alignment == Alignment::Height {
+                self.characters.push(
+                    Character::new(character.utf8, character.bitmap.width, character.bitmap)
+                        .unwrap(),
+                );
+                #[cfg(feature = "cache")]
+                self.cache.insert(character.utf8, self.characters.len() - 1);
+                return Ok(());
+            } else {
+                todo!();
+                return Ok(());
+            }
+        }
+    }
+    /// This method will update the `cache` field of the `SimplePixelFont`.
+    ///
+    /// To ensure consistency, this method will first clear the entire cache, and then go
+    /// one by one through the characters in order to add them to the cache. This means if
+    /// their is duplicate characters (which their shouldn't) the key will be overidden by
+    /// the last character with that same utf8 `char`.
+    #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
+    #[cfg(feature = "cache")]
+    pub fn update_cache(&mut self) {
+        self.cache.clear();
+        let mut index = 0;
+        for character in self.characters.iter() {
+            self.cache.insert(character.utf8, index);
+            index += 1;
         }
     }
     /// Encodes the structure into a `Vec<u8>` that can then be written to a file using `std::fs`

@@ -52,7 +52,6 @@ Or we can load an exsisting .spf file using `std::fs` aswell:
 ```rs
 let mut file = fs::OpenOptions::new()
     .read(true)
-    .create(true)
     .open("./utf8ToyFont.spf")
     .unwrap();
 let mut buffer: Vec<u8> = vec![];

@@ -1,5 +1,8 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 pub mod core;
 
+#[cfg_attr(docsrs, doc(cfg(feature = "printer")))]
 #[cfg(feature = "printer")]
 pub mod printer;
 
