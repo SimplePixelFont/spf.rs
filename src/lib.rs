@@ -6,6 +6,10 @@ pub mod core;
 #[cfg(feature = "printer")]
 pub mod printer;
 
+#[cfg_attr(docsrs, doc(cfg(feature = "articles")))]
+#[cfg(feature = "articles")]
+pub mod articles;
+
 pub(crate) mod byte;
 
 /// Magic bytes of `*.spf` files

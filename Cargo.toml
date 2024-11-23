@@ -1,6 +1,6 @@
 [package]
 name = "spf"
-version = "0.2.0"
+version = "0.2.1"
 description = ".spf (Simple Pixel Font) file parsing, and useful api's to go alongside."
 repository = "https://github.com/The-Nice-One/spf.rs"
 license-file = "LICENSE"
@@ -11,7 +11,8 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["printer"]
+default = ["printer", "articles"]
+articles = []
 cache = []
 printer = ["cache"]
 
