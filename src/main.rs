@@ -48,4 +48,10 @@ fn main() {
         letter_spacing: 1,
     };
     println!("{:?}", printer.new_text("ow".to_string()));
+    println!(
+        "{:?}",
+        printer
+            .new_text("o".to_string())
+            .flatten_replace(&[vec![0, 0, 0, 0], vec![255, 0, 0, 255]])
+    );
 }

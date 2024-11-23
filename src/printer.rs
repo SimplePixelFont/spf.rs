@@ -169,6 +169,15 @@ impl Surface {
         }
         returner
     }
+    pub fn flatten_replace<T: Copy>(&self, values: &[Vec<T>]) -> Vec<T> {
+        let mut returner: Vec<T> = vec![];
+        for flag in self.data.iter() {
+            for part in values[*flag].iter() {
+                returner.push(*part);
+            }
+        }
+        returner
+    }
 }
 
 /// Printer is a struct for generating `Surface`'s
