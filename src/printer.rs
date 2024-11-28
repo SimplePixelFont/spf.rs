@@ -5,6 +5,7 @@ use super::core::SimplePixelFont;
 ///
 /// # Example
 /// ```
+/// # use spf::printer::Surface;
 /// // Creates a new surface with a height and width of 4.
 /// // The new Surface will have 16 items of 0s in data field.
 /// let surface = Surface::blank(4,4);
@@ -27,13 +28,14 @@ impl Surface {
     ///
     /// # Example
     /// ```
-    /// let surface1 = Surface::new(2, 3, [
+    /// # use spf::printer::Surface;
+    /// let surface1 = Surface::new(2, 3, &[
     ///     0, 0,
     ///     1, 1,
     ///     2, 2
     /// ]);
     ///
-    /// let surface2 = Surface::new(5, 5, [
+    /// let surface2 = Surface::new(5, 5, &[
     ///     5, 5, 5, 5, 5,
     ///     5, 5, 5, 5, 5,
     ///     5, 5, 5, 5, 5,
@@ -57,9 +59,10 @@ impl Surface {
     ///
     /// # Example
     /// ```
+    /// # use spf::printer::Surface;
     /// let surface = Surface::blank(4,2);
     ///
-    /// assert_eq!(surface.data, [
+    /// assert_eq!(surface.data, &[
     ///     0, 0, 0, 0,
     ///     0, 0, 0, 0
     /// ]);
@@ -80,14 +83,15 @@ impl Surface {
     ///
     /// # Example
     /// ```
+    /// # use spf::printer::Surface;
     /// // Creates a new surface
-    /// let surface = Surface::new(2, 2, [
+    /// let surface = Surface::new(2, 2, &[
     ///     0, 1,
     ///     2, 3
     /// ]);
     ///
-    /// assert_eq!(surface.get_point(1,0), 1);
-    /// aseert_eq!(surface.get_point(3,1), None);
+    /// assert_eq!(surface.get_pixel(1,0).unwrap(), 1);
+    /// assert_eq!(surface.get_pixel(3,1).is_none(), true);
     /// ```
     pub fn get_pixel(&self, x: usize, y: usize) -> Option<usize> {
         if self.data.len() >= y * self.width + x {
@@ -105,23 +109,24 @@ impl Surface {
     ///
     /// # Example
     /// ```
+    /// # use spf::printer::Surface;
     /// // Creates a new mutable surface; we will blit onto this surface.
-    /// let mut surface1 = Surface::new(3, 3, [
+    /// let mut surface1 = Surface::new(3, 3, &[
     ///     0, 1, 1,
     ///     1, 1, 1,
     ///     1, 1, 1
     /// ]);
     ///
     /// // Creates another new surface that will be used as the secondary surface.
-    /// let surface2 = Surface::new(2, 2, [
+    /// let surface2 = Surface::new(2, 2, &[
     ///     2, 2,
     ///     2, 3
     /// ]);
     ///
     /// // We blit surface2 onto surface1 starting at (1, 1).
-    /// surface1.append(surface2, 1, 1);
+    /// surface1.append(&surface2, 1, 1);
     ///
-    /// assert_eq!(surface1.data, [
+    /// assert_eq!(surface1.data, &[
     ///    0, 1, 1,
     ///    1, 2, 2,
     ///    1, 2, 3
@@ -158,6 +163,7 @@ impl Surface {
     ///
     /// # Example
     /// ```
+    /// # use spf::printer::Surface;
     /// let surface = Surface::blank(3,1);
     ///
     /// assert_eq!(surface.replace(&['a']), vec!['a', 'a', 'a']);

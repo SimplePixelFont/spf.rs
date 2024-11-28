@@ -35,12 +35,13 @@ impl Bitmap {
     ///
     /// # Example:
     /// ```
+    /// # use spf::core::Bitmap;
     /// let bitmap = Bitmap::new(4, 4, vec![
-    ///     0, 0, 0, 0,
-    ///     0, 1, 1, 0,
-    ///     0, 1, 1, 0,
-    ///     0, 0, 0, 0
-    /// ]);
+    ///     false, false, false, false,
+    ///     false, true, true, false,
+    ///     false, true, true, false,
+    ///     false, false, false, false
+    /// ]).unwrap();
     ///
     /// assert_eq!(bitmap.is_inferred(), false);
     pub fn new(width: u8, height: u8, data: Vec<bool>) -> Result<Self, String> {
@@ -66,13 +67,19 @@ impl Bitmap {
     ///
     /// # Example
     /// ```
-    /// let font = SimplePixelFont::new(FormatVersion::FV0000, Alignment::Height, 4);
-    /// font.unchecked_add_character("o", Bitmap::inferred(&[
+    /// # use spf::core::Bitmap;
+    /// # use spf::core::Alignment;
+    /// # use spf::core::FormatVersion;
+    /// # use spf::core::SimplePixelFont;
+    /// # use spf::core::Character;
+    ///
+    /// let mut font = SimplePixelFont::new(FormatVersion::FV0000, Alignment::Height, 4);
+    /// font.add_character(Character::inferred('o', Bitmap::inferred(&[
     ///     false, true, true, false,
     ///     true, false, false, true,
     ///     true, false, false, true,
     ///     false, true, true, false
-    /// ]));
+    /// ])));
     /// ```
     pub fn inferred(data: &[bool]) -> Self {
         Self {
@@ -164,6 +171,10 @@ impl SimplePixelFont {
     ///
     /// # Example
     /// ```
+    /// # use spf::core::Alignment;
+    /// # use spf::core::FormatVersion;
+    /// # use spf::core::SimplePixelFont;
+    ///
     /// let font = SimplePixelFont::new(FormatVersion::FV0000, Alignment::Width, 8);
     /// ```
     pub fn new(format_version: FormatVersion, alignment: Alignment, size: u8) -> Self {
