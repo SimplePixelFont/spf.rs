@@ -7,9 +7,9 @@
 [![issues - spf.rs](https://img.shields.io/github/issues/The-Nice-One/spf.rs)](https://github.com/The-Nice-One/spf.rs/issues)
 
 A very simple and concrete parser for `*.spf` ([SimplePixelFont](https://github.com/SimplePixelFont)) files for Rust. spf.rs provides
-simple encoding and decoding for `*.spf` binary representation through a `Vec<u8>`. And also
-includes optional features to conveiniently create a texture from a font rendering, which
-can then be used in your favorite game engine / graphics framework.
+simple encoding and decoding for the `*.spf` binary representation through a `Vec<u8>`. And also
+includes optional features to conveniently create a texture from a font rendering, which
+can then be used in your favorite game engine or graphics framework.
 
 ### Example
 Creates a new `SimplePixelFont` struct and adds the characters `o`, `w`, and `😊`.
