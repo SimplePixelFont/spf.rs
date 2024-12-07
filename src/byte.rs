@@ -25,14 +25,3 @@ impl Byte {
         return Self { bits: bits };
     }
 }
-
-pub(crate) fn three_byte_checksum(data: &[u8]) -> [u8; 3] {
-    let mut checksum: u32 = 0;
-    for byte in data {
-        checksum += *byte as u32;
-        checksum = (checksum >> 8) | (checksum << 24);
-    }
-    checksum = checksum & 0xFFFFFF;
-
-    checksum.to_be_bytes()[1..].try_into().unwrap()
-}

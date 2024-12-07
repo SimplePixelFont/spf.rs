@@ -1,4 +1,3 @@
-use spf::core::FormatVersion::*;
 use spf::core::*;
 use spf::printer::Printer;
 use std::fs;
@@ -6,7 +5,27 @@ use std::io::{Read, Write};
 use std::vec;
 
 fn main() {
-    let mut font = SimplePixelFont::new(FV0000, Alignment::Height, 4);
+    let mut font = SimplePixelFont {
+        size: 4,
+        ..Default::default()
+    };
+    font.add_character(Character::inferred(
+        'o',
+        Bitmap::inferred(&[
+            false, true, true, false, true, false, false, true, true, false, false, true, false,
+            true, true, false,
+        ]),
+    ));
+    let mut font = SimplePixelFont::new(
+        ConfigurationFlags {
+            0: ALIGNMENT_HEIGHT,
+            ..Default::default()
+        },
+        ModifierFlags {
+            ..Default::default()
+        },
+        4,
+    );
     font.add_character(Character::inferred(
         'o',
         Bitmap::inferred(&[
@@ -41,7 +60,7 @@ fn main() {
     file.read_to_end(&mut buffer).unwrap();
     file.read(&mut buffer).unwrap();
     println!("{:?}", buffer);
-    let font = SimplePixelFont::from_vec_u8(buffer).unwrap();
+    let font = SimplePixelFont::from_vec_u8(buffer);
     let cache = spf::cache::CharacterCache::from_characters(&font.characters);
     println!("{:?}", font);
     let printer = Printer {

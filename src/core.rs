@@ -1,17 +1,14 @@
 pub(crate) use super::byte;
 pub(crate) use super::MAGIC_BYTES;
 
-/// specifies the .spf file format version
-#[derive(Debug)]
-pub enum FormatVersion {
-    FV0000,
-}
-/// Specifies the default alignment for all characters in a font
-#[derive(PartialEq, Debug)]
-pub enum Alignment {
-    Height,
-    Width,
-}
+#[derive(Debug, Default)]
+pub struct ConfigurationFlags(pub bool, pub bool, pub bool, pub bool);
+#[derive(Debug, Default)]
+pub struct ModifierFlags(pub bool, pub bool, pub bool, pub bool);
+
+pub const ALIGNMENT_WIDTH: bool = false;
+pub const ALIGNMENT_HEIGHT: bool = true;
+
 /// Represents a bitmap for a character in your font.
 /// Note: This is a one dimensional vector, you can use the `get_pixel()` method to get a two dimensional-like interface.
 /// Note: Only the first `width * height` items are used, the rest are ignored when encoding and decoding from/to a `Vec<u8>`
@@ -67,12 +64,16 @@ impl Bitmap {
     /// # Example
     /// ```
     /// # use spf::core::Bitmap;
-    /// # use spf::core::Alignment;
-    /// # use spf::core::FormatVersion;
     /// # use spf::core::SimplePixelFont;
     /// # use spf::core::Character;
+    /// # use spf::core::ConfigurationFlags;
+    /// # use spf::core::ModifierFlags;
     ///
-    /// let mut font = SimplePixelFont::new(FormatVersion::FV0000, Alignment::Height, 4);
+    /// let mut font = SimplePixelFont::new(
+    ///     ConfigurationFlags(true, false, false, false),
+    ///     ModifierFlags(false, false, false, false),
+    ///     4
+    /// );
     /// font.add_character(Character::inferred('o', Bitmap::inferred(&[
     ///     false, true, true, false,
     ///     true, false, false, true,
@@ -149,10 +150,10 @@ impl Character {
     }
 }
 /// Main structure that supports encoding and decoding with its defined methods.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct SimplePixelFont {
-    pub version: FormatVersion,
-    pub alignment: Alignment,
+    pub configurations: ConfigurationFlags,
+    pub modifiers: ModifierFlags,
     pub size: u8,
     pub characters: Vec<Character>,
 }
@@ -166,16 +167,24 @@ impl SimplePixelFont {
     ///
     /// # Example
     /// ```
-    /// # use spf::core::Alignment;
-    /// # use spf::core::FormatVersion;
+    /// # use spf::core::ConfigurationFlags;
+    /// # use spf::core::ModifierFlags;
+    /// # use spf::core::ALIGNMENT_HEIGHT;
     /// # use spf::core::SimplePixelFont;
     ///
-    /// let font = SimplePixelFont::new(FormatVersion::FV0000, Alignment::Width, 8);
+    /// let font = SimplePixelFont::new(
+    ///     ConfigurationFlags{
+    ///         0: ALIGNMENT_HEIGHT,
+    ///         ..Default::default()
+    ///     },
+    ///     ModifierFlags{ ..Default::default() },
+    ///     8
+    /// );
     /// ```
-    pub fn new(format_version: FormatVersion, alignment: Alignment, size: u8) -> Self {
+    pub fn new(configurations: ConfigurationFlags, modifiers: ModifierFlags, size: u8) -> Self {
         return Self {
-            version: format_version,
-            alignment: alignment,
+            configurations: configurations,
+            modifiers: modifiers,
             size: size,
             characters: Vec::new(),
         };
@@ -189,7 +198,7 @@ impl SimplePixelFont {
     /// to the `cache` HashMap field.
     pub fn add_character(&mut self, character: Character) -> Result<(), String> {
         if character.bitmap.is_inferred() {
-            if self.alignment == Alignment::Height {
+            if self.configurations.0 == ALIGNMENT_HEIGHT {
                 let remainder = (character.bitmap.data.len() as u16 % self.size as u16) as u8;
                 if remainder == 0 {
                     let width = (character.bitmap.data.len() as u16 / self.size as u16) as u8;
@@ -209,7 +218,7 @@ impl SimplePixelFont {
                 todo!();
             }
         } else {
-            if self.alignment == Alignment::Height {
+            if self.configurations.0 == ALIGNMENT_HEIGHT {
                 self.characters.push(
                     Character::new(character.utf8, character.bitmap.width, character.bitmap)
                         .unwrap(),
@@ -230,14 +239,14 @@ impl SimplePixelFont {
         buffer.push(
             byte::Byte {
                 bits: [
-                    self.alignment == Alignment::Width,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
+                    self.configurations.0,
+                    self.configurations.1,
+                    self.configurations.2,
+                    self.configurations.3,
+                    self.modifiers.0,
+                    self.modifiers.1,
+                    self.modifiers.2,
+                    self.modifiers.3,
                 ],
             }
             .to_u8(),
@@ -257,40 +266,16 @@ impl SimplePixelFont {
             buffer.push(character.size);
             buffer.append(&mut character.bitmap.segment_into_u8s());
         }
-
-        let checksum = byte::three_byte_checksum(&buffer);
-        buffer.insert(5, checksum[0]);
-        buffer.insert(6, checksum[1]);
-        buffer.insert(7, checksum[2]);
         return buffer;
     }
 
-    /// Decodes a `Vec<u8>` and parses it into a struct, this method will check and make sure checksums are correct.
-    pub fn from_vec_u8(buffer: Vec<u8>) -> Option<Self> {
-        let mut local_buffer = buffer.clone();
-        let mut file_checksum: [u8; 3] = [0, 0, 0];
-        file_checksum[0] = local_buffer.remove(5);
-        file_checksum[1] = local_buffer.remove(5);
-        file_checksum[2] = local_buffer.remove(5);
-
-        let checksum = byte::three_byte_checksum(&local_buffer);
-        if !(file_checksum == checksum) {
-            return None;
-        }
-        return Some(SimplePixelFont::unchecked_from_vec_u8(buffer));
-    }
-
     /// Decodes a `Vec<u8>` and parses it into a struct, this method will ignore the checksum values.
-    pub fn unchecked_from_vec_u8(buffer: Vec<u8>) -> Self {
-        let mut buffer = buffer.clone();
-        buffer.remove(5);
-        buffer.remove(5);
-        buffer.remove(5);
+    pub fn from_vec_u8(buffer: Vec<u8>) -> Self {
         let mut current_index = 0;
         let mut chunks = buffer.iter();
 
-        let mut format_version: FormatVersion = FormatVersion::FV0000;
-        let mut alignment: Alignment = Alignment::Height;
+        let mut configurations: ConfigurationFlags = ConfigurationFlags(false, false, false, false);
+        let mut modifiers: ModifierFlags = ModifierFlags(false, false, false, false);
         let mut size: u8 = 0;
         let mut characters: Vec<Character> = Vec::new();
         let mut character_definition_stage = 0;
@@ -313,14 +298,15 @@ impl SimplePixelFont {
                     panic!("File is not signed")
                 }
             } else if current_index == 3 {
-                if byte::Byte::from_u8(chunk.clone()).bits[0] == false {
-                    alignment = Alignment::Height;
-                } else {
-                    alignment = Alignment::Width;
-                }
-                if byte::Byte::from_u8(chunk.clone()).bits[3..] == [false, false, false, false] {
-                    format_version = FormatVersion::FV0000;
-                }
+                let file_properties = byte::Byte::from_u8(chunk.clone()).bits;
+                configurations.0 = file_properties[0];
+                configurations.1 = file_properties[1];
+                configurations.2 = file_properties[2];
+                configurations.3 = file_properties[3];
+                modifiers.0 = file_properties[4];
+                modifiers.1 = file_properties[5];
+                modifiers.2 = file_properties[6];
+                modifiers.3 = file_properties[7];
             } else if current_index == 4 {
                 size = chunk.clone();
             } else {
@@ -360,7 +346,7 @@ impl SimplePixelFont {
                     current_character.size = chunk.clone();
                     character_definition_stage += 1
                 } else if character_definition_stage == 2 {
-                    if alignment == Alignment::Height {
+                    if configurations.0 == ALIGNMENT_HEIGHT {
                         current_character.bitmap.height = size;
                         current_character.bitmap.width = current_character.size;
                     } else {
@@ -403,8 +389,8 @@ impl SimplePixelFont {
         }
 
         Self {
-            version: format_version,
-            alignment: alignment,
+            configurations: configurations,
+            modifiers: modifiers,
             size: size,
             characters: characters,
         }
