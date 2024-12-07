@@ -17,7 +17,16 @@ Creates a new `SimplePixelFont` struct and adds the characters `o`, `w`, and `�
 use spf::core::*;
 
 fn main() {
-    let mut font = SimplePixelFont::new(FV0000, Alignment::Height, 4);
+    let mut font = SimplePixelFont::new(
+        ConfigurationFlags {
+            0: ALIGNMENT_HEIGHT,
+            ..Default::default()
+        },
+        ModifierFlags {
+            ..Default::default()
+        },
+        4,
+    );
     font.add_character(Character::inferred(
         'o',
         Bitmap::inferred(&[
@@ -66,7 +75,13 @@ let mut buffer: Vec<u8> = vec![];
 file.read_to_end(&mut buffer).unwrap();
 let font = SimplePixelFont::from_vec_u8(buffer);
 ```
-### Support Format Versions
-| Format Version | Stability |
-| --- | --- |
-| `FV0000` (Vanilla) | ✔ |
+### Supported File Properties
+| Flag | Type | Stability | Notes |
+| --- | --- | --- | --- |
+| Alignment | Configuration | ⚠️ | `Only height-aligned fonts are supported` |
+| Compact | Modifier | ❌ | `Planned for v0.4` |
+
+Key:
+- `⚠️` = Work in progress
+- `❌` = Not implemented
+- `✔` = Stable
