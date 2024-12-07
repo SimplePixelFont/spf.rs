@@ -1,6 +1,5 @@
 pub(crate) use super::byte;
 pub(crate) use super::MAGIC_BYTES;
-pub(crate) use std::collections::HashMap;
 
 /// specifies the .spf file format version
 #[derive(Debug)]
@@ -156,10 +155,6 @@ pub struct SimplePixelFont {
     pub alignment: Alignment,
     pub size: u8,
     pub characters: Vec<Character>,
-
-    #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
-    #[cfg(feature = "cache")]
-    pub cache: HashMap<char, usize>,
 }
 
 impl SimplePixelFont {
@@ -178,22 +173,12 @@ impl SimplePixelFont {
     /// let font = SimplePixelFont::new(FormatVersion::FV0000, Alignment::Width, 8);
     /// ```
     pub fn new(format_version: FormatVersion, alignment: Alignment, size: u8) -> Self {
-        #[cfg(feature = "cache")]
         return Self {
             version: format_version,
             alignment: alignment,
             size: size,
             characters: Vec::new(),
-            cache: HashMap::new(),
         };
-
-        #[cfg(not(feature = "cache"))]
-        Self {
-            version: format_version,
-            alignment: alignment,
-            size: size,
-            characters: characters,
-        }
     }
     /// Adds a new character to the `SimplePixelFont` struct.
     ///
@@ -216,15 +201,12 @@ impl SimplePixelFont {
                         )
                         .unwrap(),
                     );
-                    #[cfg(feature = "cache")]
-                    self.cache.insert(character.utf8, self.characters.len() - 1);
                     return Ok(());
                 } else {
                     return Err("Character's bitmap dimensions cannot be inffered.".to_string());
                 }
             } else {
                 todo!();
-                Ok(())
             }
         } else {
             if self.alignment == Alignment::Height {
@@ -232,29 +214,10 @@ impl SimplePixelFont {
                     Character::new(character.utf8, character.bitmap.width, character.bitmap)
                         .unwrap(),
                 );
-                #[cfg(feature = "cache")]
-                self.cache.insert(character.utf8, self.characters.len() - 1);
                 return Ok(());
             } else {
                 todo!();
-                return Ok(());
             }
-        }
-    }
-    /// This method will update the `cache` field of the `SimplePixelFont`.
-    ///
-    /// To ensure consistency, this method will first clear the entire cache, and then go
-    /// one by one through the characters in order to add them to the cache. This means if
-    /// their is duplicate characters (which their shouldn't) the key will be overidden by
-    /// the last character with that same utf8 `char`.
-    #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
-    #[cfg(feature = "cache")]
-    pub fn update_cache(&mut self) {
-        self.cache.clear();
-        let mut index = 0;
-        for character in self.characters.iter() {
-            self.cache.insert(character.utf8, index);
-            index += 1;
         }
     }
     /// Encodes the structure into a `Vec<u8>` that can then be written to a file using `std::fs`
@@ -341,9 +304,6 @@ impl SimplePixelFont {
                 inferred: false,
             },
         };
-
-        #[cfg(feature = "cache")]
-        let mut cache: HashMap<char, usize> = HashMap::new();
 
         let mut iter = chunks.next();
         while !iter.is_none() {
@@ -433,9 +393,6 @@ impl SimplePixelFont {
                         }
                     }
 
-                    #[cfg(feature = "cache")]
-                    cache.insert(current_character.utf8, characters.len());
-
                     characters.push(current_character.clone());
                     current_character.bitmap.data = vec![];
                     character_definition_stage = 0;
@@ -445,16 +402,6 @@ impl SimplePixelFont {
             current_index += 1;
         }
 
-        #[cfg(feature = "cache")]
-        return Self {
-            version: format_version,
-            alignment: alignment,
-            size: size,
-            characters: characters,
-            cache: cache,
-        };
-
-        #[cfg(not(feature = "cache"))]
         Self {
             version: format_version,
             alignment: alignment,

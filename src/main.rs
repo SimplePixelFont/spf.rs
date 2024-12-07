@@ -42,9 +42,11 @@ fn main() {
     file.read(&mut buffer).unwrap();
     println!("{:?}", buffer);
     let font = SimplePixelFont::from_vec_u8(buffer).unwrap();
+    let cache = spf::cache::CharacterCache::from_characters(&font.characters);
     println!("{:?}", font);
     let printer = Printer {
         font: font,
+        character_cache: cache,
         letter_spacing: 1,
     };
     println!("{:?}", printer.new_text("ow".to_string()));

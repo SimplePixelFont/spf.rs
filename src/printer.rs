@@ -1,3 +1,4 @@
+use super::cache::CharacterCache;
 use super::core::Character;
 use super::core::SimplePixelFont;
 
@@ -193,6 +194,7 @@ impl Surface {
 /// how apart each character should be printed from.
 pub struct Printer {
     pub font: SimplePixelFont,
+    pub character_cache: CharacterCache,
     pub letter_spacing: usize,
 }
 
@@ -206,7 +208,7 @@ impl Printer {
         let mut fetched_character: Vec<Character> = vec![];
         let mut width = (characters.len() - 1) * self.letter_spacing;
         characters.iter().for_each(|character| {
-            let fchar = self.font.characters[self.font.cache[character]].clone();
+            let fchar = self.font.characters[self.character_cache.mappings[character]].clone();
             width += fchar.size as usize;
             fetched_character.push(fchar);
         });

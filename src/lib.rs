@@ -2,6 +2,10 @@
 
 pub mod core;
 
+#[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
+#[cfg(feature = "cache")]
+pub mod cache;
+
 #[cfg_attr(docsrs, doc(cfg(feature = "printer")))]
 #[cfg(feature = "printer")]
 pub mod printer;
