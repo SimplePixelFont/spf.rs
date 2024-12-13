@@ -187,6 +187,14 @@ impl Surface {
     }
 }
 
+/// Holds the current data for the processed pixel by the Printer.
+pub struct PixelProcess {
+    pub character: Character,
+    absolute_position: (usize, usize),
+    relative_position: (usize, usize),
+    state: usize,
+}
+
 /// Printer is a struct for generating `Surface`'s
 ///
 /// A `Printer` struct will hold a `SimplePixelFont` struct to decide the font to
@@ -196,14 +204,28 @@ pub struct Printer {
     pub font: SimplePixelFont,
     pub character_cache: CharacterCache,
     pub letter_spacing: usize,
+    pub surface_width: Option<usize>,
+    pub surface_height: Option<usize>,
+    pub word_warp: bool,
 }
 
 impl Printer {
+    pub fn from_font(font: SimplePixelFont) -> Self {
+        let character_cache = CharacterCache::from_characters(&font.characters);
+        Self {
+            font: font,
+            character_cache: character_cache,
+            letter_spacing: 1,
+            surface_width: None,
+            surface_height: None,
+            word_warp: false,
+        }
+    }
     /// Returns a `Surface` from a `String`
     ///
     /// This method will use the characters defined in the `SimplePixelFont` struct
     /// field, and place the bitmaps next to each other in a generated `Surface`
-    pub fn new_text(&self, text: String) -> Surface {
+    pub fn print(&self, text: &'static str) -> Surface {
         let characters: Vec<char> = text.chars().collect();
         let mut fetched_character: Vec<Character> = vec![];
         let mut width = (characters.len() - 1) * self.letter_spacing;
@@ -237,5 +259,13 @@ impl Printer {
             current_x += self.letter_spacing + character.bitmap.width as usize;
         }
         surface
+    }
+
+    pub fn pretty_print(
+        &self,
+        text: &'static str,
+        processor: fn(PixelProcess) -> usize,
+    ) -> Surface {
+        todo!()
     }
 }
