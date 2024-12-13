@@ -1,5 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![doc(html_playground_url = "https://play.rust-lang.org/?version=stable&mode=debug&edition=2021")]
+#![doc(html_playground_url = "https://play.rust-lang.org")]
 
 pub mod core;
 
