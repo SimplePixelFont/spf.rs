@@ -61,7 +61,7 @@ We can then encode the struct and use `std::fs` to write to a file:
 let mut file = std::fs::OpenOptions::new()
     .write(true)
     .create(true)
-    .open("./utf8ToyFont.spf")
+    .open("./sampleToyFont.spf")
     .unwrap();
 file.write_all(&font.to_vec_u8()).unwrap();
 ```
@@ -69,7 +69,7 @@ Or we can load an exsisting .spf file using `std::fs` aswell:
 ```rs
 let mut file = std::fs::OpenOptions::new()
     .read(true)
-    .open("./utf8ToyFont.spf")
+    .open("./sampleToyFont.spf")
     .unwrap();
 let mut buffer: Vec<u8> = vec![];
 file.read_to_end(&mut buffer).unwrap();
