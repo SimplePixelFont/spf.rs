@@ -5,4 +5,4 @@
 /// Guide for integrating spf.rs with Miniquad/Macroquad.
 pub mod miniquad_integration {
     #![doc = include_str!("../res/articles/MiniquadIntegration.md")]
-};
+}
