@@ -185,6 +185,28 @@ impl Surface {
         }
         returner
     }
+    /// # Example
+    ///
+    /// ```rs
+    /// # use spf::printer::Surface;
+    /// let surface = Surface::new(3, 3, &[
+    ///     2, 1, 2,
+    ///     1, 3, 1,
+    ///     4, 2, 1
+    /// ]);
+    ///
+    pub fn flip_vertical(&self) -> Self {
+        let mut returner = self.clone();
+        let mut current_x = 0;
+        let mut current_y = self.height;
+        for data in self.data.iter() {
+            returner.data[(self.height - 1) * self.width];
+        }
+        todo!()
+    }
+    pub fn flip_horizontal(&self) -> Self {
+        todo!()
+    }
 }
 
 /// Holds the current data for the processed pixel by the Printer.
