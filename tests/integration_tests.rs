@@ -6,12 +6,9 @@ use spf::core::*;
 fn write_font_file() -> Result<(), String> {
     let mut font = SimplePixelFont::new(
         ConfigurationFlags {
-            0: ALIGNMENT_HEIGHT,
-            ..Default::default()
+            alignment: ALIGNMENT_HEIGHT,
         },
-        ModifierFlags {
-            ..Default::default()
-        },
+        ModifierFlags { compact: false },
         4,
     );
     font.add_character(Character::inferred(
