@@ -82,10 +82,11 @@ impl Bitmap {
     /// # use spf::core::Character;
     /// # use spf::core::ConfigurationFlags;
     /// # use spf::core::ModifierFlags;
+    /// # use spf::core::ALIGNMENT_HEIGHT;
     ///
     /// let mut font = SimplePixelFont::new(
-    ///     ConfigurationFlags(true, false, false, false),
-    ///     ModifierFlags(false, false, false, false),
+    ///     ConfigurationFlags { alignment: ALIGNMENT_HEIGHT },
+    ///     ModifierFlags { compact: false },
     ///     4
     /// );
     /// font.add_character(Character::inferred('o', Bitmap::inferred(&[
@@ -188,11 +189,8 @@ impl SimplePixelFont {
     /// # use spf::core::SimplePixelFont;
     ///
     /// let font = SimplePixelFont::new(
-    ///     ConfigurationFlags{
-    ///         0: ALIGNMENT_HEIGHT,
-    ///         ..Default::default()
-    ///     },
-    ///     ModifierFlags{ ..Default::default() },
+    ///     ConfigurationFlags { alignment: ALIGNMENT_HEIGHT },
+    ///     ModifierFlags { compact: false },
     ///     8
     /// );
     /// ```
