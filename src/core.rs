@@ -109,14 +109,15 @@ impl Bitmap {
     pub fn is_inferred(&self) -> bool {
         return self.inferred;
     }
-    pub(crate) fn segment_into_u8s(&self) -> Vec<u8> {
+    pub(crate) fn segment_into_u8s(&self) -> (Vec<u8>, usize) {
         let mut chunks = self.data.chunks(8);
         let mut buffer: Vec<u8> = Vec::new();
+        let mut remainder = 0;
 
         let mut iter = chunks.next();
         while !iter.is_none() {
             let chunk = iter.unwrap();
-            let remainder = 8 - chunk.len();
+            remainder = 8 - chunk.len();
             let mut byte = byte::Byte { bits: [false; 8] };
             let mut index: usize = 0;
             for pixel in chunk {
@@ -129,7 +130,7 @@ impl Bitmap {
             buffer.push(byte.to_u8());
             iter = chunks.next();
         }
-        return buffer;
+        return (buffer, remainder);
     }
 }
 /// Represents a charater in the font.
@@ -267,19 +268,29 @@ impl SimplePixelFont {
         );
 
         buffer.push(self.size);
+        let mut body_buffer = byte::ByteStorage::new();
 
         for character in &self.characters {
             let mut char_buffer = [0; 4];
             character.utf8.encode_utf8(&mut char_buffer);
             for byte in char_buffer {
                 if byte != 0 {
-                    buffer.push(byte);
+                    body_buffer.push(byte::Byte::from_u8(byte));
                 }
             }
 
-            buffer.push(character.size);
-            buffer.append(&mut character.bitmap.segment_into_u8s());
+            body_buffer.push(byte::Byte::from_u8(character.size));
+
+            let result = character.bitmap.segment_into_u8s();
+            let character_buffer = result.0;
+            for buffer in character_buffer {
+                body_buffer.push(byte::Byte::from_u8(buffer));
+            }
+            if self.modifiers.compact {
+                body_buffer.pointer = (body_buffer.pointer + result.1) % 8;
+            }
         }
+        buffer.append(&mut body_buffer.to_vec_u8());
         return buffer;
     }
 
