@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Byte {
     pub(crate) bits: [bool; 8],
 }
@@ -50,8 +50,8 @@ impl ByteStorage {
         if self.pointer == 0 || self.pointer == 8 {
             self.bytes.push(byte);
         } else {
-            let left = byte.bits[0..self.pointer + 1].to_vec();
-            let mut new_byte = byte.bits[self.pointer + 1..8].to_vec();
+            let left = byte.bits[0..8 - self.pointer].to_vec();
+            let mut new_byte = byte.bits[8 - self.pointer..8].to_vec();
             let last_index = self.bytes.len() - 1;
 
             let mut index = 0;
@@ -66,11 +66,15 @@ impl ByteStorage {
         }
     }
     pub(crate) fn get(&self, index: usize) -> Byte {
-        let mut left = self.bytes[index].bits[self.pointer + 1..8].to_vec();
-        let mut right = self.bytes[index].bits[0..self.pointer + 1].to_vec();
-        left.append(&mut right);
-        Byte {
-            bits: left.try_into().unwrap(),
+        if self.pointer == 0 || self.pointer == 1 {
+            return self.bytes[index];
+        } else {
+            let mut left = self.bytes[index].bits[self.pointer + 1..8].to_vec();
+            let mut right = self.bytes[index + 1].bits[0..self.pointer + 1].to_vec();
+            left.append(&mut right);
+            Byte {
+                bits: left.try_into().unwrap(),
+            }
         }
     }
 }

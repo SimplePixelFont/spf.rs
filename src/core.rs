@@ -280,12 +280,20 @@ impl SimplePixelFont {
             body_buffer.push(byte::Byte::from_u8(character.size));
 
             let result = character.bitmap.segment_into_u8s();
+            println!(
+                "{:?}: {:?} -{:?}",
+                character.utf8, body_buffer.pointer, result.1
+            );
+
             let character_buffer = result.0;
             for buffer in character_buffer {
                 body_buffer.push(byte::Byte::from_u8(buffer));
             }
+            println!("added {:?}", character.utf8);
+
             if self.modifiers.compact {
-                body_buffer.pointer = (body_buffer.pointer + result.1) % 8;
+                body_buffer.pointer = ((8 - result.1) + body_buffer.pointer) % 8;
+                println!("{:?}", body_buffer.pointer);
             }
         }
         buffer.append(&mut body_buffer.to_vec_u8());
@@ -313,6 +321,7 @@ impl SimplePixelFont {
             },
         };
 
+        let mut body_buffer = byte::ByteStorage::new();
         let mut iter = chunks.next();
         while !iter.is_none() {
             let chunk = iter.unwrap();
@@ -327,83 +336,100 @@ impl SimplePixelFont {
             } else if current_index == 4 {
                 size = chunk.clone();
             } else {
-                if character_definition_stage == 0 {
-                    let utf81 = byte::Byte::from_u8(chunk.clone());
-                    let mut utf8_bytes: [u8; 4] = [0, 0, 0, 0];
-
-                    if utf81.bits[7..] == [false] {
-                        utf8_bytes[0] = utf81.to_u8();
-                    } else if utf81.bits[5..] == [false, true, true, true] {
-                        utf8_bytes[0] = utf81.to_u8();
-                        iter = chunks.next();
-                        utf8_bytes[1] = iter.unwrap().clone();
-                    } else if utf81.bits[4..] == [false, true, true, true] {
-                        utf8_bytes[0] = utf81.to_u8();
-                        iter = chunks.next();
-                        utf8_bytes[1] = iter.unwrap().clone();
-                        iter = chunks.next();
-                        utf8_bytes[2] = iter.unwrap().clone();
-                    } else if utf81.bits[3..] == [false, true, true, true, true] {
-                        utf8_bytes[0] = utf81.to_u8();
-                        iter = chunks.next();
-                        utf8_bytes[1] = iter.unwrap().clone();
-                        iter = chunks.next();
-                        utf8_bytes[2] = iter.unwrap().clone();
-                        iter = chunks.next();
-                        utf8_bytes[3] = iter.unwrap().clone();
-                    }
-
-                    current_character.utf8 = String::from_utf8(utf8_bytes.to_vec())
-                        .unwrap()
-                        .chars()
-                        .next()
-                        .unwrap();
-                    character_definition_stage += 1;
-                } else if character_definition_stage == 1 {
-                    current_character.size = chunk.clone();
-                    character_definition_stage += 1
-                } else if character_definition_stage == 2 {
-                    if configurations.alignment == ALIGNMENT_HEIGHT {
-                        current_character.bitmap.height = size;
-                        current_character.bitmap.width = current_character.size;
-                    } else {
-                        current_character.bitmap.height = current_character.size;
-                        current_character.bitmap.width = size;
-                    }
-
-                    let bytes_used = (((current_character.bitmap.height as f32
-                        * current_character.bitmap.width as f32)
-                        as f32
-                        / 8.0) as f32)
-                        .ceil() as u8;
-
-                    let remainder = bytes_used as i32 * 8 as i32
-                        - (current_character.bitmap.height * current_character.bitmap.width) as i32;
-
-                    let mut current_byte = byte::Byte::from_u8(iter.unwrap().clone());
-                    for i in 0..bytes_used {
-                        let mut counter = 0;
-                        for bit in current_byte.bits {
-                            if !(i == bytes_used - 1 && counter >= 8 - remainder) {
-                                current_character.bitmap.data.push(bit);
-                            }
-                            counter += 1;
-                        }
-
-                        if i != bytes_used - 1 {
-                            iter = chunks.next();
-                            current_byte = byte::Byte::from_u8(iter.unwrap().clone());
-                        }
-                    }
-
-                    characters.push(current_character.clone());
-                    current_character.bitmap.data = vec![];
-                    character_definition_stage = 0;
-                }
+                body_buffer.push(byte::Byte::from_u8(chunk.clone()));
             }
             iter = chunks.next();
             current_index += 1;
         }
+
+        current_index = 0;
+        let length = body_buffer.bytes.len();
+        while current_index < length {
+            if character_definition_stage == 0 {
+                let utf81 = body_buffer.get(current_index);
+                let mut utf8_bytes: [u8; 4] = [0, 0, 0, 0];
+
+                if utf81.bits[7..] == [false] {
+                    utf8_bytes[0] = utf81.to_u8();
+                } else if utf81.bits[5..] == [false, true, true, true] {
+                    utf8_bytes[0] = utf81.to_u8();
+                    current_index += 1;
+                    utf8_bytes[1] = body_buffer.get(current_index).to_u8();
+                } else if utf81.bits[4..] == [false, true, true, true] {
+                    utf8_bytes[0] = utf81.to_u8();
+                    current_index += 1;
+                    utf8_bytes[1] = body_buffer.get(current_index).to_u8();
+                    current_index += 1;
+                    utf8_bytes[2] = body_buffer.get(current_index).to_u8();
+                } else if utf81.bits[3..] == [false, true, true, true, true] {
+                    utf8_bytes[0] = utf81.to_u8();
+                    current_index += 1;
+                    utf8_bytes[1] = body_buffer.get(current_index).to_u8();
+                    current_index += 1;
+                    utf8_bytes[2] = body_buffer.get(current_index).to_u8();
+                    current_index += 1;
+                    utf8_bytes[3] = body_buffer.get(current_index).to_u8();
+                }
+
+                current_character.utf8 = String::from_utf8(utf8_bytes.to_vec())
+                    .unwrap()
+                    .chars()
+                    .next()
+                    .unwrap();
+                current_index += 1;
+                character_definition_stage += 1;
+            }
+            if character_definition_stage == 1 {
+                current_character.size = body_buffer.bytes[current_index].to_u8();
+                current_index += 1;
+                character_definition_stage += 1
+            }
+            if character_definition_stage == 2 {
+                if configurations.alignment == ALIGNMENT_HEIGHT {
+                    current_character.bitmap.height = size;
+                    current_character.bitmap.width = current_character.size;
+                } else {
+                    current_character.bitmap.height = current_character.size;
+                    current_character.bitmap.width = size;
+                }
+
+                let bytes_used = (((current_character.bitmap.height as f32
+                    * current_character.bitmap.width as f32)
+                    as f32
+                    / 8.0) as f32)
+                    .ceil() as u8;
+
+                let remainder = bytes_used as i32 * 8 as i32
+                    - (current_character.bitmap.height * current_character.bitmap.width) as i32;
+
+                let mut current_byte = body_buffer.get(current_index);
+                for i in 0..bytes_used {
+                    let mut counter = 0;
+                    for bit in current_byte.bits {
+                        if !(i == bytes_used - 1 && counter >= 8 - remainder) {
+                            current_character.bitmap.data.push(bit);
+                        }
+                        counter += 1;
+                    }
+
+                    if i != bytes_used - 1 {
+                        current_index += 1;
+                        current_byte = body_buffer.get(current_index);
+                    }
+                }
+                if modifiers.compact {
+                    body_buffer.pointer = ((8 - remainder) as usize + body_buffer.pointer) % 8;
+                    println!("{:?}", body_buffer.pointer);
+                }
+                println!("{:?}", current_character);
+                characters.push(current_character.clone());
+                current_index += 1;
+                current_character.bitmap.data = vec![];
+                character_definition_stage = 0;
+            }
+        }
+
+        println!("{:?}", body_buffer);
 
         Self {
             configurations: configurations,
