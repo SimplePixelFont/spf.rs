@@ -174,6 +174,9 @@ pub struct SimplePixelFont {
     pub characters: Vec<Character>,
 }
 
+use std::io::{self, Write};
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+
 impl SimplePixelFont {
     /// Creates a new `SimplePixelFont` struct with the header properties.
     ///
@@ -248,6 +251,20 @@ impl SimplePixelFont {
         buffer.push(byte::Byte::from_u8(102));
         buffer.push(byte::Byte::from_u8(115));
         buffer.push(byte::Byte::from_u8(70));
+
+        let mut stdout = StandardStream::stdout(ColorChoice::Always);
+        stdout
+            .set_color(ColorSpec::new().set_fg(Some(Color::Blue)))
+            .unwrap();
+        write!(&mut stdout, "[ Info: ");
+        stdout.reset().unwrap();
+        writeln!(&mut stdout, "Signed font data vector.");
+
+        let string = " ok ok";
+
+        let string2: Vec<&str> = string.split("\n").collect();
+        println!("{:?}", string2);
+
         let mut saved_space = 0;
 
         buffer.push(byte::Byte {
@@ -264,33 +281,126 @@ impl SimplePixelFont {
         });
 
         buffer.push(byte::Byte::from_u8(self.size));
-
+        let mut last_write = 0;
         for character in &self.characters {
             let mut char_buffer = [0; 4];
+            let mut utf8_bit_string = String::new();
             character.utf8.encode_utf8(&mut char_buffer);
             for byte in char_buffer {
                 if byte != 0 {
+                    byte::Byte::from_u8(byte).bits.iter().for_each(|x| {
+                        if x.to_owned() {
+                            utf8_bit_string.push('1');
+                        } else {
+                            utf8_bit_string.push('0');
+                        }
+                    });
+
                     buffer.push(byte::Byte::from_u8(byte));
                 }
             }
 
             buffer.push(byte::Byte::from_u8(character.size));
+            let mut size_bit_string = String::new();
+
+            byte::Byte::from_u8(character.size)
+                .bits
+                .iter()
+                .for_each(|x| {
+                    if x.to_owned() {
+                        size_bit_string.push('1');
+                    } else {
+                        size_bit_string.push('0');
+                    }
+                });
 
             let result = character.bitmap.segment_into_u8s();
-            println!("{:?}: {:?} -{:?}", character.utf8, buffer.pointer, result.1);
+            //println!("{:?}: {:?} -{:?}", character.utf8, buffer.pointer, result.1);
 
+            let mut bits = vec![];
             let character_bytes = result.0;
             for byte in character_bytes {
+                bits.append(&mut byte::Byte::from_u8(byte).bits.to_vec());
                 buffer.push(byte::Byte::from_u8(byte));
             }
-            println!("added {:?}", character.utf8);
+            let test = vec![0..4, 0..2];
 
+            let mut bbits = vec![];
+            for bit in bits {
+                if bit {
+                    bbits.push(1);
+                } else {
+                    bbits.push(0);
+                }
+            }
+
+            stdout
+                .set_color(ColorSpec::new().set_fg(Some(Color::Blue)))
+                .unwrap();
+            write!(&mut stdout, "[ Info: ");
+            stdout.reset().unwrap();
+
+            write!(
+                &mut stdout,
+                "Added {:?} with dimensions {:?}x{:?} and the following bits: ",
+                character.utf8, character.bitmap.width, character.bitmap.height
+            );
+
+            stdout
+                .set_color(ColorSpec::new().set_fg(Some(Color::Green)))
+                .unwrap();
+
+            write!(&mut stdout, "{} {} ", utf8_bit_string, size_bit_string);
+
+            let mut index = 0;
+            let green = bbits.len() - result.1;
+            for i in 0..green {
+                write!(&mut stdout, "{}", bbits[i]);
+                index += 1;
+                if index == 8 {
+                    write!(&mut stdout, " ");
+                    index = 0;
+                }
+            }
+
+            stdout.reset().unwrap();
+            stdout
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)))
+                .unwrap();
+            for _ in 0..result.1 {
+                write!(&mut stdout, "0");
+            }
+            stdout.reset().unwrap();
+            writeln!(&mut stdout, "");
             if self.modifiers.compact {
                 saved_space += result.1 as i32;
+                if buffer.pointer != 0 {
+                    if buffer.pointer + (8 - result.1) <= 8 {
+                        buffer.bytes.remove(buffer.bytes.len() - 1);
+                    }
+                }
                 buffer.pointer = ((8 - result.1) + buffer.pointer) % 8;
-                println!("{:?}", buffer.pointer);
+                //println!("{:?}", buffer.pointer);
             }
+            let mut endbuffer = vec![];
+            for byte in buffer.bytes.clone() {
+                for bit in byte.bits {
+                    endbuffer.push(bit as u8);
+                }
+            }
+
+            let mut index = 0;
+            for bit in endbuffer {
+                write!(&mut stdout, "{}", bit);
+                index += 1;
+                if index == 8 {
+                    write!(&mut stdout, " ");
+                    index = 0;
+                }
+            }
+            writeln!(&mut stdout, "\n\n\n");
         }
+
         println!("{:?}", saved_space);
 
         return buffer.to_vec_u8();

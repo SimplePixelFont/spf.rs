@@ -52,6 +52,7 @@ impl ByteStorage {
     //              0 0 0 0 0 0 0 0
     //              (   left  ) (right)
     pub(crate) fn push(&mut self, byte: Byte) {
+        println!("{:?}", byte);
         if self.pointer == 0 {
             self.bytes.push(byte);
         } else {
@@ -73,6 +74,30 @@ impl ByteStorage {
             });
         }
     }
+    pub(crate) fn incomplete_push(&mut self, byte: Byte, remainder: usize) {
+        println!("{:?}", byte);
+        if self.pointer == 0 {
+            self.bytes.push(byte);
+        } else {
+            let left = byte.bits[0..8 - self.pointer].to_vec();
+            let mut new_byte = byte.bits[8 - self.pointer..8].to_vec();
+            let last_index = self.bytes.len() - 1;
+
+            let mut index = 0;
+            for bit in left {
+                self.bytes[last_index].bits[self.pointer + index] = bit;
+                index += 1;
+            }
+
+            for _ in 0..8 - new_byte.len() {
+                new_byte.push(false);
+            }
+            self.bytes.push(Byte {
+                bits: new_byte.try_into().unwrap(),
+            });
+        }
+    }
+
     pub(crate) fn get(&self, index: usize) -> Byte {
         if self.pointer == 0 || self.pointer == 1 {
             return self.bytes[index];
