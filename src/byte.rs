@@ -46,8 +46,13 @@ impl ByteStorage {
         }
         return buffer;
     }
+    // Dev Comment: 0 0 0 0 0 0 0 0
+    //       Index: 0 1 2 3 4 5 6 7
+    // Ex write with pointer = 2:
+    //              0 0 0 0 0 0 0 0
+    //              (   left  ) (right)
     pub(crate) fn push(&mut self, byte: Byte) {
-        if self.pointer == 0 || self.pointer == 8 {
+        if self.pointer == 0 {
             self.bytes.push(byte);
         } else {
             let left = byte.bits[0..8 - self.pointer].to_vec();
@@ -63,6 +68,9 @@ impl ByteStorage {
             for _ in 0..8 - new_byte.len() {
                 new_byte.push(false);
             }
+            self.bytes.push(Byte {
+                bits: new_byte.try_into().unwrap(),
+            });
         }
     }
     pub(crate) fn get(&self, index: usize) -> Byte {

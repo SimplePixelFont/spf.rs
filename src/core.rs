@@ -244,60 +244,56 @@ impl SimplePixelFont {
     }
     /// Encodes the structure into a `Vec<u8>` that can then be written to a file using `std::fs`
     pub fn to_vec_u8(&self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::new();
-        buffer.push(102);
-        buffer.push(115);
-        buffer.push(70);
+        let mut buffer = byte::ByteStorage::new();
+        buffer.push(byte::Byte::from_u8(102));
+        buffer.push(byte::Byte::from_u8(115));
+        buffer.push(byte::Byte::from_u8(70));
+        let mut saved_space = 0;
 
-        buffer.push(
-            byte::Byte {
-                bits: [
-                    self.configurations.alignment,
-                    false,
-                    false,
-                    false,
-                    self.modifiers.compact,
-                    false,
-                    false,
-                    false,
-                ],
-            }
-            .to_u8(),
-        );
+        buffer.push(byte::Byte {
+            bits: [
+                self.configurations.alignment,
+                false,
+                false,
+                false,
+                self.modifiers.compact,
+                false,
+                false,
+                false,
+            ],
+        });
 
-        buffer.push(self.size);
-        let mut body_buffer = byte::ByteStorage::new();
+        buffer.push(byte::Byte::from_u8(self.size));
 
         for character in &self.characters {
             let mut char_buffer = [0; 4];
             character.utf8.encode_utf8(&mut char_buffer);
             for byte in char_buffer {
                 if byte != 0 {
-                    body_buffer.push(byte::Byte::from_u8(byte));
+                    buffer.push(byte::Byte::from_u8(byte));
                 }
             }
 
-            body_buffer.push(byte::Byte::from_u8(character.size));
+            buffer.push(byte::Byte::from_u8(character.size));
 
             let result = character.bitmap.segment_into_u8s();
-            println!(
-                "{:?}: {:?} -{:?}",
-                character.utf8, body_buffer.pointer, result.1
-            );
+            println!("{:?}: {:?} -{:?}", character.utf8, buffer.pointer, result.1);
 
-            let character_buffer = result.0;
-            for buffer in character_buffer {
-                body_buffer.push(byte::Byte::from_u8(buffer));
+            let character_bytes = result.0;
+            for byte in character_bytes {
+                buffer.push(byte::Byte::from_u8(byte));
             }
             println!("added {:?}", character.utf8);
 
             if self.modifiers.compact {
-                body_buffer.pointer = ((8 - result.1) + body_buffer.pointer) % 8;
-                println!("{:?}", body_buffer.pointer);
+                saved_space += result.1 as i32;
+                buffer.pointer = ((8 - result.1) + buffer.pointer) % 8;
+                println!("{:?}", buffer.pointer);
             }
         }
-        buffer.append(&mut body_buffer.to_vec_u8());
-        return buffer;
+        println!("{:?}", saved_space);
+
+        return buffer.to_vec_u8();
     }
 
     /// Decodes a `Vec<u8>` and parses it into a struct, this method will ignore the checksum values.
