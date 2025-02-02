@@ -438,7 +438,7 @@ impl SimplePixelFont {
 
         current_index = 0;
         let length = body_buffer.bytes.len();
-        while current_index < length {
+        while current_index < length - 1 {
             if character_definition_stage == 0 {
                 let utf81 = body_buffer.get(current_index);
                 let mut utf8_bytes: [u8; 4] = [0, 0, 0, 0];
@@ -474,7 +474,7 @@ impl SimplePixelFont {
                 character_definition_stage += 1;
             }
             if character_definition_stage == 1 {
-                current_character.size = body_buffer.bytes[current_index].to_u8();
+                current_character.size = body_buffer.get(current_index).to_u8();
                 current_index += 1;
                 character_definition_stage += 1
             }
@@ -493,8 +493,9 @@ impl SimplePixelFont {
                     / 8.0) as f32)
                     .ceil() as u8;
 
-                let remainder = bytes_used as i32 * 8 as i32
-                    - (current_character.bitmap.height * current_character.bitmap.width) as i32;
+                let remainder = bytes_used as usize * 8 as usize
+                    - (current_character.bitmap.height as usize
+                        * current_character.bitmap.width as usize);
 
                 let mut current_byte = body_buffer.get(current_index);
                 for i in 0..bytes_used {
@@ -506,18 +507,34 @@ impl SimplePixelFont {
                         counter += 1;
                     }
 
-                    if i != bytes_used - 1 {
+                    if i < bytes_used - 1 {
                         current_index += 1;
                         current_byte = body_buffer.get(current_index);
                     }
                 }
-                if modifiers.compact {
-                    body_buffer.pointer = ((8 - remainder) as usize + body_buffer.pointer) % 8;
-                    println!("{:?}", body_buffer.pointer);
-                }
+
                 println!("{:?}", current_character);
                 characters.push(current_character.clone());
                 current_index += 1;
+
+                // if !(modifiers.compact && remainder != 0) {
+                //     current_index += 1;
+                // }
+                // if (8 - remainder) as usize + body_buffer.pointer > 8 && modifiers.compact {
+                //     current_index += 1;
+                // }
+                //
+                if modifiers.compact {
+                    if body_buffer.pointer + (8 - remainder) < 8 {
+                        current_index -= 1;
+                    }
+                    body_buffer.pointer = ((8 - remainder) as usize + body_buffer.pointer) % 8;
+                    println!(
+                        "-{:?}, {:?} and now {:?}",
+                        remainder, body_buffer.pointer, current_index
+                    );
+                }
+
                 current_character.bitmap.data = vec![];
                 character_definition_stage = 0;
             }

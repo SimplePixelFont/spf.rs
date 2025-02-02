@@ -2,8 +2,8 @@ pub(crate) use super::byte;
 
 pub(crate) fn sign_buffer(buffer: &mut byte::ByteStorage) -> &mut byte::ByteStorage {
     buffer.bytes.insert(0, byte::Byte::from_u8(70));
-    buffer.bytes.insert(1, byte::Byte::from_u8(115));
-    buffer.bytes.insert(2, byte::Byte::from_u8(102));
+    buffer.bytes.insert(0, byte::Byte::from_u8(115));
+    buffer.bytes.insert(0, byte::Byte::from_u8(102));
     buffer
 
     // stdout

@@ -79,7 +79,7 @@ let font = SimplePixelFont::from_vec_u8(buffer);
 | Flag | Type | Stability | Notes |
 | --- | --- | --- | --- |
 | Alignment | Configuration | ⚠️ | `Only height-aligned fonts are supported` |
-| Compact | Modifier | ❌ | `Planned for v0.4` |
+| Compact | Modifier | ✔ | `Planned for v0.4` |
 
 Key:
 - `⚠️` = Work in progress

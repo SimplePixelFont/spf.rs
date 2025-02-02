@@ -5,3 +5,7 @@ pub(crate) struct Logger {
 impl Logger {
     pub(crate) fn flush_info(&mut self) {}
 }
+
+trait SPFDebug {
+    fn as_string(&self) -> String;
+}

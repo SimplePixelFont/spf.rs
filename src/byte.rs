@@ -99,11 +99,19 @@ impl ByteStorage {
     }
 
     pub(crate) fn get(&self, index: usize) -> Byte {
-        if self.pointer == 0 || self.pointer == 1 {
+        if self.pointer == 0 {
             return self.bytes[index];
         } else {
-            let mut left = self.bytes[index].bits[self.pointer + 1..8].to_vec();
-            let mut right = self.bytes[index + 1].bits[0..self.pointer + 1].to_vec();
+            let mut left = self.bytes[index].bits[self.pointer..8].to_vec();
+            let mut right = vec![];
+            if index < self.bytes.len() - 1 {
+                right = self.bytes[index + 1].bits[0..self.pointer].to_vec();
+            } else {
+                for _ in 0..self.pointer {
+                    right.push(false);
+                }
+            }
+
             left.append(&mut right);
             Byte {
                 bits: left.try_into().unwrap(),
