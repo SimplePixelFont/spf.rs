@@ -80,7 +80,6 @@ impl ByteStorage {
             self.bytes.push(byte);
         } else {
             let left = byte.bits[0..8 - self.pointer].to_vec();
-            let mut new_byte = byte.bits[8 - self.pointer..8].to_vec();
             let last_index = self.bytes.len() - 1;
 
             let mut index = 0;
@@ -89,12 +88,15 @@ impl ByteStorage {
                 index += 1;
             }
 
-            for _ in 0..8 - new_byte.len() {
-                new_byte.push(false);
+            if self.pointer + (8 - remainder) > 8 {
+                let mut new_byte = byte.bits[8 - self.pointer..8].to_vec();
+                for _ in 0..8 - new_byte.len() {
+                    new_byte.push(false);
+                }
+                self.bytes.push(Byte {
+                    bits: new_byte.try_into().unwrap(),
+                });
             }
-            self.bytes.push(Byte {
-                bits: new_byte.try_into().unwrap(),
-            });
         }
     }
 

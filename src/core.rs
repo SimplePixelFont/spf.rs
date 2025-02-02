@@ -315,13 +315,19 @@ impl SimplePixelFont {
                 });
 
             let result = character.bitmap.segment_into_u8s();
-            //println!("{:?}: {:?} -{:?}", character.utf8, buffer.pointer, result.1);
 
             let mut bits = vec![];
             let character_bytes = result.0;
+            let used_bytes = character_bytes.len();
+            let mut index = 0;
             for byte in character_bytes {
                 bits.append(&mut byte::Byte::from_u8(byte).bits.to_vec());
-                buffer.push(byte::Byte::from_u8(byte));
+                if self.modifiers.compact && index == used_bytes - 1 {
+                    buffer.incomplete_push(byte::Byte::from_u8(byte), result.1);
+                } else {
+                    buffer.push(byte::Byte::from_u8(byte));
+                }
+                index += 1;
             }
             let test = vec![0..4, 0..2];
 
@@ -374,13 +380,7 @@ impl SimplePixelFont {
             writeln!(&mut stdout, "");
             if self.modifiers.compact {
                 saved_space += result.1 as i32;
-                if buffer.pointer != 0 {
-                    if buffer.pointer + (8 - result.1) <= 8 {
-                        buffer.bytes.remove(buffer.bytes.len() - 1);
-                    }
-                }
                 buffer.pointer = ((8 - result.1) + buffer.pointer) % 8;
-                //println!("{:?}", buffer.pointer);
             }
             let mut endbuffer = vec![];
             for byte in buffer.bytes.clone() {
