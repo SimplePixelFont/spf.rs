@@ -1,4 +1,5 @@
 pub(crate) use super::byte;
+pub(crate) use super::common;
 pub(crate) use super::MAGIC_BYTES;
 
 #[derive(Debug, Default)]
@@ -248,22 +249,9 @@ impl SimplePixelFont {
     /// Encodes the structure into a `Vec<u8>` that can then be written to a file using `std::fs`
     pub fn to_vec_u8(&self) -> Vec<u8> {
         let mut buffer = byte::ByteStorage::new();
-        buffer.push(byte::Byte::from_u8(102));
-        buffer.push(byte::Byte::from_u8(115));
-        buffer.push(byte::Byte::from_u8(70));
+        common::sign_buffer(&mut buffer);
 
         let mut stdout = StandardStream::stdout(ColorChoice::Always);
-        stdout
-            .set_color(ColorSpec::new().set_fg(Some(Color::Blue)))
-            .unwrap();
-        write!(&mut stdout, "[ Info: ");
-        stdout.reset().unwrap();
-        writeln!(&mut stdout, "Signed font data vector.");
-
-        let string = " ok ok";
-
-        let string2: Vec<&str> = string.split("\n").collect();
-        println!("{:?}", string2);
 
         let mut saved_space = 0;
 

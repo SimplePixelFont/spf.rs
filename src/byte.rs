@@ -52,7 +52,6 @@ impl ByteStorage {
     //              0 0 0 0 0 0 0 0
     //              (   left  ) (right)
     pub(crate) fn push(&mut self, byte: Byte) {
-        println!("{:?}", byte);
         if self.pointer == 0 {
             self.bytes.push(byte);
         } else {
@@ -75,7 +74,6 @@ impl ByteStorage {
         }
     }
     pub(crate) fn incomplete_push(&mut self, byte: Byte, remainder: usize) {
-        println!("{:?}", byte);
         if self.pointer == 0 {
             self.bytes.push(byte);
         } else {

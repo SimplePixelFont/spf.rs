@@ -2,6 +2,8 @@
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![doc(html_logo_url = "https://github.com/The-Nice-One/spf.rs/blob/main/res/spf.rs.png")]
 
+#[cfg_attr(docsrs, doc(cfg(feature = "core")))]
+#[cfg(feature = "core")]
 pub mod core;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
@@ -17,6 +19,7 @@ pub mod printer;
 pub mod articles;
 
 pub(crate) mod byte;
+pub(crate) mod common;
 
 /// Magic bytes of `*.spf` files
 ///
