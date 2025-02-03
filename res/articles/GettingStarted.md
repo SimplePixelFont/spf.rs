@@ -1,6 +1,6 @@
 # Getting Started
 ### Synopsis
-`spf.rs` brings the world of SimplePixelFont(s) into rust. It provides a low-level interface to the binary representation of `.spf` files via the `core` module. And includes helpful and powerful optional modules that allow integration to be faster for your projects.
+`spf.rs` brings the world of SimplePixelFont(s) into the programming realm. Written in the Rust programming language, spf.rs aims to be effective and simple to use, providing a native crate api for Rust and also an FFI compatible with C-like languages and C-interopable languages. It provides a low-level interface to the binary representation of `.spf` files via the `core` module. And includes helpful and powerful optional modules that allow integration to be faster for your projects.
 ### Resources
 It is important that before you begin you have a general understanding of the Rust programming languages and that you understand at the bare-minimum how .spf files are structured. This guide will explain the structural representation of .spf files in Rust, which is equivalent to the binary structure, so you should be able to follow along eitherways.
 ### The `spf::core` module

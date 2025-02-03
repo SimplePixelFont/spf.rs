@@ -18,3 +18,22 @@ pub(crate) fn sign_buffer(buffer: &mut byte::ByteStorage) -> &mut byte::ByteStor
     // let string2: Vec<&str> = string.split("\n").collect();
     // println!("{:?}", string2);
 }
+
+// HeaderProperties?
+SimplePixelFont {
+    Header {
+        flags: [8, u8],
+        Properties {
+            constantSize: u8,
+        }
+    },
+    Body {
+        characters: Vec<Character {
+            utf8: char,
+            customSize: u8,
+            data: Vec<u8>
+        }>
+    }
+}
+
+pub(crate) fn push_header(buffer: &mut byte::ByteStorage, flags: [8: bool]) -> byte::ByteStorage {}
