@@ -12,6 +12,10 @@ use spf::core::*;
 ...
 fn main() {
     ...
+    let font = Font::new()
+       .set_alignment(ALIGNMENT_HEIGHT)
+       .set_compact(true)
+       .set_max_flags(u8::MAX);
     let font = SimplePixelFont::new(
         ConfigurationFlags {
             0: ALIGNMENT_HEIGHT // Our characters in our font will be aligned by height, and thus will have the same height.
