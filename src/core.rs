@@ -31,7 +31,7 @@ pub const ALIGNMENT_HEIGHT: bool = true;
 pub struct Bitmap {
     pub width: u8,
     pub height: u8,
-    pub data: Vec<bool>,
+    pub data: Vec<u8>,
     inferred: bool,
 }
 
@@ -48,14 +48,14 @@ impl Bitmap {
     /// ```
     /// # use spf::core::Bitmap;
     /// let bitmap = Bitmap::new(4, 4, vec![
-    ///     false, false, false, false,
-    ///     false, true, true, false,
-    ///     false, true, true, false,
-    ///     false, false, false, false
+    ///     0, 0, 0, 0,
+    ///     0, 1, 1, 0,
+    ///     0, 1, 1, 0,
+    ///     0, 0, 0, 0
     /// ]).unwrap();
     ///
     /// assert_eq!(bitmap.is_inferred(), false);
-    pub fn new(width: u8, height: u8, data: Vec<bool>) -> Result<Self, String> {
+    pub fn new(width: u8, height: u8, data: Vec<u8>) -> Result<Self, String> {
         if width as usize * height as usize == data.len() {
             return Ok(Self {
                 width: width,
@@ -91,13 +91,13 @@ impl Bitmap {
     ///     4
     /// );
     /// font.add_character(Character::inferred('o', Bitmap::inferred(&[
-    ///     false, true, true, false,
-    ///     true, false, false, true,
-    ///     true, false, false, true,
-    ///     false, true, true, false
+    ///     0, 1, 1, 0,
+    ///     1, 0, 0, 1,
+    ///     1, 0, 0, 1,
+    ///     0, 1, 1, 0
     /// ])));
     /// ```
-    pub fn inferred(data: &[bool]) -> Self {
+    pub fn inferred(data: &[u8]) -> Self {
         Self {
             width: 0,
             height: 0,
@@ -123,7 +123,7 @@ impl Bitmap {
             let mut byte = byte::Byte { bits: [false; 8] };
             let mut index: usize = 0;
             for pixel in chunk {
-                byte.bits[index] = *pixel;
+                byte.bits[index] = *pixel == 1; // will need to be changed later
                 index += 1;
             }
             for index in 8 - remainder..8 {
@@ -502,7 +502,7 @@ impl SimplePixelFont {
                     let mut counter = 0;
                     for bit in current_byte.bits {
                         if !(i == bytes_used - 1 && counter >= 8 - remainder) {
-                            current_character.bitmap.data.push(bit);
+                            current_character.bitmap.data.push(bit as u8);
                         }
                         counter += 1;
                     }

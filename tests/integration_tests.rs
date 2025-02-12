@@ -13,24 +13,15 @@ fn write_font_file() -> Result<(), String> {
     );
     font.add_character(Character::inferred(
         'o',
-        Bitmap::inferred(&[
-            true, true, true, true, true, false, false, true, true, false, false, true, true, true,
-            true, true,
-        ]),
+        Bitmap::inferred(&[1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1]),
     ))?;
     font.add_character(Character::inferred(
         'w',
-        Bitmap::inferred(&[
-            true, false, true, false, true, true, false, true, false, true, true, false, true,
-            false, true, true, true, true, true, true,
-        ]),
+        Bitmap::inferred(&[1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1]),
     ))?;
     font.add_character(Character::inferred(
         '😊',
-        Bitmap::inferred(&[
-            false, true, true, false, false, false, false, false, true, false, false, true, false,
-            true, true, false,
-        ]),
+        Bitmap::inferred(&[0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0]),
     ))?;
 
     common::write_to_file("./res/sampleToyFont.spf", &font.to_vec_u8()).unwrap();
