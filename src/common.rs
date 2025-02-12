@@ -20,20 +20,22 @@ pub(crate) fn sign_buffer(buffer: &mut byte::ByteStorage) -> &mut byte::ByteStor
 }
 
 // HeaderProperties?
-SimplePixelFont {
-    Header {
-        flags: [8, u8],
-        Properties {
-            constantSize: u8,
-        }
-    },
-    Body {
-        characters: Vec<Character {
-            utf8: char,
-            customSize: u8,
-            data: Vec<u8>
-        }>
-    }
-}
+// SimplePixelFont {
+//     Header {
+//         flags: [8, u8],
+//         Properties {
+//             constantSize: u8,
+//         }
+//     },
+//     Body {
+//         characters: Vec<Character {
+//             utf8: char,
+//             customSize: u8,
+//             data: Vec<u8>
+//         }>
+//     }
+// }
 
-pub(crate) fn push_header(buffer: &mut byte::ByteStorage, flags: [8: bool]) -> byte::ByteStorage {}
+pub(crate) fn push_header(buffer: &mut byte::ByteStorage, flags: [bool; 8]) -> byte::ByteStorage {
+    todo!()
+}
