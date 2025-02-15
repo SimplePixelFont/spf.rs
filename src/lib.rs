@@ -2,6 +2,8 @@
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![doc(html_logo_url = "https://github.com/The-Nice-One/spf.rs/blob/main/res/spf.rs.png")]
 
+pub mod log;
+
 #[cfg_attr(docsrs, doc(cfg(feature = "core")))]
 #[cfg(feature = "core")]
 pub mod core;
