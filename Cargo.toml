@@ -3,7 +3,7 @@ name = "spf"
 version = "0.3.0"
 description = ".spf (Simple Pixel Font) file parsing, and useful api's to go alongside."
 repository = "https://github.com/The-Nice-One/spf.rs"
-license-file = "LICENSE"
+license = "Unlicense"
 edition = "2021"
 
 [package.metadata.docs.rs]
@@ -11,9 +11,12 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["printer", "articles"]
+default = ["debug", "core"]
 articles = []
 cache = []
 printer = ["cache"]
+debug = ["dep:termcolor"]
+core = []
 
 [dependencies]
+termcolor = { version = "1.4.1", optional = true }
