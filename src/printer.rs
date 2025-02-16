@@ -11,7 +11,7 @@ use super::core::SimplePixelFont;
 /// // The new Surface will have 16 items of 0s in data field.
 /// let surface = Surface::blank(4,4);
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Surface {
     pub width: usize,
     pub height: usize,
@@ -187,25 +187,84 @@ impl Surface {
     }
     /// # Example
     ///
-    /// ```rs
+    /// ```
     /// # use spf::printer::Surface;
-    /// let surface = Surface::new(3, 3, &[
-    ///     2, 1, 2,
-    ///     1, 3, 1,
-    ///     4, 2, 1
+    /// let surface = Surface::new(5, 5, &[
+    ///     2, 1, 2, 3, 1,
+    ///     5, 3, 1, 3, 1,
+    ///     2, 1, 4, 3, 4,
+    ///     4, 2, 1, 2, 5,
+    ///     5, 2, 1, 3, 4
     /// ]);
-    ///
+    /// let flipped = surface.flip_vertical();
+    /// assert_eq!(flipped.data, &[
+    ///     5, 2, 1, 3, 4,
+    ///     4, 2, 1, 2, 5,
+    ///     2, 1, 4, 3, 4,
+    ///     5, 3, 1, 3, 1,
+    ///     2, 1, 2, 3, 1
+    /// ]);
+    /// ```
     pub fn flip_vertical(&self) -> Self {
         let mut returner = self.clone();
         let mut current_x = 0;
-        let mut current_y = self.height;
-        for data in self.data.iter() {
-            returner.data[(self.height - 1) * self.width];
+        let mut current_y = 0;
+
+        while current_y < self.height / 2 {
+            let first_index = (current_y * returner.width) + current_x;
+            let second_index = ((self.height - 1 - current_y) * self.width) + current_x;
+
+            returner.data[first_index] = self.data[second_index];
+            returner.data[second_index] = self.data[first_index];
+
+            current_x += 1;
+            if current_x >= self.width {
+                current_x = 0;
+                current_y += 1;
+            }
         }
-        todo!()
+        returner
     }
+    /// # Example
+    ///
+    /// ```
+    /// # use spf::printer::Surface;
+    /// let surface = Surface::new(5, 5, &[
+    ///     2, 1, 2, 3, 1,
+    ///     5, 3, 1, 3, 1,
+    ///     2, 1, 4, 3, 4,
+    ///     4, 2, 1, 2, 5,
+    ///     5, 2, 1, 3, 4
+    /// ]);
+    /// let flipped = surface.flip_horizontal();
+    /// assert_eq!(flipped.data, &[
+    ///     1, 3, 2, 1, 2,
+    ///     1, 3, 1, 3, 5,
+    ///     4, 3, 4, 1, 2,
+    ///     5, 2, 1, 2, 4,
+    ///     4, 3, 1, 2, 5
+    /// ]);
+    /// ```
     pub fn flip_horizontal(&self) -> Self {
-        todo!()
+        let mut returner = self.clone();
+        let mut current_x = 0;
+        let mut current_y = 0;
+
+        while current_y < self.height {
+            let first_index = (current_y * self.width + current_x);
+            let second_index = (current_y * self.width) + ((self.width - 1) - current_x);
+
+            returner.data[first_index] = self.data[second_index];
+            returner.data[second_index] = self.data[first_index];
+
+            current_x += 1;
+            if current_x >= self.width / 2 {
+                current_x = 0;
+                current_y += 1;
+            }
+        }
+
+        returner
     }
 }
 
