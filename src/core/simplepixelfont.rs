@@ -1,7 +1,7 @@
 pub(crate) use super::super::byte;
 pub(crate) use super::super::common;
 pub(crate) use super::super::MAGIC_BYTES;
-pub(crate) use super::character::{Bitmap, Character};
+pub(crate) use super::character::Character;
 
 #[derive(Debug, Default)]
 /// Defines the configuration flags for a `SimplePixelFont` structs.
@@ -73,36 +73,11 @@ impl SimplePixelFont {
     /// not be added. If `cache` feature is enabled, this method will also add the character
     /// to the `cache` HashMap field.
     pub fn add_character(&mut self, character: Character) -> Result<(), String> {
-        if character.bitmap.is_inferred() {
-            if self.configurations.alignment == ALIGNMENT_HEIGHT {
-                let remainder = (character.bitmap.data.len() as u16 % self.size as u16) as u8;
-                if remainder == 0 {
-                    let width = (character.bitmap.data.len() as u16 / self.size as u16) as u8;
-                    self.characters.push(
-                        Character::new(
-                            character.utf8,
-                            width,
-                            Bitmap::new(width, self.size, character.bitmap.data).unwrap(),
-                        )
-                        .unwrap(),
-                    );
-                    return Ok(());
-                } else {
-                    return Err("Character's bitmap dimensions cannot be inffered.".to_string());
-                }
-            } else {
-                todo!();
-            }
+        if self.configurations.alignment == ALIGNMENT_HEIGHT {
+            self.characters.push(character);
+            return Ok(());
         } else {
-            if self.configurations.alignment == ALIGNMENT_HEIGHT {
-                self.characters.push(
-                    Character::new(character.utf8, character.bitmap.width, character.bitmap)
-                        .unwrap(),
-                );
-                return Ok(());
-            } else {
-                todo!();
-            }
+            todo!();
         }
     }
     /// Encodes the structure into a `Vec<u8>` that can then be written to a file using `std::fs`
@@ -147,21 +122,21 @@ impl SimplePixelFont {
                 }
             }
 
-            buffer.push(byte::Byte::from_u8(character.size));
-            let mut size_bit_string = String::new();
+            buffer.push(byte::Byte::from_u8(character.custom_size));
+            // let mut size_bit_string = String::new();
 
-            byte::Byte::from_u8(character.size)
-                .bits
-                .iter()
-                .for_each(|x| {
-                    if x.to_owned() {
-                        size_bit_string.push('1');
-                    } else {
-                        size_bit_string.push('0');
-                    }
-                });
+            // byte::Byte::from_u8(character.size)
+            //     .bits
+            //     .iter()
+            //     .for_each(|x| {
+            //         if x.to_owned() {
+            //             size_bit_string.push('1');
+            //         } else {
+            //             size_bit_string.push('0');
+            //         }
+            //     });
 
-            let result = character.bitmap.segment_into_u8s();
+            let result = character.segment_into_u8s();
 
             let mut bits = vec![];
             let character_bytes = result.0;
@@ -187,23 +162,23 @@ impl SimplePixelFont {
                 }
             }
 
-            stdout
-                .set_color(ColorSpec::new().set_fg(Some(Color::Blue)))
-                .unwrap();
-            write!(&mut stdout, "[ Info: ");
-            stdout.reset().unwrap();
+            // stdout
+            //     .set_color(ColorSpec::new().set_fg(Some(Color::Blue)))
+            //     .unwrap();
+            // write!(&mut stdout, "[ Info: ");
+            // stdout.reset().unwrap();
 
-            write!(
-                &mut stdout,
-                "Added {:?} with dimensions {:?}x{:?} and the following bits: ",
-                character.utf8, character.bitmap.width, character.bitmap.height
-            );
+            // write!(
+            //     &mut stdout,
+            //     "Added {:?} with dimensions {:?}x{:?} and the following bits: ",
+            //     character.utf8, character.bitmap.width, character.bitmap.height
+            // );
 
-            stdout
-                .set_color(ColorSpec::new().set_fg(Some(Color::Green)))
-                .unwrap();
+            // stdout
+            //     .set_color(ColorSpec::new().set_fg(Some(Color::Green)))
+            //     .unwrap();
 
-            write!(&mut stdout, "{} {} ", utf8_bit_string, size_bit_string);
+            // write!(&mut stdout, "{} {} ", utf8_bit_string, size_bit_string);
 
             let mut index = 0;
             let green = bbits.len() - result.1;
@@ -265,13 +240,8 @@ impl SimplePixelFont {
         let mut character_definition_stage = 0;
         let mut current_character: Character = Character {
             utf8: ' ',
-            size: 0,
-            bitmap: Bitmap {
-                width: 0,
-                height: 0,
-                data: vec![],
-                inferred: false,
-            },
+            custom_size: 0,
+            byte_map: vec![],
         };
 
         let mut body_buffer = byte::ByteStorage::new();
@@ -333,35 +303,24 @@ impl SimplePixelFont {
                 character_definition_stage += 1;
             }
             if character_definition_stage == 1 {
-                current_character.size = body_buffer.get(current_index).to_u8();
+                current_character.custom_size = body_buffer.get(current_index).to_u8();
                 current_index += 1;
                 character_definition_stage += 1
             }
             if character_definition_stage == 2 {
-                if configurations.alignment == ALIGNMENT_HEIGHT {
-                    current_character.bitmap.height = size;
-                    current_character.bitmap.width = current_character.size;
-                } else {
-                    current_character.bitmap.height = current_character.size;
-                    current_character.bitmap.width = size;
-                }
-
-                let bytes_used = (((current_character.bitmap.height as f32
-                    * current_character.bitmap.width as f32)
-                    as f32
+                let bytes_used = (((current_character.custom_size as f32 * size as f32) as f32
                     / 8.0) as f32)
                     .ceil() as u8;
 
                 let remainder = bytes_used as usize * 8 as usize
-                    - (current_character.bitmap.height as usize
-                        * current_character.bitmap.width as usize);
+                    - (current_character.custom_size as usize * size as usize);
 
                 let mut current_byte = body_buffer.get(current_index);
                 for i in 0..bytes_used {
                     let mut counter = 0;
                     for bit in current_byte.bits {
                         if !(i == bytes_used - 1 && counter >= 8 - remainder) {
-                            current_character.bitmap.data.push(bit as u8);
+                            current_character.byte_map.push(bit as u8);
                         }
                         counter += 1;
                     }
@@ -394,7 +353,7 @@ impl SimplePixelFont {
                     );
                 }
 
-                current_character.bitmap.data = vec![];
+                current_character.byte_map = vec![];
                 character_definition_stage = 0;
             }
         }

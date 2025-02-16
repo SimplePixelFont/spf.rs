@@ -37,5 +37,7 @@ pub(crate) fn sign_buffer(buffer: &mut byte::ByteStorage) -> &mut byte::ByteStor
 // }
 
 pub(crate) fn push_header(buffer: &mut byte::ByteStorage, flags: [bool; 8]) -> byte::ByteStorage {
-    todo!()
+    //buffer.push(flags);
+    //buffer
+    todo!();
 }
