@@ -1,5 +1,5 @@
 pub mod character;
-pub mod simplepixelfont;
+pub mod layout;
 
 pub use character::*;
-pub use simplepixelfont::*;
+pub use layout::*;

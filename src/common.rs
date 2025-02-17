@@ -10,7 +10,7 @@ pub(crate) fn sign_buffer(buffer: &mut byte::ByteStorage) -> &mut byte::ByteStor
     #[cfg(feature = "log")]
     unsafe {
         let mut logger = LOGGER.lock().unwrap();
-        logger.message.push_str("Signed font data :)");
+        logger.message.push_str("Signed font data.");
         logger.flush_info().unwrap();
     }
     buffer

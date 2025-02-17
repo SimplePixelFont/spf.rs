@@ -1,6 +1,6 @@
 use super::cache::CharacterCache;
 use super::core::Character;
-use super::core::SimplePixelFont;
+use super::core::Layout;
 
 /// A Surface is a extended Bitmap struct with blitting and manipulation methods.
 ///
@@ -282,7 +282,7 @@ impl Surface {
 /// use when generating a Surface. It also has a letter_spacing field to decide
 /// how apart each character should be printed from.
 pub struct Printer {
-    pub font: SimplePixelFont,
+    pub font: Layout,
     pub character_cache: CharacterCache,
     pub letter_spacing: usize,
     //pub surface_width: Option<usize>,
@@ -291,8 +291,8 @@ pub struct Printer {
 }
 
 impl Printer {
-    pub fn from_font(font: SimplePixelFont) -> Self {
-        let character_cache = CharacterCache::from_characters(&font.characters);
+    pub fn from_font(font: Layout) -> Self {
+        let character_cache = CharacterCache::from_characters(&font.body.characters);
         Self {
             font: font,
             character_cache: character_cache,
@@ -311,13 +311,13 @@ impl Printer {
         let mut fetched_character: Vec<Character> = vec![];
         let mut width = (characters.len() - 1) * self.letter_spacing;
         characters.iter().for_each(|character| {
-            let fchar = self.font.characters[self.character_cache.mappings[character]].clone();
+            let fchar = self.font.body.characters[self.character_cache.mappings[character]].clone();
             width += fchar.custom_size as usize;
             fetched_character.push(fchar);
         });
         let mut surface = Surface {
-            data: vec![0; self.font.size as usize * width],
-            height: self.font.size as usize,
+            data: vec![0; self.font.header.required_values.constant_size as usize * width],
+            height: self.font.header.required_values.constant_size as usize,
             width: width,
         };
         let mut current_x = 0;
@@ -330,7 +330,7 @@ impl Printer {
             surface.append(
                 &Surface {
                     data: bitmap,
-                    height: self.font.size as usize,
+                    height: self.font.header.required_values.constant_size as usize,
                     width: character.custom_size as usize,
                 },
                 current_x,

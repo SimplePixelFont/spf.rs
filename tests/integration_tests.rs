@@ -4,12 +4,15 @@ use spf::core::*;
 
 #[test]
 fn write_font_file() -> Result<(), String> {
-    let mut font = SimplePixelFont::new(
-        ConfigurationFlags {
-            alignment: ALIGNMENT_HEIGHT,
+    let mut font = Layout::new(
+        Header {
+            configuration_flags: ConfigurationFlags {
+                alignment: ALIGNMENT_HEIGHT,
+            },
+            modifier_flags: ModifierFlags { compact: false },
+            required_values: RequiredValues { constant_size: 4 },
         },
-        ModifierFlags { compact: false },
-        4,
+        Body { characters: vec![] },
     );
     font.add_character(Character::new(
         'o',
@@ -27,7 +30,7 @@ fn write_font_file() -> Result<(), String> {
         vec![0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0],
     ))?;
 
-    common::write_to_file("./res/sampleToyFont.spf", &font.to_vec_u8()).unwrap();
+    //common::write_to_file("./res/sampleToyFont.spf", &font.to_vec_u8()).unwrap();
     Ok(())
 }
 
@@ -36,7 +39,7 @@ fn read_font_file() -> Result<(), String> {
     let mut buffer: Vec<u8> = vec![];
     common::read_from_file("./res/sampleToyFont.spf", &mut buffer).unwrap();
 
-    let _font = SimplePixelFont::from_vec_u8(buffer);
+    let _font = Layout::from_vec_u8(buffer);
 
     Ok(())
 }
