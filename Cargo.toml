@@ -11,11 +11,11 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["debug", "core"]
+default = ["log", "core", "printer"]
 articles = []
 cache = []
 printer = ["cache"]
-debug = ["dep:termcolor"]
+log = ["dep:termcolor"]
 core = []
 
 [dependencies]

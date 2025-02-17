@@ -251,7 +251,7 @@ impl Surface {
         let mut current_y = 0;
 
         while current_y < self.height {
-            let first_index = (current_y * self.width + current_x);
+            let first_index = current_y * self.width + current_x;
             let second_index = (current_y * self.width) + ((self.width - 1) - current_x);
 
             returner.data[first_index] = self.data[second_index];
@@ -268,13 +268,13 @@ impl Surface {
     }
 }
 
-/// Holds the current data for the processed pixel by the Printer.
-pub struct PixelProcess {
-    pub character: Character,
-    absolute_position: (usize, usize),
-    relative_position: (usize, usize),
-    state: usize,
-}
+// /// Holds the current data for the processed pixel by the Printer.
+// pub struct PixelProcess {
+//     pub character: Character,
+//     absolute_position: (usize, usize),
+//     relative_position: (usize, usize),
+//     state: usize,
+// }
 
 /// Printer is a struct for generating `Surface`'s
 ///
@@ -285,9 +285,9 @@ pub struct Printer {
     pub font: SimplePixelFont,
     pub character_cache: CharacterCache,
     pub letter_spacing: usize,
-    pub surface_width: Option<usize>,
-    pub surface_height: Option<usize>,
-    pub word_warp: bool,
+    //pub surface_width: Option<usize>,
+    //pub surface_height: Option<usize>,
+    //pub word_warp: bool,
 }
 
 impl Printer {
@@ -297,22 +297,22 @@ impl Printer {
             font: font,
             character_cache: character_cache,
             letter_spacing: 1,
-            surface_width: None,
-            surface_height: None,
-            word_warp: false,
+            // surface_width: None,
+            // surface_height: None,
+            // word_warp: false,
         }
     }
     /// Returns a `Surface` from a `String`
     ///
     /// This method will use the characters defined in the `SimplePixelFont` struct
     /// field, and place the bitmaps next to each other in a generated `Surface`
-    pub fn print(&self, text: &'static str) -> Surface {
+    pub fn print(&self, text: String) -> Surface {
         let characters: Vec<char> = text.chars().collect();
         let mut fetched_character: Vec<Character> = vec![];
         let mut width = (characters.len() - 1) * self.letter_spacing;
         characters.iter().for_each(|character| {
             let fchar = self.font.characters[self.character_cache.mappings[character]].clone();
-            width += fchar.size as usize;
+            width += fchar.custom_size as usize;
             fetched_character.push(fchar);
         });
         let mut surface = Surface {
@@ -324,29 +324,28 @@ impl Printer {
         for character in fetched_character {
             let mut bitmap = vec![];
             character
-                .bitmap
-                .data
+                .byte_map
                 .iter()
                 .for_each(|x| bitmap.push(x.clone() as usize));
             surface.append(
                 &Surface {
                     data: bitmap,
-                    height: character.bitmap.height as usize,
-                    width: character.bitmap.width as usize,
+                    height: self.font.size as usize,
+                    width: character.custom_size as usize,
                 },
                 current_x,
                 0,
             );
-            current_x += self.letter_spacing + character.bitmap.width as usize;
+            current_x += self.letter_spacing + character.custom_size as usize;
         }
         surface
     }
 
-    pub fn pretty_print(
-        &self,
-        text: &'static str,
-        processor: fn(PixelProcess) -> usize,
-    ) -> Surface {
-        todo!()
-    }
+    // pub fn pretty_print(
+    //     &self,
+    //     text: &'static str,
+    //     processor: fn(PixelProcess) -> usize,
+    // ) -> Surface {
+    //     todo!()
+    // }
 }

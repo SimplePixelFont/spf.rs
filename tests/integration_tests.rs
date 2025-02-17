@@ -11,17 +11,20 @@ fn write_font_file() -> Result<(), String> {
         ModifierFlags { compact: false },
         4,
     );
-    font.add_character(Character::inferred(
+    font.add_character(Character::new(
         'o',
-        Bitmap::inferred(&[1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1]),
+        4,
+        vec![1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1],
     ))?;
-    font.add_character(Character::inferred(
+    font.add_character(Character::new(
         'w',
-        Bitmap::inferred(&[1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1]),
+        5,
+        vec![1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
     ))?;
-    font.add_character(Character::inferred(
+    font.add_character(Character::new(
         '😊',
-        Bitmap::inferred(&[0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0]),
+        4,
+        vec![0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0],
     ))?;
 
     common::write_to_file("./res/sampleToyFont.spf", &font.to_vec_u8()).unwrap();
