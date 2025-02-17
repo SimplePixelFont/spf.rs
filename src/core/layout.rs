@@ -89,7 +89,7 @@ impl Layout {
         }
     }
     /// Decodes a `Vec<u8>` and parses it into a struct, this method will ignore the checksum values.
-    pub fn from_vec_u8(buffer: Vec<u8>) -> Self {
+    pub fn from_data(buffer: Vec<u8>) -> Self {
         let mut current_index = 0;
         let mut chunks = buffer.iter();
 
@@ -246,94 +246,23 @@ impl Layout {
         }
     }
     /// Encodes the structure into a `Vec<u8>` that can then be written to a file using `std::fs`
-    pub fn to_vec_u8(&self) -> Vec<u8> {
+    pub fn to_data(&self) -> Vec<u8> {
         let mut buffer = byte::ByteStorage::new();
         common::sign_buffer(&mut buffer);
-
-        //let mut stdout = StandardStream::stdout(ColorChoice::Always);
+        common::push_header(&mut buffer, &self.header);
 
         let mut saved_space = 0;
+        //let mut last_write = 0;
 
-        buffer.push(byte::Byte {
-            bits: [
-                self.header.configuration_flags.alignment,
-                false,
-                false,
-                false,
-                self.header.modifier_flags.compact,
-                false,
-                false,
-                false,
-            ],
-        });
-
-        buffer.push(byte::Byte::from_u8(
-            self.header.required_values.constant_size,
-        ));
-        let mut last_write = 0;
         for character in &self.body.characters {
-            let mut char_buffer = [0; 4];
-            let mut utf8_bit_string = String::new();
-            character.utf8.encode_utf8(&mut char_buffer);
-            for byte in char_buffer {
-                if byte != 0 {
-                    byte::Byte::from_u8(byte).bits.iter().for_each(|x| {
-                        if x.to_owned() {
-                            utf8_bit_string.push('1');
-                        } else {
-                            utf8_bit_string.push('0');
-                        }
-                    });
-
-                    buffer.push(byte::Byte::from_u8(byte));
-                }
-            }
-
-            buffer.push(byte::Byte::from_u8(character.custom_size));
-            // let mut size_bit_string = String::new();
-
-            // byte::Byte::from_u8(character.size)
-            //     .bits
-            //     .iter()
-            //     .for_each(|x| {
-            //         if x.to_owned() {
-            //             size_bit_string.push('1');
-            //         } else {
-            //             size_bit_string.push('0');
-            //         }
-            //     });
+            common::push_character(&mut buffer, character.utf8);
+            common::push_custom_size(&mut buffer, character.custom_size);
 
             let result = character.segment_into_u8s();
-
-            let mut bits = vec![];
             let character_bytes = result.0;
-            let used_bytes = character_bytes.len();
-            let mut index = 0;
-            for byte in character_bytes {
-                bits.append(&mut byte::Byte::from_u8(byte).bits.to_vec());
-                if self.header.modifier_flags.compact && index == used_bytes - 1 {
-                    buffer.incomplete_push(byte::Byte::from_u8(byte), result.1);
-                } else {
-                    buffer.push(byte::Byte::from_u8(byte));
-                }
-                index += 1;
-            }
-            let test = vec![0..4, 0..2];
+            let remaining_space = result.1;
 
-            let mut bbits = vec![];
-            for bit in bits {
-                if bit {
-                    bbits.push(1);
-                } else {
-                    bbits.push(0);
-                }
-            }
-
-            // stdout
-            //     .set_color(ColorSpec::new().set_fg(Some(Color::Blue)))
-            //     .unwrap();
-            // write!(&mut stdout, "[ Info: ");
-            // stdout.reset().unwrap();
+            common::push_byte_map(&mut buffer, &self.header, character_bytes, remaining_space);
 
             // write!(
             //     &mut stdout,
@@ -369,8 +298,8 @@ impl Layout {
             // writeln!(&mut stdout, "");
 
             if self.header.modifier_flags.compact {
-                saved_space += result.1 as i32;
-                buffer.pointer = ((8 - result.1) + buffer.pointer) % 8;
+                saved_space += remaining_space;
+                buffer.pointer = ((8 - remaining_space) + buffer.pointer) % 8;
             }
 
             //     let mut endbuffer = vec![];
@@ -392,7 +321,16 @@ impl Layout {
             //     writeln!(&mut stdout, "\n\n\n");
         }
 
-        // println!("{:?}", saved_space);
+        #[cfg(feature = "log")]
+        unsafe {
+            let mut logger = LOGGER.lock().unwrap();
+            if logger.log_level as u8 >= LogLevel::Debug as u8 {
+                logger
+                    .message
+                    .push_str(&format!("Total bits compacted: {}", saved_space));
+                logger.flush_debug().unwrap();
+            }
+        }
 
         return buffer.to_vec_u8();
     }

@@ -30,7 +30,7 @@ fn write_font_file() -> Result<(), String> {
         vec![0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0],
     ))?;
 
-    //common::write_to_file("./res/sampleToyFont.spf", &font.to_vec_u8()).unwrap();
+    common::write_to_file("./res/sampleToyFont.spf", &font.to_data()).unwrap();
     Ok(())
 }
 
@@ -39,7 +39,7 @@ fn read_font_file() -> Result<(), String> {
     let mut buffer: Vec<u8> = vec![];
     common::read_from_file("./res/sampleToyFont.spf", &mut buffer).unwrap();
 
-    let _font = Layout::from_vec_u8(buffer);
+    let _font = Layout::from_data(buffer);
 
     Ok(())
 }
