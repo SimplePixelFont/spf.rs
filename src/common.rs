@@ -17,10 +17,6 @@ pub(crate) fn sign_buffer(buffer: &mut byte::ByteStorage) -> &mut byte::ByteStor
         }
     }
     buffer
-    // let string = " ok ok";
-
-    // let string2: Vec<&str> = string.split("\n").collect();
-    // println!("{:?}", string2);
 }
 
 pub(crate) fn push_header<'a>(
@@ -56,9 +52,24 @@ pub(crate) fn push_character(
 
     for byte in char_buffer {
         if byte != 0 {
-            utf8_bit_string.push_str(&format!("{:0b} ", byte)); // part of log
+            utf8_bit_string.push_str(&format!("{:08b} ", byte)); // part of log
 
             buffer.push(byte::Byte::from_u8(byte));
+        }
+    }
+
+    #[cfg(feature = "log")]
+    unsafe {
+        let mut logger = LOGGER.lock().unwrap();
+        if logger.log_level as u8 >= LogLevel::Info as u8 {
+            logger.message.push_str(
+                format!(
+                    "Pushed character '{}' with the following bits: {}",
+                    character, utf8_bit_string
+                )
+                .as_str(),
+            );
+            logger.flush_info().unwrap();
         }
     }
 
@@ -71,7 +82,22 @@ pub(crate) fn push_custom_size(
 ) -> &mut byte::ByteStorage {
     buffer.push(byte::Byte::from_u8(custom_size));
 
-    let size_bit_string = format!("{:0b}", custom_size); // part of log
+    let size_bit_string = format!("{:08b}", custom_size);
+
+    #[cfg(feature = "log")]
+    unsafe {
+        let mut logger = LOGGER.lock().unwrap();
+        if logger.log_level as u8 >= LogLevel::Info as u8 {
+            logger.message.push_str(
+                format!(
+                    "Pushed custom size '{}' with the following bits: {}",
+                    custom_size, size_bit_string
+                )
+                .as_str(),
+            );
+            logger.flush_info().unwrap();
+        }
+    }
 
     buffer
 }
@@ -86,15 +112,30 @@ pub(crate) fn push_byte_map(
 
     let used_bytes = character_bytes.len();
     let mut index = 0;
-    for byte in character_bytes {
-        byte_map_bit_string.push_str(&format!("{:0b} ", byte));
+    for byte in character_bytes.iter() {
+        byte_map_bit_string.push_str(&format!("{:08b} ", byte));
 
         if header.modifier_flags.compact && index == used_bytes - 1 {
-            buffer.incomplete_push(byte::Byte::from_u8(byte), remaining_space);
+            buffer.incomplete_push(byte::Byte::from_u8(*byte), remaining_space);
         } else {
-            buffer.push(byte::Byte::from_u8(byte));
+            buffer.push(byte::Byte::from_u8(*byte));
         }
         index += 1;
+    }
+
+    #[cfg(feature = "log")]
+    unsafe {
+        let mut logger = LOGGER.lock().unwrap();
+        if logger.log_level as u8 >= LogLevel::Info as u8 {
+            logger.message.push_str(
+                format!(
+                    "Pushed byte map with the following bits: {}",
+                    byte_map_bit_string
+                )
+                .as_str(),
+            );
+            logger.flush_info().unwrap();
+        }
     }
 }
 

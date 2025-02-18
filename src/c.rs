@@ -1,4 +1,4 @@
-use super::core::Layout;
+use super::core::*;
 use std::ffi::*;
 use std::slice;
 
@@ -114,10 +114,71 @@ pub(crate) fn to_c_layout(layout: Layout) -> CLayout {
     }
 }
 
+pub(crate) fn from_c_layout(layout: CLayout) -> Layout {
+    let characters_len = layout.body.characters_length as usize;
+    let mut characters = Vec::with_capacity(characters_len);
+    unsafe {
+        for index in 0..characters_len {
+            let character = &*layout.body.characters;
+            let utf8 = CStr::from_ptr(character.utf8)
+                .to_str()
+                .unwrap()
+                .chars()
+                .next()
+                .unwrap();
+            let custom_size = character.custom_size;
+            let byte_map =
+                slice::from_raw_parts(character.byte_map, character.byte_map_length as usize);
+
+            characters.push(Character {
+                utf8: utf8,
+                custom_size: custom_size,
+                byte_map: byte_map.to_vec(),
+            });
+        }
+    }
+
+    Layout {
+        header: Header {
+            configuration_flags: ConfigurationFlags {
+                alignment: layout.header.configuration_flags.alignment != 0,
+            },
+            modifier_flags: ModifierFlags {
+                compact: layout.header.modifier_flags.compact != 0,
+            },
+            required_values: RequiredValues {
+                constant_size: layout.header.required_values.constant_size,
+            },
+        },
+        body: Body {
+            characters: characters,
+        },
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn c_core_layout_from_data(pointer: *const c_uchar, length: c_ulong) -> CLayout {
     let data = unsafe { slice::from_raw_parts(pointer, length as usize) };
     let layout = Layout::from_data(data.to_owned());
     let clayout = to_c_layout(layout);
     return clayout;
+}
+
+#[repr(C)]
+pub struct CData {
+    pub data: *mut c_uchar,
+    pub data_length: c_ulong,
+}
+
+#[no_mangle]
+pub extern "C" fn c_core_layout_to_data(layout: CLayout) -> CData {
+    let layout = from_c_layout(layout);
+    let mut data = layout.to_data().into_boxed_slice();
+    let data_length = data.len() as c_ulong;
+    let data_ptr = data.as_mut_ptr();
+    std::mem::forget(data);
+    return CData {
+        data: data_ptr,
+        data_length: data_length,
+    };
 }

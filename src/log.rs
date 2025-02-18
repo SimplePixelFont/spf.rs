@@ -68,7 +68,8 @@ pub(crate) static mut LOGGER: LazyLock<Mutex<Logger>> = LazyLock::new(|| {
     });
 });
 
-pub fn set_logger_level(level: LogLevel) {
+#[allow(non_snake_case)]
+pub fn LOGGER_set_log_level(level: LogLevel) {
     unsafe {
         let mut logger = LOGGER.lock().unwrap();
         logger.log_level = level;

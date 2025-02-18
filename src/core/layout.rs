@@ -220,7 +220,6 @@ impl Layout {
         common::push_header(&mut buffer, &self.header);
 
         let mut saved_space = 0;
-        //let mut last_write = 0;
 
         for character in &self.body.characters {
             common::push_character(&mut buffer, character.utf8);
@@ -232,70 +231,21 @@ impl Layout {
 
             common::push_byte_map(&mut buffer, &self.header, character_bytes, remaining_space);
 
-            // write!(
-            //     &mut stdout,
-            //     "Added {:?} with dimensions {:?}x{:?} and the following bits: ",
-            //     character.utf8, character.bitmap.width, character.bitmap.height
-            // );
-
-            // stdout
-            //     .set_color(ColorSpec::new().set_fg(Some(Color::Green)))
-            //     .unwrap();
-
-            // write!(&mut stdout, "{} {} ", utf8_bit_string, size_bit_string);
-
-            // let mut index = 0;
-            // let green = bbits.len() - result.1;
-            // for i in 0..green {
-            //     write!(&mut stdout, "{}", bbits[i]);
-            //     index += 1;
-            //     if index == 8 {
-            //         write!(&mut stdout, " ");
-            //         index = 0;
-            //     }
-            // }
-
-            // stdout.reset().unwrap();
-            // stdout
-            //     .set_color(ColorSpec::new().set_fg(Some(Color::Red)))
-            //     .unwrap();
-            // for _ in 0..result.1 {
-            //     write!(&mut stdout, "0");
-            // }
-            // stdout.reset().unwrap();
-            // writeln!(&mut stdout, "");
-
             if self.header.modifier_flags.compact {
                 saved_space += remaining_space;
                 buffer.pointer = ((8 - remaining_space) + buffer.pointer) % 8;
             }
-
-            //     let mut endbuffer = vec![];
-            //     for byte in buffer.bytes.clone() {
-            //         for bit in byte.bits {
-            //             endbuffer.push(bit as u8);
-            //         }
-            //     }
-
-            //     let mut index = 0;
-            //     for bit in endbuffer {
-            //         write!(&mut stdout, "{}", bit);
-            //         index += 1;
-            //         if index == 8 {
-            //             write!(&mut stdout, " ");
-            //             index = 0;
-            //         }
-            //     }
-            //     writeln!(&mut stdout, "\n\n\n");
         }
 
         #[cfg(feature = "log")]
         unsafe {
             let mut logger = LOGGER.lock().unwrap();
             if logger.log_level as u8 >= LogLevel::Debug as u8 {
-                logger
-                    .message
-                    .push_str(&format!("Total bits compacted: {}", saved_space));
+                logger.message.push_str(&format!(
+                    "Total bits compacted: {} (saved {} bytes)",
+                    saved_space,
+                    saved_space / 8
+                ));
                 logger.flush_debug().unwrap();
             }
         }
