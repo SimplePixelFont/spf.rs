@@ -25,6 +25,8 @@ pub mod articles;
 pub(crate) mod byte;
 pub(crate) mod common;
 
+pub mod c;
+
 /// Magic bytes of `*.spf` files
 ///
 /// The magic bytes can be used to determine if a file is a SimplePixelFont regardless of

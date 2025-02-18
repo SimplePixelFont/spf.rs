@@ -6,6 +6,9 @@ repository = "https://github.com/The-Nice-One/spf.rs"
 license = "Unlicense"
 edition = "2021"
 
+[lib]
+crate-type = ["cdylib", "lib"]
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]

@@ -28,20 +28,24 @@ pub struct ModifierFlags {
     pub compact: bool,
 }
 
+#[derive(Debug)]
 pub struct RequiredValues {
     pub constant_size: u8,
 }
 
+#[derive(Debug)]
 pub struct Header {
     pub configuration_flags: ConfigurationFlags,
     pub modifier_flags: ModifierFlags,
     pub required_values: RequiredValues,
 }
 
+#[derive(Debug)]
 pub struct Body {
     pub characters: Vec<Character>,
 }
 
+#[derive(Debug)]
 pub struct Layout {
     pub header: Header,
     pub body: Body,
@@ -129,36 +133,7 @@ impl Layout {
         let length = body_buffer.bytes.len();
         while current_index < length - 1 {
             if character_definition_stage == 0 {
-                let utf81 = body_buffer.get(current_index);
-                let mut utf8_bytes: [u8; 4] = [0, 0, 0, 0];
-
-                if utf81.bits[7..] == [false] {
-                    utf8_bytes[0] = utf81.to_u8();
-                } else if utf81.bits[5..] == [false, true, true, true] {
-                    utf8_bytes[0] = utf81.to_u8();
-                    current_index += 1;
-                    utf8_bytes[1] = body_buffer.get(current_index).to_u8();
-                } else if utf81.bits[4..] == [false, true, true, true] {
-                    utf8_bytes[0] = utf81.to_u8();
-                    current_index += 1;
-                    utf8_bytes[1] = body_buffer.get(current_index).to_u8();
-                    current_index += 1;
-                    utf8_bytes[2] = body_buffer.get(current_index).to_u8();
-                } else if utf81.bits[3..] == [false, true, true, true, true] {
-                    utf8_bytes[0] = utf81.to_u8();
-                    current_index += 1;
-                    utf8_bytes[1] = body_buffer.get(current_index).to_u8();
-                    current_index += 1;
-                    utf8_bytes[2] = body_buffer.get(current_index).to_u8();
-                    current_index += 1;
-                    utf8_bytes[3] = body_buffer.get(current_index).to_u8();
-                }
-
-                current_character.utf8 = String::from_utf8(utf8_bytes.to_vec())
-                    .unwrap()
-                    .chars()
-                    .next()
-                    .unwrap();
+                current_character.utf8 = common::next_character(&mut body_buffer, current_index);
                 current_index += 1;
                 character_definition_stage += 1;
 
@@ -207,13 +182,6 @@ impl Layout {
                 characters.push(current_character.clone());
                 current_index += 1;
 
-                // if !(modifiers.compact && remainder != 0) {
-                //     current_index += 1;
-                // }
-                // if (8 - remainder) as usize + body_buffer.pointer > 8 && modifiers.compact {
-                //     current_index += 1;
-                // }
-                //
                 if modifiers.compact {
                     if body_buffer.pointer + (8 - remainder) < 8 {
                         current_index -= 1;
