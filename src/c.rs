@@ -137,9 +137,8 @@ pub(crate) fn from_c_layout(layout: CLayout) -> Layout {
             });
         }
     }
-    println!("\n\n\n\n{:?}", characters);
 
-    let t = Layout {
+    Layout {
         header: Header {
             configuration_flags: ConfigurationFlags {
                 alignment: layout.header.configuration_flags.alignment != 0,
@@ -154,9 +153,7 @@ pub(crate) fn from_c_layout(layout: CLayout) -> Layout {
         body: Body {
             characters: characters,
         },
-    };
-    println!("\n\n\n\n{:?}", t.to_data());
-    t
+    }
 }
 
 #[no_mangle]

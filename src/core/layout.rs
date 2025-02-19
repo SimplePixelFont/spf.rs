@@ -97,10 +97,13 @@ impl Layout {
         let mut current_index = 0;
         let mut chunks = buffer.iter();
 
-        let mut configurations: ConfigurationFlags = ConfigurationFlags { alignment: false };
-        let mut modifiers: ModifierFlags = ModifierFlags { compact: false };
-        let mut size: u8 = 0;
-        let mut characters: Vec<Character> = Vec::new();
+        let mut header = Header {
+            configuration_flags: ConfigurationFlags { alignment: false },
+            modifier_flags: ModifierFlags { compact: false },
+            required_values: RequiredValues { constant_size: 0 },
+        };
+        let mut body = Body { characters: vec![] };
+
         let mut character_definition_stage = 0;
         let mut current_character: Character = Character {
             utf8: ' ',
@@ -109,6 +112,7 @@ impl Layout {
         };
 
         let mut body_buffer = byte::ByteStorage::new();
+
         let mut iter = chunks.next();
         while !iter.is_none() {
             let chunk = iter.unwrap();
@@ -118,10 +122,10 @@ impl Layout {
                 }
             } else if current_index == 3 {
                 let file_properties = byte::Byte::from_u8(chunk.clone()).bits;
-                configurations.alignment = file_properties[0];
-                modifiers.compact = file_properties[4];
+                header.configuration_flags.alignment = file_properties[0];
+                header.modifier_flags.compact = file_properties[4];
             } else if current_index == 4 {
-                size = chunk.clone();
+                header.required_values.constant_size = chunk.clone();
             } else {
                 body_buffer.push(byte::Byte::from_u8(chunk.clone()));
             }
@@ -155,12 +159,15 @@ impl Layout {
                 character_definition_stage += 1
             }
             if character_definition_stage == 2 {
-                let bytes_used = (((current_character.custom_size as f32 * size as f32) as f32
+                let bytes_used = (((current_character.custom_size as f32
+                    * header.required_values.constant_size as f32)
+                    as f32
                     / 8.0) as f32)
                     .ceil() as u8;
 
                 let remainder = bytes_used as usize * 8 as usize
-                    - (current_character.custom_size as usize * size as usize);
+                    - (current_character.custom_size as usize
+                        * header.required_values.constant_size as usize);
 
                 let mut current_byte = body_buffer.get(current_index);
                 for i in 0..bytes_used {
@@ -178,19 +185,27 @@ impl Layout {
                     }
                 }
 
-                //println!("{:?}", current_character);
-                characters.push(current_character.clone());
+                body.characters.push(current_character.clone());
                 current_index += 1;
 
-                if modifiers.compact {
+                if header.modifier_flags.compact {
                     if body_buffer.pointer + (8 - remainder) < 8 {
                         current_index -= 1;
                     }
                     body_buffer.pointer = ((8 - remainder) as usize + body_buffer.pointer) % 8;
-                    // println!(
-                    //     "-{:?}, {:?} and now {:?}",
-                    //     remainder, body_buffer.pointer, current_index
-                    // );
+
+                    #[cfg(feature = "log")]
+                    unsafe {
+                        let mut logger = LOGGER.lock().unwrap();
+                        if logger.log_level as u8 >= LogLevel::Debug as u8 {
+                            logger.message.push_str(
+                                format!("Last character pushed had {} padding bits, now reading with offset of {}, starting at byte {}",
+                                    remainder, body_buffer.pointer, current_index)
+                                    .as_str(),
+                            );
+                            logger.flush_debug().unwrap();
+                        }
+                    }
                 }
 
                 current_character.byte_map = vec![];
@@ -198,19 +213,9 @@ impl Layout {
             }
         }
 
-        //println!("{:?}", body_buffer);
-
         Self {
-            header: Header {
-                configuration_flags: configurations,
-                modifier_flags: modifiers,
-                required_values: RequiredValues {
-                    constant_size: size,
-                },
-            },
-            body: Body {
-                characters: characters,
-            },
+            header: header,
+            body: body,
         }
     }
     /// Encodes the structure into a `Vec<u8>` that can then be written to a file using `std::fs`
