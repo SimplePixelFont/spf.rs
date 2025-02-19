@@ -142,7 +142,7 @@ pub(crate) fn push_byte_map(
 pub(crate) fn next_character(
     body_buffer: &mut byte::ByteStorage,
     mut current_index: usize,
-) -> char {
+) -> (char, usize) {
     let utf81 = body_buffer.get(current_index);
     let mut utf8_bytes: [u8; 4] = [0, 0, 0, 0];
 
@@ -168,9 +168,12 @@ pub(crate) fn next_character(
         utf8_bytes[3] = body_buffer.get(current_index).to_u8();
     }
 
-    String::from_utf8(utf8_bytes.to_vec())
-        .unwrap()
-        .chars()
-        .next()
-        .unwrap()
+    return (
+        String::from_utf8(utf8_bytes.to_vec())
+            .unwrap()
+            .chars()
+            .next()
+            .unwrap(),
+        current_index,
+    );
 }

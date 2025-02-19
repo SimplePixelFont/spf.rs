@@ -14,20 +14,35 @@ fn write_font_file() -> Result<(), String> {
         },
         Body { characters: vec![] },
     );
+
+    #[rustfmt::skip]
     font.add_character(Character::new(
         'o',
         4,
-        vec![1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+        vec![1, 1, 1, 1,
+             1, 0, 0, 1,
+             1, 0, 0, 1,
+             1, 1, 1, 1],
     ))?;
+
+    #[rustfmt::skip]
     font.add_character(Character::new(
         'w',
         5,
-        vec![1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
+        vec![1, 0, 1, 0, 1,
+             1, 0, 1, 0, 1,
+             1, 0, 1, 0, 1,
+             1, 1, 1, 1, 1],
     ))?;
+
+    #[rustfmt::skip]
     font.add_character(Character::new(
         '😊',
         4,
-        vec![0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0],
+        vec![0, 1, 1, 0,
+             0, 0, 0, 0,
+             1, 0, 0, 1,
+             0, 1, 1, 0],
     ))?;
 
     common::write_to_file("./res/sampleToyFont.spf", &font.to_data()).unwrap();

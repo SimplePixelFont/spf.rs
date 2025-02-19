@@ -137,7 +137,9 @@ impl Layout {
         let length = body_buffer.bytes.len();
         while current_index < length - 1 {
             if character_definition_stage == 0 {
-                current_character.utf8 = common::next_character(&mut body_buffer, current_index);
+                let result = common::next_character(&mut body_buffer, current_index);
+                current_character.utf8 = result.0;
+                current_index = result.1;
                 current_index += 1;
                 character_definition_stage += 1;
 
@@ -156,8 +158,9 @@ impl Layout {
             if character_definition_stage == 1 {
                 current_character.custom_size = body_buffer.get(current_index).to_u8();
                 current_index += 1;
-                character_definition_stage += 1
+                character_definition_stage += 1;
             }
+
             if character_definition_stage == 2 {
                 let bytes_used = (((current_character.custom_size as f32
                     * header.required_values.constant_size as f32)
