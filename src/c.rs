@@ -119,7 +119,7 @@ pub(crate) fn from_c_layout(layout: CLayout) -> Layout {
     let mut characters = Vec::with_capacity(characters_len);
     unsafe {
         for index in 0..characters_len {
-            let character = &*layout.body.characters;
+            let character = &*layout.body.characters.add(index);
             let utf8 = CStr::from_ptr(character.utf8)
                 .to_str()
                 .unwrap()
@@ -137,8 +137,9 @@ pub(crate) fn from_c_layout(layout: CLayout) -> Layout {
             });
         }
     }
+    println!("\n\n\n\n{:?}", characters);
 
-    Layout {
+    let t = Layout {
         header: Header {
             configuration_flags: ConfigurationFlags {
                 alignment: layout.header.configuration_flags.alignment != 0,
@@ -153,7 +154,9 @@ pub(crate) fn from_c_layout(layout: CLayout) -> Layout {
         body: Body {
             characters: characters,
         },
-    }
+    };
+    println!("\n\n\n\n{:?}", t.to_data());
+    t
 }
 
 #[no_mangle]
