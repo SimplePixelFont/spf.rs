@@ -1,4 +1,4 @@
-# Getting Started
+# Getting Started in Rust
 ### Synopsis
 `spf.rs` brings the world of SimplePixelFont(s) into the programming realm. Written in the Rust programming language, spf.rs aims to be effective and simple to use, providing a native crate api for Rust and also an FFI compatible with C-like languages and C-interopable languages. It provides a low-level interface to the binary representation of `.spf` files via the `core` module. And includes helpful and powerful optional modules that allow integration to be faster for your projects.
 ### Resources

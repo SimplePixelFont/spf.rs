@@ -1,4 +1,4 @@
-# Miniquad/Macroquad Integration
+# Printer Module Sample: Miniquad/Macroquad Integration
 We will first start with Miniquad integration, for Macroquad integration skip
 to the next section.
 To begin with install spf, miniquad, and macroquad to your project via:

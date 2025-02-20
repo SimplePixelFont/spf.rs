@@ -6,57 +6,47 @@
 [![License](https://img.shields.io/badge/License-Unlicense-orange)](#license)
 [![issues - spf.rs](https://img.shields.io/github/issues/The-Nice-One/spf.rs)](https://github.com/The-Nice-One/spf.rs/issues)
 
-A very simple and concrete parser for the ([SimplePixelFont](https://github.com/SimplePixelFont))
+A very simple and concrete parser library for the [SimplePixelFont](https://github.com/SimplePixelFont)
 file specifications written in Rust. Initially written as a Rust crate, `spf.rs` is now also
-a C/C++ ABI-compatible library which can be used in a variety of other programming languages.
+a C/C++ ABI-compatible library which can be used in a variety of other programming languages. `spf.rs` is also shipped with additional modules to help integration be faster and easier for you next pixelated project.
 
-`spf.rs` provides simple encoding and decoding for the `*.spf` binary representation through a `Vec<u8>`. And also
-includes optional features to conveniently create a texture from a font rendering, which
-can then be used in your favorite game engine or graphics framework.
+### Installation
+
+To install `spf.rs` as a rust crate run the following command in your cargo project:
+```sh
+cargo add spf
+```
+
+To install and use as a C/C++ ABI-compatible library you may want to download a pre-built version of `spf.rs` from the releases section. A corrosponding header file is also included if you are programming in C/C++. Please note that pre-built binaries are only avaiable for windows and linux-x86-64bit architectures. As a result you may want to compile `spf.rs` specifically if a pre-built binary is not availible for you.
 
 ### Example
-Creates a new `SimplePixelFont` struct and adds the characters `o`, `w`, and `😊`.
+Creates a new `Layout` struct with the characters `o`, `w`, and `😊` using the `LayoutBuilder`.
 ```rs
-use spf::core::*;
+use spf::egronomics::*;
 
 fn main() {
-    let mut font = SimplePixelFont::new(
-        ConfigurationFlags {
-            0: ALIGNMENT_HEIGHT,
-            ..Default::default()
-        },
-        ModifierFlags {
-            ..Default::default()
-        },
-        4,
-    );
-    font.add_character(Character::inferred(
-        'o',
-        Bitmap::inferred(&[
-            true, true, true, true,
-            true, false, false, true,
-            true, false, false, true,
-            true, true, true, true,
-        ]),
-    ));
-    font.add_character(Character::inferred(
-        'w',
-        Bitmap::inferred(&[
-            true, false, true, false, true,
-            true, false, true, false, true,
-            true, false, true, false, true,
-            true, true, true, true, true,
-        ]),
-    ));
-    font.add_character(Character::inferred(
-        '😊',
-        Bitmap::inferred(&[
-            false, true, true, false,
-            false, false, false, false,
-            true, false, false, true,
-            false, true, true, false,
-        ]),
-    ));
+    let mut font = LayoutBuilder::new()
+        .alignment(ALIGNMENT_HEIGHT)
+        .size(4)
+        .character('o', &[
+            1, 1, 1, 1,
+            1, 0, 0, 1,
+            1, 0, 0, 1,
+            1, 1, 1, 1,
+        ])
+        .character('w', &[
+            1, 0, 1, 0, 1,
+            1, 0, 1, 0, 1,
+            1, 0, 1, 0, 1,
+            1, 1, 1, 1, 1,
+        ])
+        .character('😊', &[
+            0, 1, 1, 0,
+            0, 0, 0, 0,
+            1, 0, 0, 1,
+            0, 1, 1, 0,
+        ])
+        .build();
 }
 ```
 We can then encode the struct and use `std::fs` to write to a file:
@@ -88,3 +78,4 @@ Key:
 - `⚠️` = Work in progress
 - `❌` = Not implemented
 - `✔` = Stable
+
