@@ -1,23 +1,8 @@
-pub(crate) use super::byte;
-pub(crate) use super::core::Header;
+pub(crate) use super::super::byte;
+pub(crate) use super::*;
+
 #[cfg(feature = "log")]
-pub(crate) use super::log::{LogLevel, LOGGER};
-
-pub(crate) fn sign_buffer(buffer: &mut byte::ByteStorage) -> &mut byte::ByteStorage {
-    buffer.bytes.insert(0, byte::Byte::from_u8(70));
-    buffer.bytes.insert(0, byte::Byte::from_u8(115));
-    buffer.bytes.insert(0, byte::Byte::from_u8(102));
-
-    #[cfg(feature = "log")]
-    unsafe {
-        let mut logger = LOGGER.lock().unwrap();
-        if logger.log_level as u8 >= LogLevel::Info as u8 {
-            logger.message.push_str("Signed font data.");
-            logger.flush_info().unwrap();
-        }
-    }
-    buffer
-}
+use super::super::log::{LogLevel, LOGGER};
 
 pub(crate) fn push_header<'a>(
     buffer: &'a mut byte::ByteStorage,
@@ -137,43 +122,4 @@ pub(crate) fn push_byte_map(
             logger.flush_info().unwrap();
         }
     }
-}
-
-pub(crate) fn next_character(
-    body_buffer: &mut byte::ByteStorage,
-    mut current_index: usize,
-) -> (char, usize) {
-    let utf81 = body_buffer.get(current_index);
-    let mut utf8_bytes: [u8; 4] = [0, 0, 0, 0];
-
-    if utf81.bits[7..] == [false] {
-        utf8_bytes[0] = utf81.to_u8();
-    } else if utf81.bits[5..] == [false, true, true, true] {
-        utf8_bytes[0] = utf81.to_u8();
-        current_index += 1;
-        utf8_bytes[1] = body_buffer.get(current_index).to_u8();
-    } else if utf81.bits[4..] == [false, true, true, true] {
-        utf8_bytes[0] = utf81.to_u8();
-        current_index += 1;
-        utf8_bytes[1] = body_buffer.get(current_index).to_u8();
-        current_index += 1;
-        utf8_bytes[2] = body_buffer.get(current_index).to_u8();
-    } else if utf81.bits[3..] == [false, true, true, true, true] {
-        utf8_bytes[0] = utf81.to_u8();
-        current_index += 1;
-        utf8_bytes[1] = body_buffer.get(current_index).to_u8();
-        current_index += 1;
-        utf8_bytes[2] = body_buffer.get(current_index).to_u8();
-        current_index += 1;
-        utf8_bytes[3] = body_buffer.get(current_index).to_u8();
-    }
-
-    return (
-        String::from_utf8(utf8_bytes.to_vec())
-            .unwrap()
-            .chars()
-            .next()
-            .unwrap(),
-        current_index,
-    );
 }

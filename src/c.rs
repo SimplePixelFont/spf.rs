@@ -159,7 +159,7 @@ pub(crate) fn from_c_layout(layout: CLayout) -> Layout {
 #[no_mangle]
 pub extern "C" fn c_core_layout_from_data(pointer: *const c_uchar, length: c_ulong) -> CLayout {
     let data = unsafe { slice::from_raw_parts(pointer, length as usize) };
-    let layout = Layout::from_data(data.to_owned());
+    let layout = layout_from_data(data.to_owned());
     let clayout = to_c_layout(layout);
     return clayout;
 }
@@ -173,7 +173,7 @@ pub struct CData {
 #[no_mangle]
 pub extern "C" fn c_core_layout_to_data(layout: CLayout) -> CData {
     let layout = from_c_layout(layout);
-    let mut data = layout.to_data().into_boxed_slice();
+    let mut data = layout_to_data(&layout).into_boxed_slice();
     let data_length = data.len() as c_ulong;
     let data_ptr = data.as_mut_ptr();
     std::mem::forget(data);

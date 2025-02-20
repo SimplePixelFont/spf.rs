@@ -23,7 +23,6 @@ pub mod printer;
 pub mod articles;
 
 pub(crate) mod byte;
-pub(crate) mod common;
 
 pub mod c;
 
