@@ -121,7 +121,7 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
                 let mut logger = LOGGER.lock().unwrap();
                 if logger.log_level as u8 >= LogLevel::Debug as u8 {
                     logger.message.push_str(
-                        format!("Identified utf8 character: {:?}", current_character.utf8).as_str(),
+                        &format!("Identified utf8 character: {:?}", current_character.utf8),
                     );
                     logger.flush_debug().unwrap();
                 }
@@ -174,9 +174,8 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
                     let mut logger = LOGGER.lock().unwrap();
                     if logger.log_level as u8 >= LogLevel::Debug as u8 {
                         logger.message.push_str(
-                            format!("Last character pushed had {} padding bits, now reading with offset of {}, starting at byte {}",
-                                remainder, body_buffer.pointer, current_index)
-                                .as_str(),
+                            &format!("Last character pushed had {} padding bits, now reading with offset of {}, starting at byte {}",
+                                remainder, body_buffer.pointer, current_index),
                         );
                         logger.flush_debug().unwrap();
                     }

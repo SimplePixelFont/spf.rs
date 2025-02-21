@@ -48,11 +48,10 @@ pub(crate) fn push_character(
         let mut logger = LOGGER.lock().unwrap();
         if logger.log_level as u8 >= LogLevel::Info as u8 {
             logger.message.push_str(
-                format!(
+                &format!(
                     "Pushed character '{}' with the following bits: {}",
                     character, utf8_bit_string
-                )
-                .as_str(),
+                ),
             );
             logger.flush_info().unwrap();
         }
@@ -74,11 +73,10 @@ pub(crate) fn push_custom_size(
         let mut logger = LOGGER.lock().unwrap();
         if logger.log_level as u8 >= LogLevel::Info as u8 {
             logger.message.push_str(
-                format!(
+                &format!(
                     "Pushed custom size '{}' with the following bits: {}",
                     custom_size, size_bit_string
-                )
-                .as_str(),
+                ),
             );
             logger.flush_info().unwrap();
         }
@@ -113,11 +111,10 @@ pub(crate) fn push_byte_map(
         let mut logger = LOGGER.lock().unwrap();
         if logger.log_level as u8 >= LogLevel::Info as u8 {
             logger.message.push_str(
-                format!(
+                &format!(
                     "Pushed byte map with the following bits: {}",
                     byte_map_bit_string
-                )
-                .as_str(),
+                ),
             );
             logger.flush_info().unwrap();
         }
