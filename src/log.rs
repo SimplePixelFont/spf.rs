@@ -1,3 +1,18 @@
+//! Logging utilities for `spf.rs`.
+//!
+//! <div class="warning">
+//!
+//! This module uses a mutable static variable [`LOGGER`] to facilitate logging within the crate.
+//! As such this module is not thread safe and uses `unsafe` code to access the global variable.
+//! This module is simply provided as a convenience for debugging and should not be used in production
+//! code.
+//!
+//! </div>
+//!
+//! The [`core`] module optionally uses this module to log information about the process of
+//! converting a [`Layout`] struct into a [`Vec<u8>`] and vice versa.
+//!
+
 use std::collections::HashMap;
 use std::io::{self, Write};
 use std::ops::Range;
@@ -15,6 +30,7 @@ pub enum LogLevel {
 
 pub(crate) struct Logger {
     pub(crate) message: String,
+    #[allow(dead_code)]
     pub(crate) ranges: HashMap<Range<usize>, Color>,
     pub(crate) buffer_writer: BufferWriter,
     pub(crate) buffer: Buffer,
@@ -69,6 +85,7 @@ pub(crate) static mut LOGGER: LazyLock<Mutex<Logger>> = LazyLock::new(|| {
 });
 
 #[allow(non_snake_case)]
+/// Sets the log level of the global static [`LOGGER`] variable.
 pub fn LOGGER_set_log_level(level: LogLevel) {
     unsafe {
         let mut logger = LOGGER.lock().unwrap();

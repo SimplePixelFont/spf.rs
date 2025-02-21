@@ -51,7 +51,8 @@ pub struct CBody {
     pub characters_length: c_ulong,
 }
 
-pub(crate) fn to_c_layout(layout: Layout) -> CLayout {
+/// Converts a Rust native [`Layout`] struct into a C ABI compatible [`CLayout`] struct.
+pub fn to_c_layout(layout: Layout) -> CLayout {
     let characters_len = layout.body.characters.len();
     let mut characters = Vec::with_capacity(characters_len);
 
@@ -114,7 +115,8 @@ pub(crate) fn to_c_layout(layout: Layout) -> CLayout {
     }
 }
 
-pub(crate) fn from_c_layout(layout: CLayout) -> Layout {
+/// Converts a C ABI compatible [`CLayout`] struct into a Rust native [`Layout`] struct.
+pub fn from_c_layout(layout: CLayout) -> Layout {
     let characters_len = layout.body.characters_length as usize;
     let mut characters = Vec::with_capacity(characters_len);
     unsafe {
@@ -157,6 +159,12 @@ pub(crate) fn from_c_layout(layout: CLayout) -> Layout {
 }
 
 #[no_mangle]
+/// Thin wrapper around [`layout_from_data`] compatible with the C ABI.
+///
+/// This function takes a pointer to a [`c_uchar`] array with a length of [`c_ulong`] and creates a
+/// [`Vec<u8>`] from the data. This data is then passed to the [`layout_from_data`] function to
+/// create a [`Layout`] struct. The [`Layout`] struct is then converted into a [`CLayout`] struct
+/// and returned.
 pub extern "C" fn c_core_layout_from_data(pointer: *const c_uchar, length: c_ulong) -> CLayout {
     let data = unsafe { slice::from_raw_parts(pointer, length as usize) };
     let layout = layout_from_data(data.to_owned());
@@ -165,12 +173,18 @@ pub extern "C" fn c_core_layout_from_data(pointer: *const c_uchar, length: c_ulo
 }
 
 #[repr(C)]
+/// Used to represent a [`Vec<u8>`] in the C ABI.
 pub struct CData {
     pub data: *mut c_uchar,
     pub data_length: c_ulong,
 }
 
 #[no_mangle]
+/// Thin wrapper around [`layout_to_data`] compatible with the C ABI.
+///
+/// This function takes a [`CLayout`] struct and converts it into a Rust native [`Layout`] struct.
+/// The [`Layout`] struct is then parsed into a [`Vec<u8>`] with the [`layout_to_data`] function.
+/// The [`Vec<u8>`] is then converted into a [`CData`] struct and returned.
 pub extern "C" fn c_core_layout_to_data(layout: CLayout) -> CData {
     let layout = from_c_layout(layout);
     let mut data = layout_to_data(&layout).into_boxed_slice();

@@ -1,3 +1,5 @@
+//! Caching structs used by the [`printer`] module.
+
 pub(crate) use super::core::Character;
 
 /// A `CharacterCache` struct is used to store mappings between characters and their index

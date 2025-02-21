@@ -1,10 +1,15 @@
 //! Essential functions and structs used by both the native crate and FFI interface.
 //!
+//! <div class="warning">
+//!
 //! If you are using `spf.rs` as a native Rust crate you may instead want to use the interface exposed
-//! from the `ergonomics` feature module. This module provides raw composite structs that aim to
-//! reflect the structure of a `SimplePixelFont` binary file. Additionally it defines the
-//! `layout_to_data` and `layout_from_data` functions that can be used to convert between the composite
-//! structs and the binary data.
+//! from the [`ergonomics`] feature module.
+//!
+//! </div>
+//!
+//! This module provides raw composite structs that aim to reflect the structure of a `SimplePixelFont`
+//! binary file. Additionally it defines the [`layout_to_data`] and [`layout_from_data`] functions that
+//! can be used to convert between the structs and the binary data.
 
 pub(crate) mod composers;
 pub(crate) mod helpers;
@@ -16,30 +21,35 @@ pub(crate) use super::MAGIC_BYTES;
 use super::log::{LogLevel, LOGGER};
 
 #[derive(Debug, Clone)]
-/// Defines the configuration flags for a `SimplePixelFont` structs.
+/// Defines the configuration flags for a font [`Layout`] struct.
 ///
-/// Each field is a boolean, however you many use the constants defined in this module
-/// to set the values of the fields. (such as `ALIGNMENT_HEIGHT` or `ALIGNMENT_WIDTH` for the
-/// `alignment` field to increase readability).
+/// Each field is a [`bool`] and in the binary file will be represented by a single bit.
 pub struct ConfigurationFlags {
     /// Determines if the font characters are alligned by width (false) or height (true).
     pub alignment: bool,
 }
 #[derive(Debug, Clone)]
-/// Defines the modifier flags for a `SimplePixelFont` structs.
+/// Defines the modifier flags for a font [`Layout`] struct.
 ///
-/// If the field is set to true, then the modifer will be applied to the `SimplePixelFont` struct.
+/// If the field is set to true, then the modifer will be applied to the font [`Layout`] struct.
+/// Each field is a [`bool`] and in the binary file will be represented by a single bit.
 pub struct ModifierFlags {
-    /// If enabled, font body will be compacted with no padding bytes.
+    /// If enabled, font body will be compacted with no padding bytes after each character.
     pub compact: bool,
 }
 
 #[derive(Debug, Clone)]
+/// Defines the required values for a `t` structs.
 pub struct RequiredValues {
     pub constant_size: u8,
 }
 
 #[derive(Debug, Clone)]
+/// Represents the header of a font [`Layout`] struct.
+///
+/// The [`Header`] struct contains the configuration flags, modifier flags and required values
+/// of a [`Layout`]. These values are essential in determining how the font will be interpreted
+/// by [`layout_to_data`] and [`layout_from_data`] functions.
 pub struct Header {
     pub configuration_flags: ConfigurationFlags,
     pub modifier_flags: ModifierFlags,
@@ -47,6 +57,10 @@ pub struct Header {
 }
 
 /// Represents a charater in the font.
+///
+/// The [`Character`] struct contains the utf8 character, custom size and byte map of a character.
+/// Please note that while the byte_map uses a u8 for each pixel, when the font is converted to
+/// a data vector, each pixel will be represented by a single bit.
 #[derive(Debug, Clone)]
 pub struct Character {
     pub utf8: char,
@@ -54,18 +68,24 @@ pub struct Character {
     pub byte_map: Vec<u8>,
 }
 
+/// Represents the body of a font [`Layout`] struct.
+///
+/// The [`Body`] struct contains the characters of a [`Layout`] as a Vector.
 #[derive(Debug, Clone)]
 pub struct Body {
     pub characters: Vec<Character>,
 }
 
+/// Represents the entire font [`Layout`] struct.
+///
+/// The [`Layout`] struct aims to reflect the structure of a `SimplePixelFont` binary file.
 #[derive(Debug, Clone)]
 pub struct Layout {
     pub header: Header,
     pub body: Body,
 }
 
-/// Decodes a `Vec<u8>` and parses it into a struct, this method will ignore the checksum values.
+/// Parses a [`Vec<u8>`] into a font [`Layout`].
 pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
     let mut current_index = 0;
     let mut chunks = buffer.iter();
@@ -120,9 +140,10 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
             unsafe {
                 let mut logger = LOGGER.lock().unwrap();
                 if logger.log_level as u8 >= LogLevel::Debug as u8 {
-                    logger.message.push_str(
-                        &format!("Identified utf8 character: {:?}", current_character.utf8),
-                    );
+                    logger.message.push_str(&format!(
+                        "Identified utf8 character: {:?}",
+                        current_character.utf8
+                    ));
                     logger.flush_debug().unwrap();
                 }
             }
@@ -192,7 +213,8 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
         body: body,
     }
 }
-/// Encodes the structure into a `Vec<u8>` that can then be written to a file using `std::fs`
+
+/// Encodes the provided font [`Layout`] into a [`Vec<u8>`].
 pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
     let mut buffer = byte::ByteStorage::new();
     helpers::sign_buffer(&mut buffer);
