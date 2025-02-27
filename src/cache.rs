@@ -37,20 +37,24 @@ impl CharacterCache {
     /// ```
     /// # use spf::cache::CharacterCache;
     /// # use spf::core::Character;
-    /// # use spf::core::Bitmap;
+    ///
     /// let characters = vec![
-    ///     Character::new('o', 4, Bitmap::new(4, 4, vec![
-    ///         false, true, true, false,
-    ///         true, false, false, true,
-    ///         true, false, false, true,
-    ///         false, true, true, false
-    ///     ]).unwrap()).unwrap(),
-    ///     Character::new('u', 4, Bitmap::new(4, 4, vec![
-    ///         true, false, false, true,
-    ///         true, false, false, true,
-    ///         true, false, false, true,
-    ///         true, true, true, true
-    ///     ]).unwrap()).unwrap(),
+    ///     Character {
+    ///         utf8: 'o',
+    ///         custom_size: 4,
+    ///         byte_map: vec![0, 1, 1, 0,
+    ///                        1, 0, 0, 1,
+    ///                        1, 0, 0, 1,
+    ///                        0, 1, 1, 0],
+    ///     },
+    ///     Character {
+    ///        utf8: 'u',
+    ///        custom_size: 4,
+    ///        byte_map: vec![1, 0, 0, 1,
+    ///                       1, 0, 0, 1,
+    ///                       1, 0, 0, 1,
+    ///                       1, 1, 1, 1],
+    ///     },
     /// ];
     /// let cache = CharacterCache::from_characters(&characters);
     ///

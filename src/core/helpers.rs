@@ -1,4 +1,3 @@
-pub(crate) use super::super::byte;
 pub(crate) use super::*;
 
 #[cfg(feature = "log")]

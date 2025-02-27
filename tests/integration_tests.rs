@@ -4,48 +4,46 @@ use spf::core::*;
 
 #[test]
 fn write_font_file() -> Result<(), String> {
-    let mut font = Layout::new(
-        Header {
-            configuration_flags: ConfigurationFlags {
-                alignment: ALIGNMENT_HEIGHT,
-            },
+    let mut font = Layout {
+        header: Header {
+            configuration_flags: ConfigurationFlags { alignment: true },
             modifier_flags: ModifierFlags { compact: false },
             required_values: RequiredValues { constant_size: 4 },
         },
-        Body { characters: vec![] },
-    );
+        body: Body { characters: vec![] },
+    };
 
     #[rustfmt::skip]
-    font.add_character(Character::new(
-        'o',
-        4,
-        vec![1, 1, 1, 1,
-             1, 0, 0, 1,
-             1, 0, 0, 1,
-             1, 1, 1, 1],
-    ))?;
+    font.body.characters.push(Character {
+        utf8: 'o',
+        custom_size: 4,
+        byte_map: vec![1, 1, 1, 1,
+                       1, 0, 0, 1,
+                       1, 0, 0, 1,
+                       1, 1, 1, 1],
+    });
 
     #[rustfmt::skip]
-    font.add_character(Character::new(
-        'w',
-        5,
-        vec![1, 0, 1, 0, 1,
-             1, 0, 1, 0, 1,
-             1, 0, 1, 0, 1,
-             1, 1, 1, 1, 1],
-    ))?;
+    font.body.characters.push(Character {
+        utf8: 'w',
+        custom_size: 5,
+        byte_map: vec![1, 0, 1, 0, 1,
+                       1, 0, 1, 0, 1,
+                       1, 0, 1, 0, 1,
+                       1, 1, 1, 1, 1],
+    });
 
     #[rustfmt::skip]
-    font.add_character(Character::new(
-        '😊',
-        4,
-        vec![0, 1, 1, 0,
-             0, 0, 0, 0,
-             1, 0, 0, 1,
-             0, 1, 1, 0],
-    ))?;
+    font.body.characters.push(Character {
+        utf8: '😊',
+        custom_size: 4,
+        byte_map: vec![0, 1, 1, 0,
+                       0, 0, 0, 0,
+                       1, 0, 0, 1,
+                       0, 1, 1, 0],
+    });
 
-    common::write_to_file("./res/sampleToyFont.spf", &font.to_data()).unwrap();
+    common::write_to_file("./res/sampleToyFont.spf", &layout_to_data(&font)).unwrap();
     Ok(())
 }
 
@@ -54,7 +52,7 @@ fn read_font_file() -> Result<(), String> {
     let mut buffer: Vec<u8> = vec![];
     common::read_from_file("./res/sampleToyFont.spf", &mut buffer).unwrap();
 
-    let _font = Layout::from_data(buffer);
+    let _font = layout_from_data(buffer);
 
     Ok(())
 }

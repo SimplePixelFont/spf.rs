@@ -1,4 +1,3 @@
-pub(crate) use super::super::byte;
 pub(crate) use super::*;
 
 #[cfg(feature = "log")]
@@ -47,12 +46,10 @@ pub(crate) fn push_character(
     unsafe {
         let mut logger = LOGGER.lock().unwrap();
         if logger.log_level as u8 >= LogLevel::Info as u8 {
-            logger.message.push_str(
-                &format!(
-                    "Pushed character '{}' with the following bits: {}",
-                    character, utf8_bit_string
-                ),
-            );
+            logger.message.push_str(&format!(
+                "Pushed character '{}' with the following bits: {}",
+                character, utf8_bit_string
+            ));
             logger.flush_info().unwrap();
         }
     }
@@ -72,12 +69,10 @@ pub(crate) fn push_custom_size(
     unsafe {
         let mut logger = LOGGER.lock().unwrap();
         if logger.log_level as u8 >= LogLevel::Info as u8 {
-            logger.message.push_str(
-                &format!(
-                    "Pushed custom size '{}' with the following bits: {}",
-                    custom_size, size_bit_string
-                ),
-            );
+            logger.message.push_str(&format!(
+                "Pushed custom size '{}' with the following bits: {}",
+                custom_size, size_bit_string
+            ));
             logger.flush_info().unwrap();
         }
     }
@@ -110,12 +105,10 @@ pub(crate) fn push_byte_map(
     unsafe {
         let mut logger = LOGGER.lock().unwrap();
         if logger.log_level as u8 >= LogLevel::Info as u8 {
-            logger.message.push_str(
-                &format!(
-                    "Pushed byte map with the following bits: {}",
-                    byte_map_bit_string
-                ),
-            );
+            logger.message.push_str(&format!(
+                "Pushed byte map with the following bits: {}",
+                byte_map_bit_string
+            ));
             logger.flush_info().unwrap();
         }
     }

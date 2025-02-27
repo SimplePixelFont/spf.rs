@@ -11,11 +11,10 @@
 //! binary file. Additionally it defines the [`layout_to_data`] and [`layout_from_data`] functions that
 //! can be used to convert between the structs and the binary data.
 
+pub(crate) mod byte;
 pub(crate) mod composers;
 pub(crate) mod helpers;
 pub(crate) mod parsers;
-pub(crate) use super::byte;
-pub(crate) use super::MAGIC_BYTES;
 
 #[cfg(feature = "log")]
 use super::log::{LogLevel, LOGGER};
@@ -87,8 +86,8 @@ pub struct Layout {
 }
 
 /// Parses a [`Vec<u8>`] into a font [`Layout`].
-/// 
-/// 
+///
+///
 pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
     let mut current_index = 0;
     let mut chunks = buffer.iter();
@@ -113,7 +112,7 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
     while !iter.is_none() {
         let chunk = iter.unwrap();
         if current_index < 3 {
-            if !chunk == MAGIC_BYTES[current_index] {
+            if !chunk == [102, 115, 70][current_index] {
                 panic!("File is not signed")
             }
         } else if current_index == 3 {

@@ -1,4 +1,4 @@
-pub(crate) use super::super::byte;
+pub(crate) use super::*;
 
 pub(crate) fn next_character(
     body_buffer: &mut byte::ByteStorage,

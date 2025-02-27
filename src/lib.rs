@@ -22,8 +22,6 @@ pub mod printer;
 #[cfg(feature = "articles")]
 pub mod articles;
 
-pub(crate) mod byte;
-
 pub mod c;
 
 /// Magic bytes of `*.spf` files
