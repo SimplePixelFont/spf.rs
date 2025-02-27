@@ -173,7 +173,7 @@ pub extern "C" fn c_core_layout_from_data(pointer: *const c_uchar, length: c_ulo
 }
 
 #[repr(C)]
-/// Used to represent a [`Vec<u8>`] in the C ABI.
+/// Used to represent a [`Vec<u8>`] in the C ABI. This is simply a `u_char` array on the heap which can be reconstructed with the pointer `data` and length `data_length`.
 pub struct CData {
     pub data: *mut c_uchar,
     pub data_length: c_ulong,

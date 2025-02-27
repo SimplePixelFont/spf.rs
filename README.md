@@ -6,68 +6,22 @@
 [![License](https://img.shields.io/badge/License-Unlicense-orange)](#license)
 [![issues - spf.rs](https://img.shields.io/github/issues/The-Nice-One/spf.rs)](https://github.com/The-Nice-One/spf.rs/issues)
 
-A very simple and concrete parser library for the [SimplePixelFont](https://github.com/SimplePixelFont)
-file specifications written in Rust. Initially written as a Rust crate, `spf.rs` is now also
-a C/C++ ABI-compatible library which can be used in a variety of other programming languages. `spf.rs` is also shipped with additional modules to help integration be faster and easier for you next pixelated project.
+A very simple and concrete parser library for the [SimplePixelFont file specifications](https://github.com/SimplePixelFont/Specification), written in Rust. `spf.rs` is both a native crate and also an FFI library which can be used  in a variety of other programming languages which support library loading. `spf.rs` is additionally shipped with features/modules to help integration be faster and easier for you next pixelated project.
 
 ### Installation
 
-To install `spf.rs` as a rust crate run the following command in your cargo project:
+- To install `spf.rs` as a rust crate run the following command in your cargo project or [read more]():
 ```sh
 cargo add spf
 ```
 
-To install and use as a C/C++ ABI-compatible library you may want to download a pre-built version of `spf.rs` from the releases section. A corrosponding header file is also included if you are programming in C/C++. Please note that pre-built binaries are only avaiable for windows and linux-x86-64bit architectures. As a result you may want to compile `spf.rs` specifically if a pre-built binary is not availible for you.
+- To use `spf.rs` as an FFI library in your language of choice you must first download a pre-built library version of `spf.rs` from the [releases section]() (a corrosponding header file is also included if you are programming in C/C++). Please note that pre-built binaries are only avaiable for Windows and Linux-x86-64bit architectures. As a result you may want to [compile `spf.rs` from source](), specifically if a pre-built binary is not availible for you.
 
-### Example
-Creates a new `Layout` struct with the characters `o`, `w`, and `😊` using the `LayoutBuilder`.
-```rs
-use spf::egronomics::*;
+### Usage
 
-fn main() {
-    let mut font = LayoutBuilder::new()
-        .alignment(ALIGNMENT_HEIGHT)
-        .size(4)
-        .character('o', &[
-            1, 1, 1, 1,
-            1, 0, 0, 1,
-            1, 0, 0, 1,
-            1, 1, 1, 1,
-        ])
-        .character('w', &[
-            1, 0, 1, 0, 1,
-            1, 0, 1, 0, 1,
-            1, 0, 1, 0, 1,
-            1, 1, 1, 1, 1,
-        ])
-        .character('😊', &[
-            0, 1, 1, 0,
-            0, 0, 0, 0,
-            1, 0, 0, 1,
-            0, 1, 1, 0,
-        ])
-        .build();
-}
-```
-We can then encode the struct and use `std::fs` to write to a file:
-```rs
-let mut file = std::fs::OpenOptions::new()
-    .write(true)
-    .create(true)
-    .open("./sampleToyFont.spf")
-    .unwrap();
-file.write_all(&font.to_vec_u8()).unwrap();
-```
-Or we can load an exsisting .spf file using `std::fs` aswell:
-```rs
-let mut file = std::fs::OpenOptions::new()
-    .read(true)
-    .open("./sampleToyFont.spf")
-    .unwrap();
-let mut buffer: Vec<u8> = vec![];
-file.read_to_end(&mut buffer).unwrap();
-let font = SimplePixelFont::from_vec_u8(buffer);
-```
+Usage varies depending on the programming language you choose. For a guide using the native Rust interface check out the [Getting Started in Rust]() article. You can also check out the [Using the FFI in C]() article for usage with the `spf.rs` library. 
+
+
 ### Supported File Properties
 | Flag | Type | Stability | Notes |
 | --- | --- | --- | --- |
