@@ -2,8 +2,8 @@
 
 pub(crate) use super::core::Character;
 
-/// A `CharacterCache` struct is used to store mappings between characters and their index
-/// from within a `SimplePixelFont` characters field.
+/// A `CharacterCache` struct is used to store mappings between the utf8 characters and their index
+/// from within a [`Layout.body.characters`].
 pub struct CharacterCache {
     pub mappings: std::collections::HashMap<char, usize>,
 }

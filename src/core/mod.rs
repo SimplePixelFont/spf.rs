@@ -25,7 +25,7 @@ use super::log::{LogLevel, LOGGER};
 ///
 /// Each field is a [`bool`] and in the binary file will be represented by a single bit.
 pub struct ConfigurationFlags {
-    /// Determines if the font characters are alligned by width (false) or height (true).
+    /// Determines if all the font characters are alligned by width (false) and in turn have the same width. Or aligned by height (true), in which case all letters will have the same height. This value for width or height is storee in [`RequiredValues.constant_size`].
     pub alignment: bool,
 }
 #[derive(Debug, Clone)]
@@ -34,13 +34,14 @@ pub struct ConfigurationFlags {
 /// If the field is set to true, then the modifer will be applied to the font [`Layout`] struct.
 /// Each field is a [`bool`] and in the binary file will be represented by a single bit.
 pub struct ModifierFlags {
-    /// If enabled, font body will be compacted with no padding bytes after each character.
+    /// If enabled (value set to true), font body will be compacted, removing padding bytes after each character definition. Without compact enabled, [`layout_to_data`] will end each character bitmap with padding 0's if `(constant_size * custom_size) % 8` results in a remainder that is not 0. The number of padding 0's is the remainder of the formula above.
     pub compact: bool,
 }
 
 #[derive(Debug, Clone)]
-/// Defines the required values for a `t` structs.
+/// Defines the required values for a [`Layout`] structs.
 pub struct RequiredValues {
+    // The size that each character defined in this font [`Layout`] will use. This may be the width or height of each character depending on the [`ConfigurationFlags.alignment`].
     pub constant_size: u8,
 }
 
@@ -86,6 +87,8 @@ pub struct Layout {
 }
 
 /// Parses a [`Vec<u8>`] into a font [`Layout`].
+/// 
+/// 
 pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
     let mut current_index = 0;
     let mut chunks = buffer.iter();

@@ -10,8 +10,9 @@
 //! </div>
 //!
 //! The [`core`] module optionally uses this module to log information about the process of
-//! converting a [`Layout`] struct into a [`Vec<u8>`] and vice versa.
-//!
+//! converting a [`Layout`] struct into a [`Vec<u8>`] and vice versa when using the [`layout_to_data`] and [`layout_ftom_data`] functions respectivy.  
+//!  
+//! This module uses the [`termcolor`] dependency in order to print more easily readable messages on the console.
 
 use std::collections::HashMap;
 use std::io::{self, Write};
@@ -22,6 +23,7 @@ use termcolor::WriteColor;
 use termcolor::{Buffer, BufferWriter, Color, ColorChoice, ColorSpec};
 
 #[derive(Copy, Clone)]
+/// TODO: repr(u8)
 pub enum LogLevel {
     None = 0,
     Info = 1,
@@ -85,7 +87,7 @@ pub(crate) static mut LOGGER: LazyLock<Mutex<Logger>> = LazyLock::new(|| {
 });
 
 #[allow(non_snake_case)]
-/// Sets the log level of the global static [`LOGGER`] variable.
+/// Sets the `log_level` of the global static `LOGGER` variable.
 pub fn LOGGER_set_log_level(level: LogLevel) {
     unsafe {
         let mut logger = LOGGER.lock().unwrap();
