@@ -125,7 +125,7 @@ impl Surface {
     /// ]);
     ///
     /// // We blit surface2 onto surface1 starting at (1, 1).
-    /// surface1.append(&surface2, 1, 1);
+    /// surface1.blit(&surface2, 1, 1);
     ///
     /// assert_eq!(surface1.data, &[
     ///    0, 1, 1,
@@ -133,7 +133,7 @@ impl Surface {
     ///    1, 2, 3
     /// ]);
     /// ```
-    pub fn append(&mut self, surface: &Surface, x: usize, y: usize) {
+    pub fn blit(&mut self, surface: &Surface, x: usize, y: usize) {
         let mut offset_x = 0;
         let mut offset_y = 0;
         let mut iter = 0;
@@ -176,6 +176,7 @@ impl Surface {
         }
         returner
     }
+    /// Return a [`Vec<T>`] by flattening out an array replacing each value.
     pub fn flatten_replace<T: Copy>(&self, values: &[Vec<T>]) -> Vec<T> {
         let mut returner: Vec<T> = vec![];
         for flag in self.data.iter() {
@@ -185,6 +186,7 @@ impl Surface {
         }
         returner
     }
+    /// Flips a surface
     /// # Example
     ///
     /// ```
