@@ -3,7 +3,7 @@
 //! <div class="warning">
 //!
 //! If you are using `spf.rs` as a native Rust crate you may instead want to use the interface exposed
-//! from the [`ergonomics`] feature module.
+//! from the [`super::ergonomics`] feature module.
 //!
 //! </div>
 //!

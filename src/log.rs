@@ -2,7 +2,7 @@
 //!
 //! <div class="warning">
 //!
-//! This module uses a mutable static variable [`LOGGER`] to facilitate logging within the crate.
+//! This module uses a mutable static variable `LOGGER` to facilitate logging within the crate.
 //! As such this module is not thread safe and uses `unsafe` code to access the global variable.
 //! This module is simply provided as a convenience for debugging and should not be used in production
 //! code.
@@ -10,9 +10,11 @@
 //! </div>
 //!
 //! The [`core`] module optionally uses this module to log information about the process of
-//! converting a [`Layout`] struct into a [`Vec<u8>`] and vice versa when using the [`layout_to_data`] and [`layout_ftom_data`] functions respectivy.  
-//!  
-//! This module uses the [`termcolor`] dependency in order to print more easily readable messages on the console.
+//! converting a [`super::core::Layout`] struct into a [`Vec<u8>`] and vice versa when using the
+//! [`super::core::layout_to_data`] and [`super::core::layout_from_data`] functions respectivy.
+//!
+//! This module uses the [`termcolor`] dependency in order to print more easily readable messages on the
+//! console.
 
 use std::collections::HashMap;
 use std::io::{self, Write};

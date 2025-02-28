@@ -151,10 +151,10 @@ impl Surface {
             }
         }
     }
-    /// Returns a Vec<T> by replacing all the indicies in the `data` with values provided.
+    /// Returns a [`Vec<T>`] by replacing all the indicies in the `data` with values provided.
     ///
     /// This method is provided for convience in replacing all the values of the
-    /// `Surface`'s `data` field with predefined values. Please note that `T` must implement
+    /// [`Surface`]'s `data` field with predefined values. Please note that `T` must implement
     /// the `Copy` trait.
     ///
     /// More in depth, this method will iterate over all values of the `data` field, and
