@@ -329,7 +329,7 @@ impl Printer {
                 .byte_map
                 .iter()
                 .for_each(|x| bitmap.push(x.clone() as usize));
-            surface.append(
+            surface.blit(
                 &Surface {
                     data: bitmap,
                     height: self.font.header.required_values.constant_size as usize,
