@@ -42,7 +42,7 @@ impl CharacterCache {
     ///     Character {
     ///         utf8: 'o',
     ///         custom_size: 4,
-    ///         byte_map: vec![0, 1, 1, 0,
+    ///         pixmap: vec![0, 1, 1, 0,
     ///                        1, 0, 0, 1,
     ///                        1, 0, 0, 1,
     ///                        0, 1, 1, 0],
@@ -50,7 +50,7 @@ impl CharacterCache {
     ///     Character {
     ///        utf8: 'u',
     ///        custom_size: 4,
-    ///        byte_map: vec![1, 0, 0, 1,
+    ///        pixmap: vec![1, 0, 0, 1,
     ///                       1, 0, 0, 1,
     ///                       1, 0, 0, 1,
     ///                       1, 1, 1, 1],
