@@ -1,4 +1,25 @@
-use super::core::*;
+//! A C compatible FFI layer for `spf.rs`.
+//!
+//! This module provides a thin wrapper around all the modules in `spf.rs that allows it to be used
+//! in a C compatible way exposed through a FFI. This allows `spf.rs` to be used as a library in C and
+//! in any language that supports the C ABI through a FFI such as WebAssembly.
+//!
+//! To learn about how to use the `spf.rs` library in your language of choice, please refer to the
+//! [`crate::articles::getting_started_in_c`] article. Also note that the ['to_c_layout`] and
+//! ['from_c_layout`] functions are not part of the `spf.rs` library and only exposed in the Rust crate.
+//!
+//! # Conventions
+//!
+//! Function names are prefixed with `c_` followed by the module name they are in. For example, the
+//! function [`c_core_layout_from_data`] is the C ABI compatible version of the [`layout_from_data`]
+//! function in the [`crate::core`] module.
+//!
+//! All structs are prefixed with `C` followed by the struct name. For example, the struct
+//! [`CLayout`] is the C ABI compatible version of the [`Layout`] struct in the [`crate::core`] module.
+//!
+//! All functions that return a [`Vec<u8>`] return a [`CData`] struct instead.
+
+use crate::core::*;
 use std::ffi::*;
 use std::slice;
 

@@ -1,8 +1,7 @@
-use super::cache::CharacterCache;
-use super::core::Character;
-use super::core::Layout;
+use crate::cache::*;
+use crate::core::*;
 
-/// A Surface is a extended Bitmap struct with blitting and manipulation methods.
+/// A [`Surface`] is a one dimensional bitmap with blitting and manipulation methods.
 ///
 /// # Example
 /// ```
@@ -19,12 +18,12 @@ pub struct Surface {
 }
 
 impl Surface {
-    /// Creates a new Surface with all the fields as function arguments.
+    /// Creates a new [`Surface`] with all the fields as function arguments.
     ///
-    /// This function is provided for ease in creating `Surface` structs, it
+    /// This function is provided for ease in creating [`Surface`] structs, it
     /// will use the same data types as the struct uses, with the exception
-    /// of the `data` field, which must be provided as a referrenced slice.
-    /// This argument will be casted into a `Vec<usize>`, and is simply to
+    /// of the [`Surface::data`] field, which must be provided as a refferenced slice.
+    /// This argument will be casted into a [`Vec<usize>`], and is simply to
     /// allow for more cleaner code.
     ///
     /// # Example
@@ -52,10 +51,10 @@ impl Surface {
         }
     }
 
-    /// Creates a new Surface struct with all data values equaling 0.
+    /// Creates a new [`Surface`] struct with all [`Surface::data`] values equaling 0.
     ///
-    /// This function is provided to allow creation of `Surface`'s without
-    /// needing to define each value in the `data` field. It will simply set
+    /// This function is provided to allow creation of [`Surface`]'s without
+    /// needing to define each value in the [`Surface::data`] field. It will simply set
     /// each of the values to 0.
     ///
     /// # Example
@@ -75,9 +74,9 @@ impl Surface {
             data: vec![0; width * height],
         }
     }
-    /// Gets the value of (x, y) in the one-dimensional `data` field vector.
+    /// Gets the value of (x, y) in the one-dimensional [`Surface::data`] field vector.
     ///
-    /// This function provides a two dimensional-like interface for Surface
+    /// This function provides a two dimensional-like interface for [`Surface`]
     /// structs for convenience. It will return the value at (x, y) with (0, 0)
     /// being the top-left corner. If the point does not exist, either `x > width`
     /// and/or `y > height` then the function will return `None`.
@@ -101,11 +100,11 @@ impl Surface {
             None
         }
     }
-    /// Blits another surface to the current, at (x, y).
+    /// Blits another [`Surface`] to the current, at (x, y).
     ///
-    /// This function will copy over all the values of another surface onto its
-    /// self at the specified (x, y). If the secondary surface is larger, and/or
-    /// has points that will be outside the range of the primary surface, this
+    /// This function will copy over all the values of another [`Surface`] onto its
+    /// self at the specified (x, y). If the secondary [`Surface`] is larger, and/or
+    /// has points that will be outside the range of the primary [`Surface`], this
     /// function will not panic and will instead ignore said points.
     ///
     /// # Example
@@ -151,13 +150,14 @@ impl Surface {
             }
         }
     }
-    /// Returns a [`Vec<T>`] by replacing all the indicies in the `data` with values provided.
+    /// Returns a [`Vec<T>`] by replacing all the indicies in the [`Surface::data`] with values
+    /// provided.
     ///
     /// This method is provided for convience in replacing all the values of the
-    /// [`Surface`]'s `data` field with predefined values. Please note that `T` must implement
-    /// the `Copy` trait.
+    /// [`Surface`]'s [`Surface::data`] field with predefined values. Please note that `T` must
+    /// implement the [`Copy`] trait.
     ///
-    /// More in depth, this method will iterate over all values of the `data` field, and
+    /// More in depth, this method will iterate over all values of the [`Surface::data`] field, and
     /// use the value to determine the index of the value to use within the `values` vector.
     /// Given a surface is composed of `0` and `1`, you must supply at least two items for
     /// the `values` vector.
@@ -278,9 +278,9 @@ impl Surface {
 //     state: usize,
 // }
 
-/// Printer is a struct for generating `Surface`'s
+/// Printer is a struct for generating [`Surface`]'s
 ///
-/// A `Printer` struct will hold a `SimplePixelFont` struct to decide the font to
+/// A [`Printer`] struct will hold a [`Layout`] struct to decide the font to
 /// use when generating a Surface. It also has a letter_spacing field to decide
 /// how apart each character should be printed from.
 pub struct Printer {

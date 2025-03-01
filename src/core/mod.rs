@@ -3,7 +3,7 @@
 //! <div class="warning">
 //!
 //! If you are using `spf.rs` as a native Rust crate you may instead want to use the interface exposed
-//! from the [`super::ergonomics`] feature module.
+//! from the [`crate::ergonomics`] feature module.
 //!
 //! </div>
 //!
@@ -17,7 +17,7 @@ pub(crate) mod helpers;
 pub(crate) mod parsers;
 
 #[cfg(feature = "log")]
-use super::log::{LogLevel, LOGGER};
+use crate::log::{LogLevel, LOGGER};
 
 #[derive(Debug, Clone)]
 /// Defines the configuration flags for a font [`Layout`] struct.
