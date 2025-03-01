@@ -1,6 +1,6 @@
 [package]
 name = "spf"
-version = "0.3.0"
+version = "0.4.0"
 description = ".spf (Simple Pixel Font) file parsing, and useful api's to go alongside."
 repository = "https://github.com/The-Nice-One/spf.rs"
 license = "Unlicense"
