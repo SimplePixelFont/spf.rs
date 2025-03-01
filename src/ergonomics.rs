@@ -57,33 +57,33 @@ impl LayoutBuilder {
         &mut self,
         character_utf8: char,
         character_custom_size: u8,
-        character_byte_map: &[u8],
+        character_pixmap: &[u8],
     ) -> &mut Self {
         self.body_characters.push(Character {
             utf8: character_utf8,
             custom_size: character_custom_size,
-            byte_map: character_byte_map.to_vec(),
+            pixmap: character_pixmap.to_vec(),
         });
         self
     }
 
     /// Pushes a new character with a inffered `Character::custom_size` to the [`Body::characters`]
     /// field of the builder.
-    pub fn inffered(&mut self, character_utf8: char, character_byte_map: &[u8]) -> &mut Self {
+    pub fn inffered(&mut self, character_utf8: char, character_pixmap: &[u8]) -> &mut Self {
         if self.header_required_values_constant_size == 0 {
             panic!("Constant size required to add inffered characters.");
         }
-        if character_byte_map.len() % self.header_required_values_constant_size as usize != 0 {
+        if character_pixmap.len() % self.header_required_values_constant_size as usize != 0 {
             panic!("Character custom size cannot be inferred.");
         }
 
         let character_custom_size =
-            (character_byte_map.len() / self.header_required_values_constant_size as usize) as u8;
+            (character_pixmap.len() / self.header_required_values_constant_size as usize) as u8;
 
         self.body_characters.push(Character {
             utf8: character_utf8,
             custom_size: character_custom_size,
-            byte_map: character_byte_map.to_vec(),
+            pixmap: character_pixmap.to_vec(),
         });
         self
     }

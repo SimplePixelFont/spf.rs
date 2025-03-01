@@ -80,18 +80,18 @@ pub(crate) fn push_custom_size(
     buffer
 }
 
-pub(crate) fn push_byte_map(
+pub(crate) fn push_pixmap(
     buffer: &mut byte::ByteStorage,
     header: &Header,
     character_bytes: Vec<u8>,
     remaining_space: usize,
 ) {
-    let mut byte_map_bit_string = String::new();
+    let mut pixmap_bit_string = String::new();
 
     let used_bytes = character_bytes.len();
     let mut index = 0;
     for byte in character_bytes.iter() {
-        byte_map_bit_string.push_str(&format!("{:08b} ", byte));
+        pixmap_bit_string.push_str(&format!("{:08b} ", byte));
 
         if header.modifier_flags.compact && index == used_bytes - 1 {
             buffer.incomplete_push(byte::Byte::from_u8(*byte), remaining_space);
@@ -107,7 +107,7 @@ pub(crate) fn push_byte_map(
         if logger.log_level as u8 >= LogLevel::Info as u8 {
             logger.message.push_str(&format!(
                 "Pushed byte map with the following bits: {}",
-                byte_map_bit_string
+                pixmap_bit_string
             ));
             logger.flush_info().unwrap();
         }

@@ -17,7 +17,7 @@ fn write_font_file() -> Result<(), String> {
     font.body.characters.push(Character {
         utf8: 'o',
         custom_size: 4,
-        byte_map: vec![1, 1, 1, 1,
+        pixmap: vec![1, 1, 1, 1,
                        1, 0, 0, 1,
                        1, 0, 0, 1,
                        1, 1, 1, 1],
@@ -27,7 +27,7 @@ fn write_font_file() -> Result<(), String> {
     font.body.characters.push(Character {
         utf8: 'w',
         custom_size: 5,
-        byte_map: vec![1, 0, 1, 0, 1,
+        pixmap: vec![1, 0, 1, 0, 1,
                        1, 0, 1, 0, 1,
                        1, 0, 1, 0, 1,
                        1, 1, 1, 1, 1],
@@ -37,7 +37,7 @@ fn write_font_file() -> Result<(), String> {
     font.body.characters.push(Character {
         utf8: '😊',
         custom_size: 4,
-        byte_map: vec![0, 1, 1, 0,
+        pixmap: vec![0, 1, 1, 0,
                        0, 0, 0, 0,
                        1, 0, 0, 1,
                        0, 1, 1, 0],

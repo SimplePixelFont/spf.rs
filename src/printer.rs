@@ -326,14 +326,14 @@ impl Printer {
         };
         let mut current_x = 0;
         for character in fetched_character {
-            let mut bitmap = vec![];
+            let mut pixmap = vec![];
             character
-                .byte_map
+                .pixmap
                 .iter()
-                .for_each(|x| bitmap.push(x.clone() as usize));
+                .for_each(|x| pixmap.push(x.clone() as usize));
             surface.blit(
                 &Surface {
-                    data: bitmap,
+                    data: pixmap,
                     height: self.font.header.required_values.constant_size as usize,
                     width: character.custom_size as usize,
                 },

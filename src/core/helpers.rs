@@ -3,8 +3,8 @@ pub(crate) use super::*;
 #[cfg(feature = "log")]
 use super::super::log::{LogLevel, LOGGER};
 
-pub(crate) fn character_byte_map_to_data(character: &Character) -> (Vec<u8>, usize) {
-    let mut chunks = character.byte_map.chunks(8);
+pub(crate) fn character_pixmap_to_data(character: &Character) -> (Vec<u8>, usize) {
+    let mut chunks = character.pixmap.chunks(8);
     let mut buffer: Vec<u8> = Vec::new();
     let mut remainder = 0;
 

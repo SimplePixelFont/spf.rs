@@ -2,7 +2,8 @@
 //!
 //! This module provides a thin wrapper around all the modules in `spf.rs that allows it to be used
 //! in a C compatible way exposed through a FFI. This allows `spf.rs` to be used as a library in C and
-//! in any language that supports the C ABI through a FFI such as WebAssembly.
+//! in any language that supports the platform-specific C-ABI through dynamic library loading, including
+//! WebAssembly.
 //!
 //! To learn about how to use the `spf.rs` library in your language of choice, please refer to the
 //! [`crate::articles::getting_started_in_c`] article. Also note that the ['to_c_layout`] and
@@ -65,8 +66,8 @@ pub struct CRequiredValues {
 pub struct CCharacter {
     pub utf8: *const c_char,
     pub custom_size: c_uchar,
-    pub byte_map: *mut c_uchar,
-    pub byte_map_length: c_ulong,
+    pub pixmap: *mut c_uchar,
+    pub pixmap_length: c_ulong,
 }
 
 #[derive(Debug)]
@@ -76,19 +77,26 @@ pub struct CBody {
     pub characters_length: c_ulong,
 }
 
+#[repr(C)]
+/// Used to represent a [`Vec<u8>`] in the C ABI. This is simply a `u_char` array on the heap which can be reconstructed with the pointer `data` and length `data_length`.
+pub struct CData {
+    pub data: *mut c_uchar,
+    pub data_length: c_ulong,
+}
+
 /// Converts a Rust native [`Layout`] struct into a C ABI compatible [`CLayout`] struct.
 pub fn to_c_layout(layout: Layout) -> CLayout {
     let characters_len = layout.body.characters.len();
     let mut characters = Vec::with_capacity(characters_len);
 
     for character in layout.body.characters {
-        let byte_map_len = character.byte_map.len();
-        let byte_map_ptr = if byte_map_len == 0 {
+        let pixmap_len = character.pixmap.len();
+        let pixmap_ptr = if pixmap_len == 0 {
             std::ptr::null_mut()
         } else {
-            let mut byte_map_vec = character.byte_map.into_boxed_slice();
-            let ptr = byte_map_vec.as_mut_ptr();
-            std::mem::forget(byte_map_vec);
+            let mut pixmap_vec = character.pixmap.into_boxed_slice();
+            let ptr = pixmap_vec.as_mut_ptr();
+            std::mem::forget(pixmap_vec);
             ptr
         };
 
@@ -107,8 +115,8 @@ pub fn to_c_layout(layout: Layout) -> CLayout {
         characters.push(CCharacter {
             utf8: utf8_ptr,
             custom_size: character.custom_size,
-            byte_map: byte_map_ptr,
-            byte_map_length: byte_map_len as c_ulong,
+            pixmap: pixmap_ptr,
+            pixmap_length: pixmap_len as c_ulong,
         })
     }
 
@@ -154,13 +162,12 @@ pub fn from_c_layout(layout: CLayout) -> Layout {
                 .next()
                 .unwrap();
             let custom_size = character.custom_size;
-            let byte_map =
-                slice::from_raw_parts(character.byte_map, character.byte_map_length as usize);
+            let pixmap = slice::from_raw_parts(character.pixmap, character.pixmap_length as usize);
 
             characters.push(Character {
                 utf8: utf8,
                 custom_size: custom_size,
-                byte_map: byte_map.to_vec(),
+                pixmap: pixmap.to_vec(),
             });
         }
     }
@@ -195,13 +202,6 @@ pub extern "C" fn c_core_layout_from_data(pointer: *const c_uchar, length: c_ulo
     let layout = layout_from_data(data.to_owned());
     let clayout = to_c_layout(layout);
     return clayout;
-}
-
-#[repr(C)]
-/// Used to represent a [`Vec<u8>`] in the C ABI. This is simply a `u_char` array on the heap which can be reconstructed with the pointer `data` and length `data_length`.
-pub struct CData {
-    pub data: *mut c_uchar,
-    pub data_length: c_ulong,
 }
 
 #[no_mangle]

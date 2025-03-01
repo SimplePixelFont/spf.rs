@@ -59,13 +59,13 @@ pub struct Header {
 /// Represents a charater in the font.
 ///
 /// The [`Character`] struct contains the utf8 character, custom size and byte map of a character.
-/// Please note that while the byte_map uses a u8 for each pixel, when the font is converted to
+/// Please note that while the pixmap uses a u8 for each pixel, when the font is converted to
 /// a data vector, each pixel will be represented by a single bit.
 #[derive(Debug, Clone)]
 pub struct Character {
     pub utf8: char,
     pub custom_size: u8,
-    pub byte_map: Vec<u8>,
+    pub pixmap: Vec<u8>,
 }
 
 /// Represents the body of a font [`Layout`] struct.
@@ -101,7 +101,7 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
     let mut current_character: Character = Character {
         utf8: ' ',
         custom_size: 0,
-        byte_map: vec![],
+        pixmap: vec![],
     };
 
     let mut body_buffer = byte::ByteStorage::new();
@@ -170,7 +170,7 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
                 let mut counter = 0;
                 for bit in current_byte.bits {
                     if !(i == bytes_used - 1 && counter >= 8 - remainder) {
-                        current_character.byte_map.push(bit as u8);
+                        current_character.pixmap.push(bit as u8);
                     }
                     counter += 1;
                 }
@@ -203,7 +203,7 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
                 }
             }
 
-            current_character.byte_map = vec![];
+            current_character.pixmap = vec![];
             character_definition_stage = 0;
         }
     }
@@ -226,11 +226,11 @@ pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
         composers::push_character(&mut buffer, character.utf8);
         composers::push_custom_size(&mut buffer, character.custom_size);
 
-        let result = helpers::character_byte_map_to_data(&character);
+        let result = helpers::character_pixmap_to_data(&character);
         let character_bytes = result.0;
         let remaining_space = result.1;
 
-        composers::push_byte_map(
+        composers::push_pixmap(
             &mut buffer,
             &layout.header,
             character_bytes,
