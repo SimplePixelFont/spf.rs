@@ -1,4 +1,4 @@
-//! Logging utilities for `spf.rs`.
+//! Logging utilities for `spf.rs` for debugging.
 //!
 //! <div class="warning">
 //!
@@ -25,7 +25,6 @@ use termcolor::WriteColor;
 use termcolor::{Buffer, BufferWriter, Color, ColorChoice, ColorSpec};
 
 #[derive(Copy, Clone)]
-/// TODO: repr(u8)
 pub enum LogLevel {
     None = 0,
     Info = 1,

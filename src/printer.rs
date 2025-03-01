@@ -1,3 +1,5 @@
+//! Render texts onto a bitmap using a font [`Layout`].
+
 use crate::cache::*;
 use crate::core::*;
 
@@ -22,7 +24,7 @@ impl Surface {
     ///
     /// This function is provided for ease in creating [`Surface`] structs, it
     /// will use the same data types as the struct uses, with the exception
-    /// of the [`Surface::data`] field, which must be provided as a refferenced slice.
+    /// of the [`Surface::data`] field, which must be provided as a referenced slice.
     /// This argument will be casted into a [`Vec<usize>`], and is simply to
     /// allow for more cleaner code.
     ///

@@ -86,8 +86,6 @@ pub struct Layout {
 }
 
 /// Parses a [`Vec<u8>`] into a font [`Layout`].
-///
-///
 pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
     let mut current_index = 0;
     let mut chunks = buffer.iter();

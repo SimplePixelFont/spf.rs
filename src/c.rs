@@ -20,6 +20,10 @@
 //! All functions that return a [`Vec<u8>`] return a [`CData`] struct instead.
 
 use crate::core::*;
+
+#[cfg(feature = "log")]
+use crate::log::*;
+
 use std::ffi::*;
 use std::slice;
 
@@ -216,4 +220,15 @@ pub extern "C" fn c_core_layout_to_data(layout: CLayout) -> CData {
         data: data_ptr,
         data_length: data_length,
     };
+}
+
+#[no_mangle]
+pub extern "C" fn c_log_LOGGER_set_log_level(log_level: c_uchar) {
+    let log_level = match log_level {
+        0 => LogLevel::None,
+        1 => LogLevel::Info,
+        2 => LogLevel::Debug,
+        _ => panic!("Invalid log level."),
+    };
+    LOGGER_set_log_level(log_level);
 }

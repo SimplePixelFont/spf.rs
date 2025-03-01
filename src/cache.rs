@@ -1,4 +1,4 @@
-//! Caching structs used by the [`super::printer`] module.
+//! Caching structs used by the [`crate::printer`] module.
 
 pub(crate) use super::core::Character;
 
