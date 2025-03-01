@@ -10,16 +10,16 @@ A very simple and concrete parser library for the [SimplePixelFont file specific
 
 ### Installation
 
-- To install `spf.rs` as a rust crate run the following command in your cargo project or [read more]():
+- To install `spf.rs` as a rust crate run the following command in your cargo project or [read more](https://docs.rs/spf/0.4.0/spf/articles/installing/index.html#installing-with-cargo-and-rust):
 ```sh
 cargo add spf
 ```
 
-- To use `spf.rs` as an FFI library in your language of choice you must first download a pre-built library version of `spf.rs` from the [releases section]() (a corrosponding header file is also included if you are programming in C/C++). Please note that pre-built binaries are only avaiable for Windows and Linux-x86-64bit architectures. As a result you may want to [compile `spf.rs` from source](), specifically if a pre-built binary is not availible for you.
+- To use `spf.rs` as an FFI library in your language of choice you must first download a pre-built library version of `spf.rs` from the [releases section](https://github.com/The-Nice-One/spf.rs/releases) (a corrosponding header file is also included if you are programming in C/C++). Please note that pre-built binaries are only avaiable for Windows and Linux-x86-64bit architectures. As a result you may want to [compile `spf.rs` from source](https://docs.rs/spf/0.4.0/spf/articles/installing/index.html#compiling-spfrs-from-source), specifically if a pre-built binary is not availible for you.
 
 ### Usage
 
-Usage varies depending on the programming language you choose. For a guide using the native Rust interface check out the [Getting Started in Rust]() article. You can also check out the [Using the FFI in C]() article for usage with the `spf.rs` library. 
+Usage varies depending on the programming language you choose. For a guide using the native Rust interface check out the [Getting Started in Rust](https://docs.rs/spf/0.4.0/spf/articles/getting_started/index.html) article. You can also check out the [Using the FFI in C](https://docs.rs/spf/0.4.0/spf/articles/c_usage/index.html) article for usage with the `spf.rs` library.
 
 
 ### Supported File Properties
@@ -32,4 +32,3 @@ Key:
 - `⚠️` = Work in progress
 - `❌` = Not implemented
 - `✔` = Stable
-

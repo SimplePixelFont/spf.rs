@@ -86,4 +86,5 @@ image::save_buffer(
 
 And the image will be saved to the file `image.png` in the same directory your are currently in:
 
+[image link](https://github.com/The-Nice-One/spf.rs/blob/main/res/articles/res/printerRenderedsome_text.png)
 ![](./res/printerRenderedsome_text.png)

@@ -103,7 +103,7 @@ Character {
     pixmap: vec![ // Bitmap data
         1, 0, 1, 0, 1,
         1, 0, 1, 0, 1,
-        1, 1, 1, 1, 1
+        0, 1, 1, 1, 0
     ]
 }
 
@@ -112,17 +112,19 @@ Character {
 In particular the pixmap shown above can be rewritten as a vector in a single line:
 
 ```rs
-vec![ 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1]
+vec![ 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0]
 ```
 
 Now we can see that in `SimplePixelFont` [`Character::pixmap`] are defined from top-left corner pixel
 and continue until the rightmost pixel before going down the next row. Here is a diagram which maps
 each pixel of a character to their index in the pixmap vector:
 
+[image link](https://github.com/The-Nice-One/spf.rs/blob/main/res/articles/res/wInNumberedFramex4.png)
 ![](./res/wInNumberedFramex4.png)
 
 And this will result in the following character:
 
+[image link](https://github.com/The-Nice-One/spf.rs/blob/main/res/articles/res/wWithoutNumberedFramex4.png)
 ![](./res/wWithoutNumberedFramex4.png)
 
 ### Font Example
