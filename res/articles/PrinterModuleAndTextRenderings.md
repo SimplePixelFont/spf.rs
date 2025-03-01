@@ -28,3 +28,6 @@ If we then print the contents of the surface.data field we will get the followin
 ```sh
 
 ```
+The above shows the pixmap of our text if it was rendered. In order to see the text rendering lets install another crate to create an image from the text render.
+
+### `Surface`'s replace methods for Integration.

@@ -41,7 +41,7 @@ Lets use the [`LayoutBuilder`] to create the same [`Layout`] struct we have abov
 let mut font = LayoutBuilder::new()
     .alignment(ALIGNMENT_HEIGHT)
     .size(3)
-    .character('w', &[
+    .inferred('w', &[
         1, 0, 1, 0, 1,
         1, 0, 1, 0, 1,
         1, 1, 1, 1, 1
@@ -53,9 +53,9 @@ This is a lot more easier to read and understand, so now lets explain each metho
 ```rs
 .alignment(ALIGNMENT_HEIGHT)
 ```
-This method will set the font to have characters aligned by height. What does this mean? By having the alignment set to height each character must have the same height which is determined by the following method `.size(3)` which sets the `constant_size` field of the font's `RequiredValues` struct. Note that 255x255 (width x height) is currently the largest possible character within a `SimplePixelFont` font file. Now that the [`LayoutBuilder`] has a defined `constant_size` and `alignment` we can add characters to our font using the `.chatacter()` method.
-
-To learn more about the different configuration flags and modifier flags, check out the [SPF File Specifications]().
+This method will set the font to have characters aligned by height. What does this mean? By having the alignment set to height each character must have the same height which is determined by the following method `.size(3)` which sets the `constant_size` field of the font's `RequiredValues` struct. Note that 255x255 (width x height) is currently the largest possible character within a `SimplePixelFont` font file. Now that the [`LayoutBuilder`] has a defined `constant_size` and `alignment` we can add characters to our font using the `.chatacter()` or the `inferred()` method as used in the sample above.  
+  
+Side Note: To learn more about the different configuration flags and modifier flags, check out the [SPF File Specifications]().
 ### But what is a character in `SimplePixelFont`s?
 Before we dicuss how to add a character to our font, we first need to learn what a character is in the context of a .spf file.
   
