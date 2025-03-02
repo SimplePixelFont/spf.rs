@@ -5,7 +5,7 @@
 [![GitHub tag](https://img.shields.io/github/tag/The-Nice-One/spf.rs?include_prereleases=&sort=semver&color=orange)](https://github.com/The-Nice-One/spf.rs/releases/)
 [![License](https://img.shields.io/badge/License-Unlicense-orange)](#license)
 [![issues - spf.rs](https://img.shields.io/github/issues/The-Nice-One/spf.rs)](https://github.com/The-Nice-One/spf.rs/issues)
-[![codecov](https://codecov.io/gh/The-Nice-One/spf.rs/graph/badge.svg?token=MPXNW4AUJD)](https://codecov.io/gh/The-Nice-One/spf.rs)
+[![Codecov](https://img.shields.io/codecov/c/gh/SimplePixelFont/spf.rs)](https://codecov.io/gh/SimplePixelFont/spf.rs)
 
 A very simple and concrete parser library for the [SimplePixelFont file specifications](https://github.com/SimplePixelFont/Specification), written in Rust. `spf.rs` is both a native crate and also an FFI library which can be used  in a variety of other programming languages which support library loading. `spf.rs` is additionally shipped with features/modules to help integration be faster and easier for you next pixelated project.
 
