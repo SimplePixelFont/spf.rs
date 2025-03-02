@@ -6,8 +6,8 @@
 //! WebAssembly.
 //!
 //! To learn about how to use the `spf.rs` library in your language of choice, please refer to the
-//! [`crate::articles::getting_started_in_c`] article. Also note that the ['to_c_layout`] and
-//! ['from_c_layout`] functions are not part of the `spf.rs` library and only exposed in the Rust crate.
+//! [`crate::articles::c_usage`] article. Also note that the ['to_c_layout`] and ['from_c_layout`]
+//! functions are not part of the `spf.rs` library and only exposed in the Rust crate.
 //!
 //! # Conventions
 //!

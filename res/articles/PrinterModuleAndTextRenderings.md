@@ -1,6 +1,6 @@
 # Printer Module And Text Renderings
 
-In this article we will discuss how to use the [`core::printer`] module in other to create text
+In this article we will discuss how to use the [`crate::printer`] module in other to create text
 renderings and output an image from them. You can apply the same fundamental concepts when rendering
 text onto a window using your graphics framework of choice.
 
@@ -17,7 +17,7 @@ file.read_to_end(&mut buffer).unwrap();
 let font = spf::core::layout_from_data(buffer);
 ```
 
-Now we can begin using the [`core::printer`] module to create text renderings. To start off lets use
+Now we can begin using the [`crate::printer`] module to create text renderings. To start off lets use
 the [`Printer::from_font()`] method to create a new [`printer::Printer`] struct. This struct will allow
 us to render texts very easily using the font of our choice:
 
@@ -87,4 +87,4 @@ image::save_buffer(
 And the image will be saved to the file `image.png` in the same directory your are currently in:
 
 [image link](https://github.com/The-Nice-One/spf.rs/blob/main/res/articles/res/printerRenderedsome_text.png)
-![](./res/printerRenderedsome_text.png)
+![](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/printerRenderedsome_text.png?raw=true)

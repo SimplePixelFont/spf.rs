@@ -120,12 +120,12 @@ and continue until the rightmost pixel before going down the next row. Here is a
 each pixel of a character to their index in the pixmap vector:
 
 [image link](https://github.com/The-Nice-One/spf.rs/blob/main/res/articles/res/wInNumberedFramex4.png)
-![](./res/wInNumberedFramex4.png)
+![](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wInNumberedFramex4.png?raw=true)
 
 And this will result in the following character:
 
 [image link](https://github.com/The-Nice-One/spf.rs/blob/main/res/articles/res/wWithoutNumberedFramex4.png)
-![](./res/wWithoutNumberedFramex4.png)
+![](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wWithoutNumberedFramex4.png?raw=true)
 
 ### Font Example
 
