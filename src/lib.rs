@@ -3,7 +3,7 @@
 #![doc(
     html_logo_url = "https://github.com/SimplePixelFont/spf.rs/blob/main/res/spf.rs.png?raw=true"
 )]
-
+/// test
 pub mod core;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "log")))]
