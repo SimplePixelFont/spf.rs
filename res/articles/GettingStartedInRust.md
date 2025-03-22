@@ -1,23 +1,23 @@
 # Getting Started in Rust
 
 ### Synopsis
-`spf.rs` brings the world of SimplePixelFont(s) into the programming realm. Written in the Rust
-programming language, spf.rs aims to be effective and simple to use, providing a native crate api for
+`spf.rs` brings the world of [`SimplePixelFont`](https://github.com/SimplePixelFont)(s) into the programming realm. Written in the Rust
+programming language, `spf.rs` aims to be effective and simple to use, providing a native crate api for
 Rust and also an FFI compatible with C-like languages and C-interopable languages. It provides a
-low-level interface to the binary representation of `SimplePixelFont` files via the [`crate::core`]
+low-level interface to the binary representation of [`SimplePixelFont`](https://github.com/SimplePixelFont) files via the [`crate::core`]
 module. And includes helpful and powerful optional modules that allow integration to be faster for your
 projects.
 
 ### Resources
 It is important that before you begin you have a general understanding of the Rust programming
-languages and that you understand at the bare-minimum how `SimplePixelFont` files are structured.
-This guide will explain the structural representation of `SimplePixelFont` files in Rust which aims to
+languages and that you understand at the bare-minimum how [`SimplePixelFont`](https://github.com/SimplePixelFont) files are structured.
+This guide will explain the structural representation of [`SimplePixelFont`](https://github.com/SimplePixelFont) files in Rust which aims to
 reflect the binary structure, so you should be able to follow along eitherways.
 
 ### The [`crate::core`] module
 The most important module is the [`crate::core`] module, and it contains the lowest-level structures to
-represent a `SimplePixelFont` file. The most important struct is the [`core::Layout`] struct, which is
-the binary representation of a `SimplePixelFont` file as a Rust Structure. Lets take a look at an
+represent a [`SimplePixelFont`](https://github.com/SimplePixelFont) file. The most important struct is the [`core::Layout`] struct, which is
+the binary representation of a [`SimplePixelFont`](https://github.com/SimplePixelFont) file as a Rust Structure. Lets take a look at an
 example of a font [`core::Layout`] struct:
 
 ```rs
@@ -75,7 +75,7 @@ This is a lot more easier to read and understand, so now lets explain each metho
 What does this mean? By having the alignment set to height each character must have the same height
 which is determined by the following method `.size(3)` which sets the [`RequiredValues::constant_size`]
 field of the font's [`core::RequiredValues`] struct. Note that 255x255 (width x height) is currently
-the largest possible character within a `SimplePixelFont` font file. Now that the
+the largest possible character within a [`SimplePixelFont`](https://github.com/SimplePixelFont) font file. Now that the
 [`ergonomics::LayoutBuilder`] has a defined `RequiredValues::constant_size` and
 [`ConfigurationFlags::alignment`] we can add characters to our font using the
 [`LayoutBuilder::character()`] or the [`LayoutBuilder::inffered()`] method as used in the sample
@@ -84,11 +84,11 @@ above.
 Side Note: To learn more about the different configuration flags and modifier flags, check out the
 [SPF File Specifications](https://github.com/SimplePixelFont/Specification).
 
-### But what is a character in `SimplePixelFont`s?
+### But what is a character in SimplePixelFonts?
 Before we dicuss how to add a character to our font, we first need to learn what a character is in the
-context of a `SimplePixelFont` font.
+context of a [`SimplePixelFont`](https://github.com/SimplePixelFont) font.
 
-In simple terms a character in `SimplePixelFont` is simply a utf8 character such as `a`, `<` `😊`, etc.
+In simple terms a character in [`SimplePixelFont`](https://github.com/SimplePixelFont) is simply a utf8 character such as `a`, `<` `😊`, etc.
 A [`Character::custom_size`] which defines the length of the opposite dimension the
 [`RequiredValues::constant_size`] size defines. And a [`Character::pixmap`] that defines what pixels
 the character uses. Lets dig in more into a pixmap. A pixmap is simply a one dimentional vector
@@ -119,12 +119,12 @@ Now we can see that in `SimplePixelFont` [`Character::pixmap`] are defined from 
 and continue until the rightmost pixel before going down the next row. Here is a diagram which maps
 each pixel of a character to their index in the pixmap vector:
 
-[image link](https://github.com/The-Nice-One/spf.rs/blob/main/res/articles/res/wInNumberedFramex4.png)
+[image link](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wInNumberedFramex4.png)
 ![](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wInNumberedFramex4.png?raw=true)
 
 And this will result in the following character:
 
-[image link](https://github.com/The-Nice-One/spf.rs/blob/main/res/articles/res/wWithoutNumberedFramex4.png)
+[image link](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wWithoutNumberedFramex4.png)
 ![](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wWithoutNumberedFramex4.png?raw=true)
 
 ### Font Example
@@ -176,7 +176,7 @@ let mut file = std::fs::OpenOptions::new()
 file.write_all(&layout_to_data(&font).unwrap());
 ```
 
-Or we can load an exsisting .spf file using [`std::fs`] aswell:
+Or we can load an exsisting `.spf` file using [`std::fs`] aswell:
 
 ```rs
 let mut file = std::fs::OpenOptions::new()

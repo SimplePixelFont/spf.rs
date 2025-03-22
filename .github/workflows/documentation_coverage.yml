@@ -2,8 +2,9 @@ name: Doc Coverage Badge
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   badge:
@@ -27,6 +28,6 @@ jobs:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: cfebb0fe555ac7e77ada109c469cdeb4
           filename: doc-cov.json
-          label: doc cov
+          label: documentation
           message: ${{ steps.coverage.outputs.documented }}
-          color: orange
+          color: yellow
