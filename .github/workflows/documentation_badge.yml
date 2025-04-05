@@ -2,13 +2,13 @@ name: documentation badge
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main", "small_improvements"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   badge:
-    name: Doc Coverage Badge
+    name: documentation badge
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,17 +17,26 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-      - name: Calculate doc coverage
+      - name: calculate documentation coverage
         id: coverage
         uses: bewee/rustdoc-coverage-action@v1
         with:
           percentage-format: 0%
-      - name: Create Awesome Badge
+      - name: update documentation table
+        run: |
+          curl -L \
+            -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token ${{ secrets.GIST_SECRET }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/gists/cfebb0fe555ac7e77ada109c469cdeb4 \
+            -d '{"files":{"documentation.md":{"content":"${{ steps.coverage.outputs.table }}"}}}'
+      - name: update documentation badge
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: cfebb0fe555ac7e77ada109c469cdeb4
-          filename: doc-cov.json
+          filename: badge.json
           label: documentation
           message: ${{ steps.coverage.outputs.documented }}
           color: yellow
