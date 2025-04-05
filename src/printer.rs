@@ -171,6 +171,7 @@ impl Surface {
     ///
     /// assert_eq!(surface.replace(&['a']), vec!['a', 'a', 'a']);
     /// ```
+    #[deprecated]
     pub fn replace<T: Copy>(&self, values: &[T]) -> Vec<T> {
         let mut returner: Vec<T> = vec![];
         for flag in self.data.iter() {
@@ -179,6 +180,7 @@ impl Surface {
         returner
     }
     /// Return a [`Vec<T>`] by flattening out an array replacing each value.
+    #[deprecated]
     pub fn flatten_replace<T: Copy>(&self, values: &[Vec<T>]) -> Vec<T> {
         let mut returner: Vec<T> = vec![];
         for flag in self.data.iter() {

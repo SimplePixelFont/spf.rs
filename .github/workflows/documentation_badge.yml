@@ -2,7 +2,7 @@ name: documentation badge
 
 on:
   push:
-    branches: ["main", "small_improvements"]
+    branches: ["main"]
   pull_request:
     branches: ["main"]
 
@@ -22,10 +22,10 @@ jobs:
         uses: bewee/rustdoc-coverage-action@v1
         with:
           percentage-format: 0%
-      - name: write file
+      - name: write documentation file
         run: |
           echo "${{ steps.coverage.outputs.table }}" > documentation.md
-      - name: test
+      - name: update documentation table
         uses: exuanbo/actions-deploy-gist@v1
         with:
           token: ${{ secrets.GIST_SECRET }}
@@ -33,16 +33,6 @@ jobs:
           gist_file_name: documentation.md
           file_type: text
           file_path: documentation.md
-      - name: update documentation table
-        run: |
-          curl -L \
-            -X PATCH \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token ${{ secrets.GIST_SECRET }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/gists/cfebb0fe555ac7e77ada109c469cdeb4 \
-            -d '{"files":{"documentation.md":{"content":"ok
-            k"}}}'
       - name: update documentation badge
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:

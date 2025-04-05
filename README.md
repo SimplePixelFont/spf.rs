@@ -1,12 +1,12 @@
-[![The-Nice-One - spf.rs](https://img.shields.io/static/v1?label=The-Nice-One&message=spf.rs&color=orange&logo=github)](https://github.com/The-Nice-One/spf.rs "Go to GitHub repo")
-[![stars - spf.rs](https://img.shields.io/github/stars/The-Nice-One/spf.rs?style=social)](https://github.com/The-Nice-One/spf.rs)
-[![forks - spf.rs](https://img.shields.io/github/forks/The-Nice-One/spf.rs?style=social)](https://github.com/The-Nice-One/spf.rs)
-[![Rust](https://github.com/The-Nice-One/spf.rs/workflows/Rust/badge.svg)](https://github.com/The-Nice-One/spf.rs/actions?query=workflow:"Rust")
-[![GitHub tag](https://img.shields.io/github/tag/The-Nice-One/spf.rs?include_prereleases=&sort=semver&color=orange)](https://github.com/The-Nice-One/spf.rs/releases/)
+[![SimplePixelFont - spf.rs](https://img.shields.io/static/v1?label=SimplePixelFont&message=spf.rs&color=orange&logo=github)](https://github.com/SimplePixelFont/spf.rs "Go to GitHub repo")
+[![stars - spf.rs](https://img.shields.io/github/stars/SimplePixelFont/spf.rs?style=social)](https://github.com/SimplePixelFont/spf.rs)
+[![forks - spf.rs](https://img.shields.io/github/forks/SimplePixelFont/spf.rs?style=social)](https://github.com/SimplePixelFont/spf.rs)
+[![Rust](https://github.com/SimplePixelFont/spf.rs/workflows/Rust/badge.svg)](https://github.com/SimplePixelFont/spf.rs/actions?query=workflow:"rust")
+[![GitHub tag](https://img.shields.io/github/tag/SimplePixelFont/spf.rs?include_prereleases=&sort=semver&color=orange)](https://github.com/SimplePixelFont/spf.rs/releases/)
 [![License](https://img.shields.io/badge/License-Unlicense-orange)](#license)
-[![issues - spf.rs](https://img.shields.io/github/issues/The-Nice-One/spf.rs)](https://github.com/The-Nice-One/spf.rs/issues)
+[![issues - spf.rs](https://img.shields.io/github/issues/SimplePixelFont/spf.rs)](https://github.com/SimplePixelFont/spf.rs/issues)
 [![Codecov](https://img.shields.io/codecov/c/gh/SimplePixelFont/spf.rs)](https://codecov.io/gh/SimplePixelFont/spf.rs)
-![Doccov](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4/raw/f0b2c5079c804d0a3ab2abf6eb50e6892069295c/doc-cov.json)
+[![Documentationcov](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4/raw/e8c667fb382431ea52d58c95536d678dbb91ad47/badge.json)](https://gist.github.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4#file-documentation-md)
 
 A very simple and concrete parser library for the [SimplePixelFont file specifications](https://github.com/SimplePixelFont/Specification), written in Rust. `spf.rs` is both a native crate and also an FFI library which can be used  in a variety of other programming languages which support library loading. `spf.rs` is additionally shipped with features/modules to help integration be faster and easier for you next pixelated project.
 
