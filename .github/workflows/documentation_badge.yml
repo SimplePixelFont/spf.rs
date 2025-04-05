@@ -22,6 +22,9 @@ jobs:
         uses: bewee/rustdoc-coverage-action@v1
         with:
           percentage-format: 0%
+      - name: write file
+        run: |
+          echo "${{ steps.coverage.outputs.table }}" > documentation.md
       - name: test
         uses: exuanbo/actions-deploy-gist@v1
         with:
@@ -29,7 +32,7 @@ jobs:
           gist_id: cfebb0fe555ac7e77ada109c469cdeb4
           gist_file_name: documentation.md
           file_type: text
-          file_content: ${{ steps.coverage.outputs.table }}
+          file_path: documentation.md
       - name: update documentation table
         run: |
           curl -L \
