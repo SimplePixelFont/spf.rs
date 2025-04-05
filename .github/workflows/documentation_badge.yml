@@ -23,8 +23,13 @@ jobs:
         with:
           percentage-format: 0%
       - name: test
-        run: |
-          ls
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: cfebb0fe555ac7e77ada109c469cdeb4
+          gist_file_name: documentation.md
+          file_type: text
+          file_content: ${{ steps.coverage.outputs.table }}
       - name: update documentation table
         run: |
           curl -L \
