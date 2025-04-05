@@ -1,6 +1,6 @@
 //! A C compatible FFI layer for `spf.rs`.
 //!
-//! This module provides a thin wrapper around all the modules in `spf.rs that allows it to be used
+//! This module provides a thin wrapper around all the modules in `spf.rs` that allows it to be used
 //! in a C compatible way exposed through a FFI. This allows `spf.rs` to be used as a library in C and
 //! in any language that supports the platform-specific C-ABI through dynamic library loading, including
 //! WebAssembly.

@@ -1,4 +1,4 @@
-name: Doc Coverage Badge
+name: documentation badge
 
 on:
   push:
