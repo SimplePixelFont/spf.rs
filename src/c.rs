@@ -20,6 +20,7 @@
 //!
 //! All functions that return a [`Vec<u8>`] return a [`CData`] struct instead.
 
+use crate::cache::*;
 use crate::core::*;
 
 #[cfg(feature = "log")]
@@ -82,6 +83,18 @@ pub struct CBody {
 pub struct CData {
     pub data: *mut c_uchar,
     pub data_length: c_ulong,
+}
+
+#[repr(C)]
+pub struct CHashMap {
+    pub keys: *mut *const c_char,
+    pub values: *mut c_ulong,
+    pub length: c_ulong,
+}
+
+#[repr(C)]
+pub struct CCharacterCache {
+    pub mappings: CHashMap,
 }
 
 /// Converts a Rust native [`Layout`] struct into a C ABI compatible [`CLayout`] struct.
@@ -148,13 +161,12 @@ pub fn to_c_layout(layout: Layout) -> CLayout {
     }
 }
 
-/// Converts a C ABI compatible [`CLayout`] struct into a Rust native [`Layout`] struct.
-pub fn from_c_layout(layout: CLayout) -> Layout {
-    let characters_len = layout.body.characters_length as usize;
+pub fn from_c_body(body: CBody) -> Vec<Character> {
+    let characters_len = body.characters_length as usize;
     let mut characters = Vec::with_capacity(characters_len);
     unsafe {
         for index in 0..characters_len {
-            let character = &*layout.body.characters.add(index);
+            let character = &*body.characters.add(index);
             let utf8 = CStr::from_ptr(character.utf8)
                 .to_str()
                 .unwrap()
@@ -171,7 +183,12 @@ pub fn from_c_layout(layout: CLayout) -> Layout {
             });
         }
     }
+    characters
+}
 
+/// Converts a C ABI compatible [`CLayout`] struct into a Rust native [`Layout`] struct.
+pub fn from_c_layout(layout: CLayout) -> Layout {
+    let characters = from_c_body(layout.body);
     Layout {
         header: Header {
             configuration_flags: ConfigurationFlags {
@@ -231,4 +248,60 @@ pub extern "C" fn c_log_LOGGER_set_log_level(log_level: c_uchar) {
         _ => panic!("Invalid log level."),
     };
     LOGGER_set_log_level(log_level);
+}
+
+#[no_mangle]
+pub extern "C" fn c_cache_CCharacterCache_from_characters(characters: CBody) -> CCharacterCache {
+    let characters = from_c_body(characters);
+    let cache = CharacterCache::from_characters(&characters);
+
+    let keys: Vec<*const c_char> = cache
+        .mappings
+        .keys()
+        .map(|a| {
+            let utf8 = CString::new(a.to_string().as_bytes().to_vec().into_boxed_slice()).unwrap();
+            let utf8_ptr = utf8.as_ptr();
+            std::mem::forget(utf8);
+            utf8_ptr as *const c_char
+        })
+        .collect();
+    let values: Vec<usize> = cache.mappings.values().map(|a| a.clone()).collect();
+    let length = keys.len();
+
+    let keys_ptr = if length == 0 {
+        std::ptr::null_mut()
+    } else {
+        let mut keys_vec = keys.into_boxed_slice();
+        let ptr = keys_vec.as_mut_ptr();
+        std::mem::forget(keys_vec);
+        ptr
+    };
+
+    let values_ptr = if length == 0 {
+        std::ptr::null_mut()
+    } else {
+        let mut values_vec = values.into_boxed_slice();
+        let ptr = values_vec.as_mut_ptr();
+        std::mem::forget(values_vec);
+        ptr
+    };
+
+    CCharacterCache {
+        mappings: CHashMap {
+            keys: keys_ptr as *mut *const c_char,
+            values: values_ptr as *mut c_ulong,
+            length: length as c_ulong,
+        },
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn c_cache_CCharacterCache_empty() -> CCharacterCache {
+    CCharacterCache {
+        mappings: CHashMap {
+            keys: std::ptr::null_mut(),
+            values: std::ptr::null_mut(),
+            length: 0,
+        },
+    }
 }
