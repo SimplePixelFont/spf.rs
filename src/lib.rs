@@ -3,7 +3,6 @@
 #![doc(
     html_logo_url = "https://github.com/SimplePixelFont/spf.rs/blob/main/res/spf.rs.png?raw=true"
 )]
-// hmm
 
 pub mod core;
 
@@ -25,7 +24,7 @@ pub mod ergonomics;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "ffi")))]
 #[cfg(feature = "ffi")]
-pub mod c;
+pub mod ffi;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "articles")))]
 #[cfg(feature = "articles")]

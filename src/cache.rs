@@ -1,18 +1,18 @@
 //! Caching structs used by the [`crate::printer`] module.
 
-pub(crate) use super::core::*;
+use super::core::*;
 
 /// A `CharacterCache` struct is used to store mappings between the utf8 characters and their index
 /// from within a [`Layout::body::characters`] field.
 pub struct CharacterCache {
-    pub mappings: std::collections::HashMap<char, usize>,
+    pub mappings: std::collections::HashMap<String, usize>,
 }
 
 impl CharacterCache {
     /// Creates a new `CharacterCache` struct with no mappings.
     ///
-    /// This method will create a new `CharacterCache` struct with the mappings
-    /// field set to an empty initialized `HashMap`.
+    /// This method will create a new [`CharacterCache`] struct with the mappings
+    /// field set to an empty initialized [`std::collections::HashMap`].
     ///
     /// # Example
     /// ```
@@ -27,7 +27,7 @@ impl CharacterCache {
             mappings: std::collections::HashMap::new(),
         }
     }
-    /// Creates a new [`CharacaterCache`] struct by mapping all characters in a [`Vec<Character>`].
+    /// Creates a new [`CharacterCache`] struct by mapping all characters in a [`Vec<Character>`].
     ///
     /// This method will create a new [`CharacterCache`] struct with the mappings
     /// field set to a [`std::colections::HashMap`] with all the utf8 Character fields as keys and the
@@ -65,9 +65,10 @@ impl CharacterCache {
     /// assert_eq!(cache.mappings.get(&'u'), Some(&1));
     /// ```
     pub fn from_characters(characters: &Vec<Character>) -> Self {
-        let mut mapping: std::collections::HashMap<char, usize> = std::collections::HashMap::new();
+        let mut mapping: std::collections::HashMap<String, usize> =
+            std::collections::HashMap::new();
         for (index, character) in characters.iter().enumerate() {
-            mapping.insert(character.utf8, index);
+            mapping.insert(character.grapheme_cluster.clone(), index);
         }
         Self { mappings: mapping }
     }

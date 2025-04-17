@@ -19,15 +19,19 @@ pub(crate) mod parsers;
 #[cfg(feature = "log")]
 use crate::log::{LogLevel, LOGGER};
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
+#[non_exhaustive]
 /// Defines the configuration flags for a font [`Layout`] struct.
 ///
 /// Each field is a [`bool`] and in the binary file will be represented by a single bit.
 pub struct ConfigurationFlags {
-    /// Determines if all the font characters are alligned by width (false) and in turn have the same width. Or aligned by height (true), in which case all letters will have the same height. This value for width or height is storee in [`RequiredValues.constant_size`].
-    pub alignment: bool,
+    pub constant_cluster_codepoints: bool,
+    pub constant_width: bool,
+    pub constant_height: bool,
 }
-#[derive(Debug, Clone)]
+
+#[derive(Default, Debug, Clone)]
+#[non_exhaustive]
 /// Defines the modifier flags for a font [`Layout`] struct.
 ///
 /// If the field is set to true, then the modifer will be applied to the font [`Layout`] struct.
@@ -37,14 +41,18 @@ pub struct ModifierFlags {
     pub compact: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
+#[non_exhaustive]
 /// Defines the required values for a [`Layout`] structs.
-pub struct RequiredValues {
-    // The size that each character defined in this font [`Layout`] will use. This may be the width or height of each character depending on the [`ConfigurationFlags.alignment`].
-    pub constant_size: u8,
+pub struct ConfigurationValues {
+    /// Sets a constant number of utf8 encoded codepoints
+    /// that will be used for each grapheme cluster within a character definition.
+    pub constant_cluster_codepoints: Option<u8>,
+    pub constant_width: Option<u8>,
+    pub constant_height: Option<u8>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 /// Represents the header of a font [`Layout`] struct.
 ///
 /// The [`Header`] struct contains the configuration flags, modifier flags and required values
@@ -53,85 +61,125 @@ pub struct RequiredValues {
 pub struct Header {
     pub configuration_flags: ConfigurationFlags,
     pub modifier_flags: ModifierFlags,
-    pub required_values: RequiredValues,
+    pub configuration_values: ConfigurationValues,
 }
 
+#[derive(Default, Debug, Clone)]
 /// Represents a charater in the font.
 ///
 /// The [`Character`] struct contains the utf8 character, custom size and byte map of a character.
 /// Please note that while the pixmap uses a u8 for each pixel, when the font is converted to
 /// a data vector, each pixel will be represented by a single bit.
-#[derive(Debug, Clone)]
 pub struct Character {
-    pub utf8: char,
-    pub custom_size: u8,
+    pub grapheme_cluster: String,
+    pub custom_width: Option<u8>,
+    pub custom_height: Option<u8>,
     pub pixmap: Vec<u8>,
 }
 
+#[derive(Default, Debug, Clone)]
 /// Represents the body of a font [`Layout`] struct.
 ///
 /// The [`Body`] struct contains the characters of a [`Layout`] as a Vector.
-#[derive(Debug, Clone)]
 pub struct Body {
     pub characters: Vec<Character>,
 }
 
+#[derive(Default, Debug, Clone)]
 /// Represents the entire font [`Layout`] struct.
 ///
 /// The [`Layout`] struct aims to reflect the structure of a `SimplePixelFont` binary file.
-#[derive(Debug, Clone)]
 pub struct Layout {
     pub header: Header,
     pub body: Body,
 }
 
+#[derive(Debug)]
+pub enum ParseError {
+    UnexpectedEndOfFile,
+}
+
 /// Parses a [`Vec<u8>`] into a font [`Layout`].
-pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
+pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
     let mut current_index = 0;
+
     let mut chunks = buffer.iter();
 
-    let mut header = Header {
-        configuration_flags: ConfigurationFlags { alignment: false },
-        modifier_flags: ModifierFlags { compact: false },
-        required_values: RequiredValues { constant_size: 0 },
-    };
-    let mut body = Body { characters: vec![] };
+    let mut layout = Layout::default();
+
+    let mut current_configuration_flag_index = 0;
+    let mut configuration_flag_booleans = [false; 4];
+    let mut configuration_flag_values = [None; 4];
 
     let mut character_definition_stage = 0;
-    let mut current_character: Character = Character {
-        utf8: ' ',
-        custom_size: 0,
-        pixmap: vec![],
-    };
+    let mut current_character = Character::default();
+    let mut current_character_width = 0;
+    let mut current_character_height = 0;
 
     let mut body_buffer = byte::ByteStorage::new();
 
     let mut iter = chunks.next();
     while !iter.is_none() {
         let chunk = iter.unwrap();
-        if current_index < 3 {
-            if !chunk == [102, 115, 70][current_index] {
-                panic!("File is not signed")
+
+        match current_index {
+            0..3 => {
+                if !chunk == [102, 115, 70][current_index] {
+                    panic!("File is not signed")
+                }
             }
-        } else if current_index == 3 {
-            let file_properties = byte::Byte::from_u8(chunk.clone()).bits;
-            header.configuration_flags.alignment = file_properties[0];
-            header.modifier_flags.compact = file_properties[4];
-        } else if current_index == 4 {
-            header.required_values.constant_size = chunk.clone();
-        } else {
-            body_buffer.push(byte::Byte::from_u8(chunk.clone()));
+            3 => {
+                let file_properties = byte::Byte::from_u8(chunk.clone()).bits;
+
+                configuration_flag_booleans = [
+                    file_properties[0],
+                    file_properties[1],
+                    file_properties[2],
+                    file_properties[3],
+                ];
+
+                layout.header.modifier_flags.compact = file_properties[4];
+            }
+            _ => {
+                for index in current_configuration_flag_index..4 {
+                    current_configuration_flag_index = index + 1;
+                    if configuration_flag_booleans[index] {
+                        configuration_flag_values[index] = Some(chunk.clone());
+                        break;
+                    }
+                }
+                if current_configuration_flag_index == 4 {
+                    body_buffer.push(byte::Byte::from_u8(chunk.clone()));
+                }
+            }
         }
         iter = chunks.next();
         current_index += 1;
     }
 
+    layout
+        .header
+        .configuration_flags
+        .constant_cluster_codepoints = configuration_flag_booleans[0];
+    layout.header.configuration_flags.constant_width = configuration_flag_booleans[1];
+    layout.header.configuration_flags.constant_height = configuration_flag_booleans[2];
+    //layout.header.configuration_flags.custom_bits_per_pixel = configuration_flag_booleans[3];
+
+    layout
+        .header
+        .configuration_values
+        .constant_cluster_codepoints = configuration_flag_values[0];
+    layout.header.configuration_values.constant_width = configuration_flag_values[1];
+    layout.header.configuration_values.constant_height = configuration_flag_values[2];
+    //layout.header.configuration_values.custom_bits_per_pixel = configuration_flag_values[3];
+
     current_index = 0;
     let length = body_buffer.bytes.len();
     while current_index < length - 1 {
         if character_definition_stage == 0 {
-            let result = parsers::next_character(&mut body_buffer, current_index);
-            current_character.utf8 = result.0;
+            let result =
+                parsers::next_grapheme_cluster(&mut body_buffer, &layout.header, current_index);
+            current_character.grapheme_cluster = result.0;
             current_index = result.1;
             current_index += 1;
             character_definition_stage += 1;
@@ -141,29 +189,46 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
                 let mut logger = LOGGER.lock().unwrap();
                 if logger.log_level as u8 >= LogLevel::Debug as u8 {
                     logger.message.push_str(&format!(
-                        "Identified utf8 character: {:?}",
-                        current_character.utf8
+                        "Identified grapheme cluster: {:?}",
+                        current_character.grapheme_cluster
                     ));
                     logger.flush_debug().unwrap();
                 }
             }
         }
+
         if character_definition_stage == 1 {
-            current_character.custom_size = body_buffer.get(current_index).to_u8();
-            current_index += 1;
+            if !layout.header.configuration_flags.constant_width {
+                current_character.custom_width = Some(body_buffer.get(current_index).to_u8());
+                current_character_width = current_character.custom_width.unwrap();
+                current_index += 1;
+            } else {
+                current_character_width =
+                    layout.header.configuration_values.constant_width.unwrap();
+            }
             character_definition_stage += 1;
         }
 
         if character_definition_stage == 2 {
-            let bytes_used = (((current_character.custom_size as f32
-                * header.required_values.constant_size as f32)
+            if !layout.header.configuration_flags.constant_height {
+                current_character.custom_height = Some(body_buffer.get(current_index).to_u8());
+                current_character_height = current_character.custom_height.unwrap();
+                current_index += 1;
+            } else {
+                current_character_height =
+                    layout.header.configuration_values.constant_height.unwrap();
+            }
+            character_definition_stage += 1;
+        }
+
+        if character_definition_stage == 3 {
+            let bytes_used = (((current_character_width as f32 * current_character_height as f32)
                 as f32
                 / 8.0) as f32)
                 .ceil() as u8;
 
             let remainder = bytes_used as usize * 8 as usize
-                - (current_character.custom_size as usize
-                    * header.required_values.constant_size as usize);
+                - (current_character_width as usize * current_character_height as usize);
 
             let mut current_byte = body_buffer.get(current_index);
             for i in 0..bytes_used {
@@ -181,10 +246,10 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
                 }
             }
 
-            body.characters.push(current_character.clone());
+            layout.body.characters.push(current_character.clone());
             current_index += 1;
 
-            if header.modifier_flags.compact {
+            if layout.header.modifier_flags.compact {
                 if body_buffer.pointer + (8 - remainder) < 8 {
                     current_index -= 1;
                 }
@@ -207,11 +272,7 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Layout {
             character_definition_stage = 0;
         }
     }
-
-    Layout {
-        header: header,
-        body: body,
-    }
+    Ok(layout)
 }
 
 /// Encodes the provided font [`Layout`] into a [`Vec<u8>`].
@@ -223,8 +284,9 @@ pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
     let mut saved_space = 0;
 
     for character in &layout.body.characters {
-        composers::push_character(&mut buffer, character.utf8);
-        composers::push_custom_size(&mut buffer, character.custom_size);
+        composers::push_grapheme_cluster(&mut buffer, &layout.header, &character.grapheme_cluster);
+        composers::push_width(&mut buffer, &layout.header, character.custom_width);
+        composers::push_height(&mut buffer, &layout.header, character.custom_height);
 
         let result = helpers::character_pixmap_to_data(&character);
         let character_bytes = result.0;
