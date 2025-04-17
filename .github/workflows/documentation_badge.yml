@@ -1,0 +1,44 @@
+name: documentation badge
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  badge:
+    name: documentation badge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+      - name: calculate documentation coverage
+        id: coverage
+        uses: bewee/rustdoc-coverage-action@v1
+        with:
+          percentage-format: 0%
+      - name: write documentation file
+        run: |
+          echo "${{ steps.coverage.outputs.table }}" > documentation.md
+      - name: update documentation table
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: cfebb0fe555ac7e77ada109c469cdeb4
+          gist_file_name: documentation.md
+          file_type: text
+          file_path: documentation.md
+      - name: update documentation badge
+        uses: schneegans/dynamic-badges-action@v1.1.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: cfebb0fe555ac7e77ada109c469cdeb4
+          filename: badge.json
+          label: documentation
+          message: ${{ steps.coverage.outputs.documented }}
+          color: yellow

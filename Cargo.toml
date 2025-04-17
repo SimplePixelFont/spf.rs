@@ -14,7 +14,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["log", "cache", "printer", "ergonomics", "ffi"]
+default = ["articles", "log", "cache", "printer", "ergonomics", "ffi"]
 log = ["dep:termcolor"]
 cache = []
 printer = ["cache"]

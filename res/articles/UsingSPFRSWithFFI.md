@@ -29,12 +29,12 @@ printf("Loading libspf.so succeeded\n");
 ### Define symbols
 Next we need to store the function symbols from the library into variables so we can use them in our program:
 ```c
-struct SPFLayout(*c_core_layout_from_data)(char*, unsigned int);
-struct SPFData(*c_core_layout_to_data)(struct SPFLayout);
+struct SPFLayout(*spf_core_layout_from_data)(char*, unsigned int);
+struct SPFData(*spf_core_layout_to_data)(struct SPFLayout);
 
 // We can assign the variables as follows
-c_core_layout_from_data = dlsym(handle, "c_core_layout_from_data");
-c_core_layout_to_data = dlsym(handle, "c_core_layout_to_data");
+spf_core_layout_from_data = dlsym(handle, "spf_core_layout_from_data");
+spf_core_layout_to_data = dlsym(handle, "spf_core_layout_to_data");
 ```
 ### Extra
 We can now use the symbols we defined and begin calling `spf.rs` functions. However for our example, here is also a function that loads a file into a buffer in C. We will use this in the next step:
@@ -78,25 +78,40 @@ int read_file_to_buffer(char **buffer, unsigned int *file_size) {
 ### Calling `spf.rs` functions
 Now that we have our symbols defined, here is a simple script that uses the above function to load a `spf.rs` file and extract all the fields / characters:
 ```c
-struct SPFLayout layout = (*c_core_layout_from_data)(buffer, file_size);
+struct SPFLayout layout = spf_core_layout_from_data(buffer, file_size);
 
-printf("Alignment: %d\n", layout.header.configuration_flags.alignment);
-printf("Compact: %d\n", layout.header.modifier_flags.compact);
-printf("Constant size: %d\n", layout.header.required_values.constant_size);
+printf("Constant Cluster Codepoints: %s(%d)\n",
+    (bool)layout.header.configuration_flags.constant_cluster_codepoints ? "true" : "false",
+    layout.header.configuration_values.constant_cluster_codepoints
+);
+printf("Constant Width: %s(%d)\n",
+    (bool)layout.header.configuration_flags.constant_width ? "true" : "false",
+    layout.header.configuration_values.constant_width
+);
+printf("Constant Height: %s(%d)\n",
+    (bool)layout.header.configuration_flags.constant_height ? "true" : "false",
+    layout.header.configuration_values.constant_height
+);
+printf("Compact: %s\n", (bool)layout.header.modifier_flags.compact ? "true" : "false");
 
 for (int i = 0; i < layout.body.characters_length; i++) {
     printf("Loaded character with index %d:\n", i);
-    printf("    custom_size: %d - character: '%s' - byte_map: ",
-            layout.body.characters[i].custom_size, layout.body.characters[i].utf8);
-    for (int j = 0; j < layout.body.characters[i].byte_map_length; j++) {
-        printf("%d ", layout.body.characters[i].byte_map[j]);
+    printf("    grapheme_cluster: '%s' - custom_width: %s(%d) - custom_height: %s(%d) - pixmap: ",
+        layout.body.characters[i].grapheme_cluster,
+        (bool)layout.body.characters[i].custom_width ? "true" : "false",
+        layout.body.characters[i].custom_width,
+        (bool)layout.body.characters[i].custom_height ? "true" : "false",
+        layout.body.characters[i].custom_height
+    );
+    for (int j = 0; j < layout.body.characters[i].pixmap_length; j++) {
+        printf("%d ", layout.body.characters[i].pixmap[j]);
     }
     printf("\n");
 }
 ```
-And now that we have a `crate::core::Layout` in C, or more precisely a `core::c::CLayout`, we can also convert it back into data:
+And now that we have a `crate::core::Layout` in C, or more precisely a `core::ffi::SPFLayout`, we can also convert it back into data:
 ```c
-struct SPFData data = (*c_core_layout_to_data)(layout);
+struct SPFData data = spf_core_layout_to_data(layout);
 
 printf("Data: ");
 for (int i = 0; i < data.data_length; i++) {
@@ -163,8 +178,6 @@ int main() {
     printf("Loading libspf.so\n");
 
     void* handle;
-    struct SPFLayout(*c_core_layout_from_data)(char*, unsigned int);
-    struct SPFData(*c_core_layout_to_data)(struct SPFLayout);
 
     handle = dlopen(SPF_LIBRARY, RTLD_LAZY);
     if (!handle) {
@@ -174,28 +187,47 @@ int main() {
 
     printf("Loading libspf.so succeeded\n");
 
-    c_core_layout_from_data = dlsym(handle, "c_core_layout_from_data");
-    c_core_layout_to_data = dlsym(handle, "c_core_layout_to_data");
+    struct SPFLayout(*spf_core_layout_from_data)(char*, unsigned int);
+    struct SPFData(*spf_core_layout_to_data)(struct SPFLayout);
+
+    // We can assign the variables as follows
+    spf_core_layout_from_data = dlsym(handle, "spf_core_layout_from_data");
+    spf_core_layout_to_data = dlsym(handle, "spf_core_layout_to_data");
 
     /* We can use spf.rs functions now that we have loaded and assigned them to variables */
 
-    struct SPFLayout layout = (*c_core_layout_from_data)(buffer, file_size);
+    struct SPFLayout layout = spf_core_layout_from_data(buffer, file_size);
 
-    printf("Alignment: %d\n", layout.header.configuration_flags.alignment);
-    printf("Compact: %d\n", layout.header.modifier_flags.compact);
-    printf("Constant size: %d\n", layout.header.required_values.constant_size);
+    printf("Constant Cluster Codepoints: %s(%d)\n",
+        (bool)layout.header.configuration_flags.constant_cluster_codepoints ? "true" : "false",
+        layout.header.configuration_values.constant_cluster_codepoints
+    );
+    printf("Constant Width: %s(%d)\n",
+        (bool)layout.header.configuration_flags.constant_width ? "true" : "false",
+        layout.header.configuration_values.constant_width
+    );
+    printf("Constant Height: %s(%d)\n",
+        (bool)layout.header.configuration_flags.constant_height ? "true" : "false",
+        layout.header.configuration_values.constant_height
+    );
+    printf("Compact: %s\n", (bool)layout.header.modifier_flags.compact ? "true" : "false");
 
     for (int i = 0; i < layout.body.characters_length; i++) {
         printf("Loaded character with index %d:\n", i);
-        printf("    custom_size: %d - character: '%s' - byte_map: ",
-            layout.body.characters[i].custom_size, layout.body.characters[i].utf8);
-        for (int j = 0; j < layout.body.characters[i].byte_map_length; j++) {
-            printf("%d ", layout.body.characters[i].byte_map[j]);
+        printf("    grapheme_cluster: '%s' - custom_width: %s(%d) - custom_height: %s(%d) - pixmap: ",
+            layout.body.characters[i].grapheme_cluster,
+            (bool)layout.body.characters[i].custom_width ? "true" : "false",
+            layout.body.characters[i].custom_width,
+            (bool)layout.body.characters[i].custom_height ? "true" : "false",
+            layout.body.characters[i].custom_height
+        );
+        for (int j = 0; j < layout.body.characters[i].pixmap_length; j++) {
+            printf("%d ", layout.body.characters[i].pixmap[j]);
         }
         printf("\n");
     }
 
-    struct SPFData data = (*c_core_layout_to_data)(layout);
+    struct SPFData data = spf_core_layout_to_data(layout);
 
     printf("Data: ");
     for (int i = 0; i < data.data_length; i++) {

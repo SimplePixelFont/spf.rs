@@ -1,18 +1,18 @@
 //! Caching structs used by the [`crate::printer`] module.
 
-pub(crate) use super::core::Character;
+use super::core::*;
 
 /// A `CharacterCache` struct is used to store mappings between the utf8 characters and their index
-/// from within a [`Layout.body.characters`].
+/// from within a [`Body::characters`] field.
 pub struct CharacterCache {
-    pub mappings: std::collections::HashMap<char, usize>,
+    pub mappings: std::collections::HashMap<String, usize>,
 }
 
 impl CharacterCache {
     /// Creates a new `CharacterCache` struct with no mappings.
     ///
-    /// This method will create a new `CharacterCache` struct with the mappings
-    /// field set to an empty initialized `HashMap`.
+    /// This method will create a new [`CharacterCache`] struct with the mappings
+    /// field set to an empty initialized [`std::collections::HashMap`].
     ///
     /// # Example
     /// ```
@@ -27,11 +27,11 @@ impl CharacterCache {
             mappings: std::collections::HashMap::new(),
         }
     }
-    /// Creates a new `CharacaterCache` struct by mapping all characters in a `Vec<Character>`.
+    /// Creates a new [`CharacterCache`] struct by mapping all characters in a [`Vec<Character>`].
     ///
-    /// This method will create a new `CharacterCache` struct with the mappings
-    /// field set to a `HashMap` with all the utf8 Character fields as keys and the
-    /// index in the `Vec<Character>` as values.
+    /// This method will create a new [`CharacterCache`] struct with the mappings
+    /// field set to a [`std::collections::HashMap`] with all the [`Character::grapheme_cluster`]
+    /// fields as keys and the index in the [`Vec<Character>`] as values.
     ///
     /// # Example
     /// ```
@@ -40,16 +40,18 @@ impl CharacterCache {
     ///
     /// let characters = vec![
     ///     Character {
-    ///         utf8: 'o',
-    ///         custom_size: 4,
+    ///         grapheme_cluster: "o".to_string(),
+    ///         custom_width: Some(4),
+    ///         custom_height: Some(4),
     ///         pixmap: vec![0, 1, 1, 0,
     ///                        1, 0, 0, 1,
     ///                        1, 0, 0, 1,
     ///                        0, 1, 1, 0],
     ///     },
     ///     Character {
-    ///        utf8: 'u',
-    ///        custom_size: 4,
+    ///        grapheme_cluster: "u".to_string(),
+    ///        custom_width: Some(4),
+    ///        custom_height: Some(4),
     ///        pixmap: vec![1, 0, 0, 1,
     ///                       1, 0, 0, 1,
     ///                       1, 0, 0, 1,
@@ -62,12 +64,13 @@ impl CharacterCache {
     /// assert_eq!(cache.mappings.len(), 2);
     ///
     /// // We can retrieve the index of the 'u' character from the cache.
-    /// assert_eq!(cache.mappings.get(&'u'), Some(&1));
+    /// assert_eq!(cache.mappings.get(&"u".to_string()), Some(&1));
     /// ```
     pub fn from_characters(characters: &Vec<Character>) -> Self {
-        let mut mapping: std::collections::HashMap<char, usize> = std::collections::HashMap::new();
+        let mut mapping: std::collections::HashMap<String, usize> =
+            std::collections::HashMap::new();
         for (index, character) in characters.iter().enumerate() {
-            mapping.insert(character.utf8, index);
+            mapping.insert(character.grapheme_cluster.clone(), index);
         }
         Self { mappings: mapping }
     }

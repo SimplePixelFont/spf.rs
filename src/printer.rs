@@ -171,6 +171,7 @@ impl Surface {
     ///
     /// assert_eq!(surface.replace(&['a']), vec!['a', 'a', 'a']);
     /// ```
+    #[deprecated]
     pub fn replace<T: Copy>(&self, values: &[T]) -> Vec<T> {
         let mut returner: Vec<T> = vec![];
         for flag in self.data.iter() {
@@ -179,6 +180,7 @@ impl Surface {
         returner
     }
     /// Return a [`Vec<T>`] by flattening out an array replacing each value.
+    #[deprecated]
     pub fn flatten_replace<T: Copy>(&self, values: &[Vec<T>]) -> Vec<T> {
         let mut returner: Vec<T> = vec![];
         for flag in self.data.iter() {
@@ -314,16 +316,56 @@ impl Printer {
         let characters: Vec<char> = text.chars().collect();
         let mut fetched_character: Vec<Character> = vec![];
         let mut width = (characters.len() - 1) * self.letter_spacing;
+
+        let mut character_width = if self.font.header.configuration_flags.constant_width {
+            self.font
+                .header
+                .configuration_values
+                .constant_width
+                .unwrap()
+        } else {
+            0
+        };
+
+        let mut character_height = if self.font.header.configuration_flags.constant_height {
+            self.font
+                .header
+                .configuration_values
+                .constant_height
+                .unwrap()
+        } else {
+            0
+        };
+
         characters.iter().for_each(|character| {
-            let fchar = self.font.body.characters[self.character_cache.mappings[character]].clone();
-            width += fchar.custom_size as usize;
+            let mut fchar = self.font.body.characters
+                [self.character_cache.mappings[&character.to_string()]]
+                .clone();
+
+            if !self.font.header.configuration_flags.constant_width {
+                character_width = fchar.custom_width.unwrap();
+            }
+
+            if !self.font.header.configuration_flags.constant_height {
+                if fchar.custom_height.unwrap() > character_height {
+                    character_height = fchar.custom_height.unwrap();
+                };
+            } else {
+                fchar.custom_height = Some(character_height);
+            }
+
+            fchar.custom_width = Some(character_width);
+
+            width += character_width as usize;
             fetched_character.push(fchar);
         });
+
         let mut surface = Surface {
-            data: vec![0; self.font.header.required_values.constant_size as usize * width],
-            height: self.font.header.required_values.constant_size as usize,
+            data: vec![0; character_height as usize * width],
+            height: character_height as usize,
             width: width,
         };
+
         let mut current_x = 0;
         for character in fetched_character {
             let mut pixmap = vec![];
@@ -334,13 +376,13 @@ impl Printer {
             surface.blit(
                 &Surface {
                     data: pixmap,
-                    height: self.font.header.required_values.constant_size as usize,
-                    width: character.custom_size as usize,
+                    height: character.custom_height.unwrap() as usize,
+                    width: character.custom_width.unwrap() as usize,
                 },
                 current_x,
                 0,
             );
-            current_x += self.letter_spacing + character.custom_size as usize;
+            current_x += self.letter_spacing + character.custom_width.unwrap() as usize;
         }
         surface
     }

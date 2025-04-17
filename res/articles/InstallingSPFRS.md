@@ -4,7 +4,7 @@ To add `spf.rs` to your rust project you can run the following command:
 ```sh
 cargo add spf
 ```
-`spf.rs` also has a lot of modules which are enabled by default with the corrosponding features; [`crate::log`] ("log"), [`crate::cache`] ("cache"), [`crate::printer`] ("printer"), [`crate::ergonomics`] (ergonomics),  [`crate::c`] ("ffi"), and [`crate::articles`] ("articles").
+`spf.rs` also has a lot of modules which are enabled by default with the corrosponding features; [`crate::log`] ("log"), [`crate::cache`] ("cache"), [`crate::printer`] ("printer"), [`crate::ergonomics`] (ergonomics),  [`crate::ffi`] ("ffi"), and [`crate::articles`] ("articles").
 
 You can choose which features to use by editing the `Cargo.toml` file under the depenencies section:
 ```toml

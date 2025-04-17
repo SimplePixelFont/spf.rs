@@ -9,10 +9,11 @@ pub(crate) fn push_header<'a>(
 ) -> &'a mut byte::ByteStorage {
     buffer.push(byte::Byte {
         bits: [
-            header.configuration_flags.alignment,
+            header.configuration_flags.constant_cluster_codepoints,
+            header.configuration_flags.constant_width,
+            header.configuration_flags.constant_height,
             false,
-            false,
-            false,
+            //header.configuration_flags.custom_bits_per_pixel,
             header.modifier_flags.compact,
             false,
             false,
@@ -20,26 +21,48 @@ pub(crate) fn push_header<'a>(
         ],
     });
 
-    buffer.push(byte::Byte::from_u8(header.required_values.constant_size));
+    if header.configuration_flags.constant_cluster_codepoints {
+        buffer.push(byte::Byte::from_u8(
+            header
+                .configuration_values
+                .constant_cluster_codepoints
+                .unwrap(),
+        ));
+    }
+    if header.configuration_flags.constant_width {
+        buffer.push(byte::Byte::from_u8(
+            header.configuration_values.constant_width.unwrap(),
+        ));
+    }
+    if header.configuration_flags.constant_height {
+        buffer.push(byte::Byte::from_u8(
+            header.configuration_values.constant_height.unwrap(),
+        ));
+    }
+    // if header.configuration_flags.custom_bits_per_pixel {
+    //     buffer.push(byte::Byte::from_u8(
+    //         header.configuration_values.custom_bits_per_pixel.unwrap(),
+    //     ));
+    // }
 
     buffer
 }
 
-pub(crate) fn push_character(
-    buffer: &mut byte::ByteStorage,
-    character: char,
-) -> &mut byte::ByteStorage {
-    let mut char_buffer = [0; 4];
-    character.encode_utf8(&mut char_buffer);
+pub(crate) fn push_grapheme_cluster<'a>(
+    buffer: &'a mut byte::ByteStorage,
+    header: &Header,
+    string: &String,
+) -> &'a mut byte::ByteStorage {
+    let mut string_bit_string = String::new(); // part of log
 
-    let mut utf8_bit_string = String::new(); // part of log
+    string.bytes().into_iter().for_each(|byte| {
+        buffer.push(byte::Byte::from_u8(byte));
+        string_bit_string.push_str(&format!("{:08b} ", byte)); // part of log
+    });
 
-    for byte in char_buffer {
-        if byte != 0 {
-            utf8_bit_string.push_str(&format!("{:08b} ", byte)); // part of log
-
-            buffer.push(byte::Byte::from_u8(byte));
-        }
+    if !header.configuration_flags.constant_cluster_codepoints {
+        buffer.push(byte::Byte::from_u8(0));
+        string_bit_string.push_str(&format!("{:08b} ", 0)); // part of log
     }
 
     #[cfg(feature = "log")]
@@ -47,8 +70,8 @@ pub(crate) fn push_character(
         let mut logger = LOGGER.lock().unwrap();
         if logger.log_level as u8 >= LogLevel::Info as u8 {
             logger.message.push_str(&format!(
-                "Pushed character '{}' with the following bits: {}",
-                character, utf8_bit_string
+                "Pushed grapheme cluster '{}' with the following bits: {}",
+                string, string_bit_string
             ));
             logger.flush_info().unwrap();
         }
@@ -57,23 +80,54 @@ pub(crate) fn push_character(
     buffer
 }
 
-pub(crate) fn push_custom_size(
-    buffer: &mut byte::ByteStorage,
-    custom_size: u8,
-) -> &mut byte::ByteStorage {
-    buffer.push(byte::Byte::from_u8(custom_size));
+pub(crate) fn push_width<'a>(
+    buffer: &'a mut byte::ByteStorage,
+    header: &Header,
+    custom_width: Option<u8>,
+) -> &'a mut byte::ByteStorage {
+    if !header.configuration_flags.constant_width {
+        let width = custom_width.unwrap();
+        buffer.push(byte::Byte::from_u8(width));
 
-    let size_bit_string = format!("{:08b}", custom_size);
+        let width_bit_string = format!("{:08b}", width);
 
-    #[cfg(feature = "log")]
-    unsafe {
-        let mut logger = LOGGER.lock().unwrap();
-        if logger.log_level as u8 >= LogLevel::Info as u8 {
-            logger.message.push_str(&format!(
-                "Pushed custom size '{}' with the following bits: {}",
-                custom_size, size_bit_string
-            ));
-            logger.flush_info().unwrap();
+        #[cfg(feature = "log")]
+        unsafe {
+            let mut logger = LOGGER.lock().unwrap();
+            if logger.log_level as u8 >= LogLevel::Info as u8 {
+                logger.message.push_str(&format!(
+                    "Pushed character width '{}' with the following bits: {}",
+                    width, width_bit_string
+                ));
+                logger.flush_info().unwrap();
+            }
+        }
+    }
+
+    buffer
+}
+
+pub(crate) fn push_height<'a>(
+    buffer: &'a mut byte::ByteStorage,
+    header: &Header,
+    custom_height: Option<u8>,
+) -> &'a mut byte::ByteStorage {
+    if !header.configuration_flags.constant_height {
+        let height = custom_height.unwrap();
+        buffer.push(byte::Byte::from_u8(height));
+
+        let height_bit_string = format!("{:08b}", height);
+
+        #[cfg(feature = "log")]
+        unsafe {
+            let mut logger = LOGGER.lock().unwrap();
+            if logger.log_level as u8 >= LogLevel::Info as u8 {
+                logger.message.push_str(&format!(
+                    "Pushed character height '{}' with the following bits: {}",
+                    height, height_bit_string
+                ));
+                logger.flush_info().unwrap();
+            }
         }
     }
 
