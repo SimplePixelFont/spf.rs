@@ -47,7 +47,7 @@ platforms = [
     Platform("x86_64", "linux"; libc = "glibc"),
     Platform("aarch64", "linux"; libc = "musl"),
     Platform("armv6l", "linux"; call_abi = "eabihf", libc = "musl"),
-    Platform("x86_64", "linux"; libc = "musl"),
+    #Platform("x86_64", "linux"; libc = "musl"),
     Platform("x86_64", "freebsd"; ),
     Platform("x86_64", "windows"; ),
     Platform("aarch64", "macos"; ),
