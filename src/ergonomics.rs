@@ -30,11 +30,9 @@ impl LayoutBuilder {
     /// Sets the [`ConfigurationFlags::constant_cluster_codepoints`] field of the builder.
     pub fn constant_cluster_codepoints(
         &mut self,
-        header_configuration_flags_constant_cluster_codepoints: bool,
         header_configuration_values_constant_cluster_codepoints: u8,
     ) -> &mut Self {
-        self.header_configuration_flags_constant_cluster_codepoints =
-            header_configuration_flags_constant_cluster_codepoints;
+        self.header_configuration_flags_constant_cluster_codepoints = true;
         self.header_configuration_values_constant_cluster_codepoints =
             Some(header_configuration_values_constant_cluster_codepoints);
 
@@ -42,12 +40,8 @@ impl LayoutBuilder {
     }
 
     /// Sets the [`ConfigurationFlags::constant_width`] field of the builder.
-    pub fn constant_width(
-        &mut self,
-        header_configuration_flags_constant_width: bool,
-        header_configuration_values_constant_width: u8,
-    ) -> &mut Self {
-        self.header_configuration_flags_constant_width = header_configuration_flags_constant_width;
+    pub fn constant_width(&mut self, header_configuration_values_constant_width: u8) -> &mut Self {
+        self.header_configuration_flags_constant_width = true;
         self.header_configuration_values_constant_width =
             Some(header_configuration_values_constant_width);
 
@@ -57,11 +51,9 @@ impl LayoutBuilder {
     /// Sets the [`ConfigurationFlags::constant_height`] field of the builder.
     pub fn constant_height(
         &mut self,
-        header_configuration_flags_constant_height: bool,
         header_configuration_values_constant_height: u8,
     ) -> &mut Self {
-        self.header_configuration_flags_constant_height =
-            header_configuration_flags_constant_height;
+        self.header_configuration_flags_constant_height = true;
         self.header_configuration_values_constant_height =
             Some(header_configuration_values_constant_height);
 

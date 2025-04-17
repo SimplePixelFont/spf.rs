@@ -30,8 +30,8 @@ impl CharacterCache {
     /// Creates a new [`CharacterCache`] struct by mapping all characters in a [`Vec<Character>`].
     ///
     /// This method will create a new [`CharacterCache`] struct with the mappings
-    /// field set to a [`std::collections::HashMap`] with all the utf8 Character fields as keys and the
-    /// index in the [`Vec<Character>`] as values.
+    /// field set to a [`std::collections::HashMap`] with all the [`Character::grapheme_cluster`]
+    /// fields as keys and the index in the [`Vec<Character>`] as values.
     ///
     /// # Example
     /// ```
@@ -40,16 +40,18 @@ impl CharacterCache {
     ///
     /// let characters = vec![
     ///     Character {
-    ///         utf8: 'o',
-    ///         custom_size: 4,
+    ///         grapheme_cluster: "o".to_string(),
+    ///         custom_width: Some(4),
+    ///         custom_height: Some(4),
     ///         pixmap: vec![0, 1, 1, 0,
     ///                        1, 0, 0, 1,
     ///                        1, 0, 0, 1,
     ///                        0, 1, 1, 0],
     ///     },
     ///     Character {
-    ///        utf8: 'u',
-    ///        custom_size: 4,
+    ///        grapheme_cluster: "u".to_string(),
+    ///        custom_width: Some(4),
+    ///        custom_height: Some(4),
     ///        pixmap: vec![1, 0, 0, 1,
     ///                       1, 0, 0, 1,
     ///                       1, 0, 0, 1,
@@ -62,7 +64,7 @@ impl CharacterCache {
     /// assert_eq!(cache.mappings.len(), 2);
     ///
     /// // We can retrieve the index of the 'u' character from the cache.
-    /// assert_eq!(cache.mappings.get(&'u'), Some(&1));
+    /// assert_eq!(cache.mappings.get(&"u".to_string()), Some(&1));
     /// ```
     pub fn from_characters(characters: &Vec<Character>) -> Self {
         let mut mapping: std::collections::HashMap<String, usize> =

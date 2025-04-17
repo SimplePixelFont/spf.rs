@@ -7,7 +7,6 @@ use spf::{
 
 #[test]
 fn write_font_file() -> Result<(), String> {
-    LOGGER_set_log_level(LogLevel::Debug);
     let mut font = Layout::default();
 
     font.header.modifier_flags.compact = true;
@@ -64,7 +63,6 @@ fn write_font_file() -> Result<(), String> {
 
 #[test]
 fn read_font_file() -> Result<(), String> {
-    LOGGER_set_log_level(LogLevel::Debug);
     let mut buffer: Vec<u8> = vec![];
     common::read_from_file("./res/sampleToyFont.spf", &mut buffer).unwrap();
 
