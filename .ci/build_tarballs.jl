@@ -39,7 +39,7 @@ install_license UNLICENSE
 platforms = [
     Platform("armv7l", "linux"; call_abi = "eabihf", libc = "glibc"),
     Platform("armv7l", "linux"; call_abi = "eabihf", libc = "musl"),
-    Platform("i686", "linux"; libc = "musl"),
+    #Platform("i686", "linux"; libc = "musl"), fails for some reason
     Platform("i686", "linux"; libc = "glibc"),
     Platform("armv6l", "linux"; call_abi = "eabihf", libc = "glibc"),
     Platform("powerpc64le", "linux"; libc = "glibc"),
