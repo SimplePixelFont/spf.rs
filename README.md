@@ -23,11 +23,12 @@ cargo add spf
 
 Usage varies depending on the programming language you choose. For a guide using the native Rust interface check out the [Getting Started in Rust](https://docs.rs/spf/latest/spf/articles/getting_started/index.html) article. You can also check out the [Using the FFI in C](https://docs.rs/spf/latest/spf/articles/c_usage/index.html) article for usage with the `spf.rs` library.
 
-
-### Supported File Properties
+### Supported SPF Header Properties
 | Flag | Type | Stability | Notes |
 | --- | --- | --- | --- |
-| Alignment | Configuration | ⚠️ | `Only height-aligned fonts are supported` |
+| Constant Cluster Codepoints | Configuration | ✔ | `Added in v0.5` |
+| Constant Width | Configuration | ✔ | `Added in v0.5` |
+| Constant Height | Configuration | ✔ | `Added in v0.5` |
 | Compact | Modifier | ✔ | `Added in v0.4` |
 
 Key:

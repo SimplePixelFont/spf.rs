@@ -1,9 +1,6 @@
 mod common;
 
-use spf::{
-    core::*,
-    log::{LOGGER_set_log_level, LogLevel},
-};
+use spf::core::*;
 
 #[test]
 fn write_font_file() -> Result<(), String> {
