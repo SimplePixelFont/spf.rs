@@ -27,7 +27,7 @@ pub struct LayoutBuilder {
 }
 
 impl LayoutBuilder {
-    /// Sets the [`ConfigurationFlags::alignment`] field of the builder.
+    /// Sets the [`ConfigurationFlags::constant_cluster_codepoints`] field of the builder.
     pub fn constant_cluster_codepoints(
         &mut self,
         header_configuration_flags_constant_cluster_codepoints: bool,

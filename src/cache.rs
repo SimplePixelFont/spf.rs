@@ -3,7 +3,7 @@
 use super::core::*;
 
 /// A `CharacterCache` struct is used to store mappings between the utf8 characters and their index
-/// from within a [`Layout::body::characters`] field.
+/// from within a [`Body::characters`] field.
 pub struct CharacterCache {
     pub mappings: std::collections::HashMap<String, usize>,
 }
@@ -30,7 +30,7 @@ impl CharacterCache {
     /// Creates a new [`CharacterCache`] struct by mapping all characters in a [`Vec<Character>`].
     ///
     /// This method will create a new [`CharacterCache`] struct with the mappings
-    /// field set to a [`std::colections::HashMap`] with all the utf8 Character fields as keys and the
+    /// field set to a [`std::collections::HashMap`] with all the utf8 Character fields as keys and the
     /// index in the [`Vec<Character>`] as values.
     ///
     /// # Example
