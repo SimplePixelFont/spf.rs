@@ -18,7 +18,7 @@ jobs:
       - uses: julia-actions/setup-julia@v2
         with:
           version: "1.7"
-      - run: julia -- ./.ci/build_tarballs.jl
+      - run: BINARYBUILDER_AUTOMATIC_APPLE=true julia -- ./.ci/build_tarballs.jl
       - name: Peek inside build environment
         run: ls
       - name: Download cargo-xwin
