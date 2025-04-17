@@ -64,5 +64,7 @@ products = [
 dependencies = Dependency[
 ]
 
+ENV["BINARYBUILDER_AUTOMATIC_APPLE"] = true
+
 # Build the tarballs, and possibly a `build.jl` as well.
 build_tarballs(ARGS, name, version, sources, script, platforms, products, dependencies; julia_compat="1.6", compilers = [:rust, :c])
