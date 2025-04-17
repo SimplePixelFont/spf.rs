@@ -192,3 +192,44 @@ pub extern "C" fn spf_printer_SPFPrinter_print(
     let text = unsafe { CStr::from_ptr(text).to_str().unwrap() };
     printer.print(text.to_string()).try_into().unwrap()
 }
+
+#[no_mangle]
+pub extern "C" fn spf_printer_SPFSurface_blank(width: c_ulong, height: c_ulong) -> SPFSurface {
+    Surface::blank(width as usize, height as usize)
+        .try_into()
+        .unwrap()
+}
+
+#[no_mangle]
+pub extern "C" fn spf_printer_SPFSurface_get_pixel(
+    surface: SPFSurface,
+    x: c_ulong,
+    y: c_ulong,
+) -> c_ulong {
+    let surface: Surface = surface.try_into().unwrap();
+    surface.get_pixel(x as usize, y as usize).unwrap() as c_ulong
+}
+
+#[no_mangle]
+pub extern "C" fn spf_printer_SPFSurface_blit(
+    surface: SPFSurface,
+    surface2: SPFSurface,
+    x: c_ulong,
+    y: c_ulong,
+) {
+    let mut surface: Surface = surface.try_into().unwrap();
+    let surface2: Surface = surface2.try_into().unwrap();
+    surface.blit(&surface2, x as usize, y as usize);
+}
+
+#[no_mangle]
+pub extern "C" fn spf_printer_SPFSurface_flip_vertical(surface: SPFSurface) -> SPFSurface {
+    let surface: Surface = surface.try_into().unwrap();
+    surface.flip_vertical().try_into().unwrap()
+}
+
+#[no_mangle]
+pub extern "C" fn spf_printer_SPFSurface_flip_horizontal(surface: SPFSurface) -> SPFSurface {
+    let surface: Surface = surface.try_into().unwrap();
+    surface.flip_horizontal().try_into().unwrap()
+}
