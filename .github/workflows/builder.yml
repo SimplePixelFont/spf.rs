@@ -15,6 +15,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.7"
+      - run: julia -e -- ./.ci/build_tarballs.jl
+      - name: Peek inside build environment
+        run: ls
       - name: Download cargo-xwin
         run: cargo install --locked cargo-xwin
       - name: Download rustup targets
@@ -25,9 +31,3 @@ jobs:
         run: |
           cargo xwin build --release --target x86_64-pc-windows-msvc && \
           cargo build --release --target wasm32-unknown-unknown
-      - uses: julia-actions/setup-julia@v2
-        with:
-          version: "1.7"
-      - run: julia -e 'println("Hello, World!")'
-      - name: Peek inside build environment
-        run: ls
