@@ -1,4 +1,5 @@
 
+println(pwd())
 # Build for MacOS targets
 run(`BINARYBUILDER_AUTOMATIC_APPLE=true julia -- ./.ci/build_tarballs.jl "x86_64-apple-darwin", "aarch64-apple-darwin"`)
 
