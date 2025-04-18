@@ -1,21 +1,21 @@
 ### BinaryBuilder Builds ###
 
 jl_platforms = [
-    #"'i686-linux-gnu'"
-    #"'x86_64-linux-gnu'"
-    #"'aarch64-linux-gnu'"
-    #"'armv6l-linux-gnueabihf'"
-    #"'armv7l-linux-gnueabihf'"
-    #"'powerpc64le-linux-gnu'"
+    "'i686-linux-gnu'"
+    "'x86_64-linux-gnu'"
+    "'aarch64-linux-gnu'"
+    "'armv6l-linux-gnueabihf'"
+    "'armv7l-linux-gnueabihf'"
+    "'powerpc64le-linux-gnu'"
     # "'riscv64-linux-gnu'" no rust toolchain for this platform
-    # "'i686-linux-musl'"
-    # "'x86_64-linux-musl'"
-    # "'aarch64-linux-musl'"
-    # "'armv6l-linux-musleabihf'"
-    # "'armv7l-linux-musleabihf'"
-    # "'x86_64-apple-darwin'"
-    # "'aarch64-apple-darwin'"
-    # "'x86_64-unknown-freebsd'"
+    "'i686-linux-musl'"
+    "'x86_64-linux-musl'"
+    "'aarch64-linux-musl'"
+    "'armv6l-linux-musleabihf'"
+    "'armv7l-linux-musleabihf'"
+    "'x86_64-apple-darwin'"
+    "'aarch64-apple-darwin'"
+    "'x86_64-unknown-freebsd'"
     # "'aarch64-unknown-freebsd'" no rust toolchain for this platform
     # "'i686-w64-mingw32'" fails to build on this platform
     "'x86_64-w64-mingw32'"
@@ -53,9 +53,9 @@ using Pkg
 Pkg.add("Tar")
 using Tar
 
-mkdir("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-mingw32")
-mv("target/x86_64-pc-windows-msvc/release/spf.dll", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-mingw32/spf.dll")
-Tar.create("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-mingw32", "artifacts/spf.v0.5.0.x86_64-w64-mingw32.tar.gz")
+mkdir("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-pc-windows-msvc")
+mv("target/x86_64-pc-windows-msvc/release/spf.dll", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-pc-windows-msvc/spf.dll")
+Tar.create("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-pc-windows-msvc", "artifacts/spf.v0.5.0.x86_64-pc-windows-msvc.tar.gz")
 
 mkdir("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown")
 mv("target/wasm32-unknown-unknown/release/spf.wasm", "target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/spf.wasm")
