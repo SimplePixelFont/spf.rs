@@ -1,7 +1,7 @@
 ### BinaryBuilder Builds ###
 
 jl_platforms = [
-    "'i686-linux-gnu'"
+    #"'i686-linux-gnu'"
     #"'x86_64-linux-gnu'"
     #"'aarch64-linux-gnu'"
     #"'armv6l-linux-gnueabihf'"
@@ -45,6 +45,7 @@ run(`sh -c "cbindgen --output bindspf.h --lang c --cpp-compat"`)
 ### Bring Builds Together ###
 mkdir("artifacts")
 for platform in jl_platforms
+    platform = platform[2:end-1]
     mv("products/spf.v0.5.0.$platform.tar.gz", "artifacts/spf.v0.5.0.$platform.tar.gz")
 end
 
