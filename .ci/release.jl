@@ -55,12 +55,12 @@ using Tar
 
 mkdir("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-mingw32")
 mv("target/x86_64-pc-windows-msvc/release/spf.dll", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-mingw32/spf.dll")
-create("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-mingw32", "artifacts/spf.v0.5.0.x86_64-w64-mingw32.tar.gz")
+Tar.create("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-mingw32", "artifacts/spf.v0.5.0.x86_64-w64-mingw32.tar.gz")
 
 mkdir("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown")
 mv("target/wasm32-unknown-unknown/release/spf.wasm", "target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/spf.wasm")
-create("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown", "artifacts/spf.v0.5.0.wasm32-unknown-unknown.tar.gz")
+Tar.create("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown", "artifacts/spf.v0.5.0.wasm32-unknown-unknown.tar.gz")
 
 mkdir("headers")
 mv("bindspf.h", "headers/bindspf.h")
-create("headers", "artifacts/headers.tar.gz")
+Tar.create("headers", "artifacts/headers.tar.gz")
