@@ -6,7 +6,7 @@ println(Base.julia_cmd())
 println("\n\n")
 # Build for MacOS targets
 julia = "/home/runner/.julia/juliaup/julia-1.7.0+0.x64.linux.gnu/bin/julia"
-cmd = `BINARYBUILDER_AUTOMATIC_APPLE=true $julia -- build_tarballs.jl "x86_64-apple-darwin", "aarch64-apple-darwin"`
+cmd = `sh -c "BINARYBUILDER_AUTOMATIC_APPLE=true julia -- build_tarballs.jl x86_64-apple-darwin, aarch64-apple-darwin"`
 
 println("Running command: $cmd")
 run(cmd)
