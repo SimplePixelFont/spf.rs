@@ -19,7 +19,7 @@ jobs:
         with:
           channel: "1.7.0"
       - name: Peek inside build environment
-        run: ls
+        run: ls -a
       - run: julia -- ./.ci/release.jl
       - name: Download cargo-xwin
         run: cargo install --locked cargo-xwin
