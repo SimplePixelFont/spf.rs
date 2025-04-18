@@ -1,11 +1,10 @@
 
 # Build for MacOS targets
-run(`sh -c "BINARYBUILDER_AUTOMATIC_APPLE=true julia -- ./.ci/build_tarballs.jl 'x86_64-apple-darwin','aarch64-apple-darwin'"`)
+#run(`sh -c "BINARYBUILDER_AUTOMATIC_APPLE=true julia -- ./.ci/build_tarballs.jl 'x86_64-apple-darwin','aarch64-apple-darwin'"`)
 
 jl_platforms = [
     "'i686-linux-gnu'"
     "'x86_64-linux-gnu'"
-    "'aarch64-linux-gnu'"
     "'armv6l-linux-gnueabihf'"
     "'armv7l-linux-gnueabihf'"
     "'powerpc64le-linux-gnu'"
