@@ -1,0 +1,53 @@
+name: Upload Assets to Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "The tag name of the release to add assets to (e.g., v1.0.0)"
+        required: true
+      asset_folder:
+        description: "Path to the folder containing assets (relative to repo root, e.g., artifacts)"
+        required: true
+        default: "artifacts" # Optional: Set a default folder
+
+jobs:
+  upload_assets:
+    name: Upload Release Assets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to write release assets
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.7"
+      - run: julia -- ./.ci/release.jl
+
+      - name: List files in folder
+        run: |
+          echo "Looking for assets in folder: ${{ github.workspace }}/${{ inputs.asset_folder }}"
+          ls -l "${{ github.workspace }}/${{ inputs.asset_folder }}"
+
+      - name: Upload assets to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          TAG_NAME: ${{ inputs.tag_name }}
+          ASSET_FOLDER: ${{ inputs.asset_folder }}
+        run: |
+          # Check if folder exists and is not empty
+          if [ -d "$ASSET_FOLDER" ] && [ "$(ls -A $ASSET_FOLDER)" ]; then
+            echo "Uploading assets from $ASSET_FOLDER to release $TAG_NAME..."
+            # Use find to handle files potentially containing spaces or special characters
+            # Upload files one by one to avoid issues with too many arguments for gh release upload *
+            find "$ASSET_FOLDER" -maxdepth 1 -type f -print0 | while IFS= read -r -d $'\0' file; do
+              echo "Uploading '$file'..."
+              gh release upload "$TAG_NAME" "$file" --clobber
+            done
+            echo "Asset upload complete."
+          else
+            echo "Warning: Asset folder '$ASSET_FOLDER' not found or is empty. No assets uploaded."
+          fi
