@@ -1,6 +1,7 @@
 # Note that this script can accept some limited command-line arguments, run
 # `julia build_tarballs.jl --help` to see a usage message.
 using Pkg
+Pkg.instantiate()
 try
     using BinaryBuilder
 catch
@@ -37,21 +38,21 @@ install_license UNLICENSE
 # These are the platforms we will build for by default, unless further
 # platforms are passed in on the command line
 platforms = [
-    Platform("armv7l", "linux"; call_abi = "eabihf", libc = "glibc"),
-    Platform("armv7l", "linux"; call_abi = "eabihf", libc = "musl"),
-    Platform("i686", "linux"; libc = "musl"),
-    Platform("i686", "linux"; libc = "glibc"),
-    Platform("armv6l", "linux"; call_abi = "eabihf", libc = "glibc"),
-    Platform("powerpc64le", "linux"; libc = "glibc"),
-    Platform("x86_64", "macos"; ),
-    Platform("x86_64", "linux"; libc = "glibc"),
-    Platform("aarch64", "linux"; libc = "musl"),
-    Platform("armv6l", "linux"; call_abi = "eabihf", libc = "musl"),
-    Platform("x86_64", "linux"; libc = "musl"),
-    Platform("x86_64", "freebsd"; ),
-    Platform("x86_64", "windows"; ),
-    Platform("aarch64", "macos"; ),
-    Platform("aarch64", "linux"; libc = "glibc")
+    Platform("armv7l", "linux"; call_abi="eabihf", libc="glibc"),
+    Platform("armv7l", "linux"; call_abi="eabihf", libc="musl"),
+    Platform("i686", "linux"; libc="musl"),
+    Platform("i686", "linux"; libc="glibc"),
+    Platform("armv6l", "linux"; call_abi="eabihf", libc="glibc"),
+    Platform("powerpc64le", "linux"; libc="glibc"),
+    Platform("x86_64", "macos";),
+    Platform("x86_64", "linux"; libc="glibc"),
+    Platform("aarch64", "linux"; libc="musl"),
+    Platform("armv6l", "linux"; call_abi="eabihf", libc="musl"),
+    Platform("x86_64", "linux"; libc="musl"),
+    Platform("x86_64", "freebsd";),
+    Platform("x86_64", "windows";),
+    Platform("aarch64", "macos";),
+    Platform("aarch64", "linux"; libc="glibc")
 ]
 
 
@@ -65,4 +66,4 @@ dependencies = Dependency[
 ]
 
 # Build the tarballs, and possibly a `build.jl` as well.
-build_tarballs(ARGS, name, version, sources, script, platforms, products, dependencies; julia_compat="1.6", compilers = [:rust, :c])
+build_tarballs(ARGS, name, version, sources, script, platforms, products, dependencies; julia_compat="1.6", compilers=[:rust, :c])
