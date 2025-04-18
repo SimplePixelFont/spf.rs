@@ -1,4 +1,4 @@
-cd("/.ci")
+cd(".ci")
 # Build for MacOS targets
 run(`sh -c "BINARYBUILDER_AUTOMATIC_APPLE=true julia -- build_tarballs.jl x86_64-apple-darwin, aarch64-apple-darwin"`)
 
