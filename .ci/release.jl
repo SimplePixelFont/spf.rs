@@ -17,7 +17,8 @@ jl_platforms = [
 ]
 
 for platform in jl_platforms
-    run(`sh -c "julia -- ./.ci/build_tarballs.jl $platform"`)
+    run(`sh -c "BINARYBUILDER_RUNNER='privileged' julia -- ./.ci/build_tarballs.jl $platform"`)
+    run(`sh -c "sudo rm -rf '/home/runner/.julia/artifacts/'"`)
 end
 
 
