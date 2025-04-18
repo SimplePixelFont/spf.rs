@@ -15,7 +15,6 @@ version = v"0.5.0"
 # Collection of sources required to complete build
 sources = [
     GitSource("https://github.com/SimplePixelFont/spf.rs", "6009a2b58281ba30abbf025d4a9f1f81955006e2")
-    # ArchiveSource("https://github.com/SimplePixelFont/spf.rs/archive/refs/tags/v$(version).tar.gz", "70fc93369d804a92da3cd727d3c482de8e97d893990f243a0ff3533bc64754a1")
 ]
 
 # Bash recipe for building across all platforms
