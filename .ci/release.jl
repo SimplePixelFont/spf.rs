@@ -1,6 +1,6 @@
 
 # Build for MacOS targets
-cmd = `sh -c "BINARYBUILDER_AUTOMATIC_APPLE=true julia -- ./.ci/build_tarballs.jl"`
+cmd = `sh -c "BINARYBUILDER_AUTOMATIC_APPLE=true julia -- ./.ci/build_tarballs.jl 'x86_64-apple-darwin'"`
 
 println("Running command: $cmd")
 run(cmd)
