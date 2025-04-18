@@ -3,7 +3,7 @@ println(readdir())
 cd(".ci")
 println(readdir())
 println(Base.julia_cmd())
-println(\n\n)
+println("\n\n")
 # Build for MacOS targets
 cmd = `BINARYBUILDER_AUTOMATIC_APPLE=true $(Base.julia_cmd()) -- build_tarballs.jl "x86_64-apple-darwin", "aarch64-apple-darwin"`
 
