@@ -1,3 +1,4 @@
+#![allow(clippy::missing_safety_doc)] // FFI will always be unsafe no reason to document :)
 //! A C compatible FFI layer for `spf.rs`.
 //!
 //! This module provides a thin wrapper around all the modules in `spf.rs` that allows it to be used
@@ -24,8 +25,7 @@ use crate::cache::*;
 use crate::core::*;
 use crate::printer::*;
 
-#[cfg(feature = "log")]
-use crate::log::*;
+use log::*;
 
 use std::ffi::*;
 use std::slice;
@@ -126,10 +126,10 @@ pub extern "C" fn spf_core_layout_to_data(layout: SPFLayout) -> SPFData {
     let data_length = data.len() as c_ulong;
     let data_ptr = data.as_mut_ptr();
     std::mem::forget(data);
-    return SPFData {
+    SPFData {
         data: data_ptr,
-        data_length: data_length,
-    };
+        data_length,
+    }
 }
 
 #[no_mangle]
@@ -139,21 +139,24 @@ pub extern "C" fn spf_core_layout_to_data(layout: SPFLayout) -> SPFData {
 /// [`Vec<u8>`] from the data. This data is then passed to the [`layout_from_data`] function to
 /// create a [`Layout`] struct. The [`Layout`] struct is then converted into a [`SPFLayout`] struct
 /// and returned.
-pub extern "C" fn spf_core_layout_from_data(pointer: *const c_uchar, length: c_ulong) -> SPFLayout {
+pub unsafe extern "C" fn spf_core_layout_from_data(
+    pointer: *const c_uchar,
+    length: c_ulong,
+) -> SPFLayout {
     let data = unsafe { slice::from_raw_parts(pointer, length as usize) };
     let layout = layout_from_data(data.to_owned()).unwrap();
-    return layout.try_into().unwrap();
+    layout.try_into().unwrap()
 }
 
 #[no_mangle]
 pub extern "C" fn spf_log_LOGGER_set_log_level(log_level: c_uchar) {
     let log_level = match log_level {
-        0 => LogLevel::None,
-        1 => LogLevel::Info,
-        2 => LogLevel::Debug,
+        0 => LevelFilter::Off,
+        1 => LevelFilter::Info,
+        2 => LevelFilter::Debug,
         _ => panic!("Invalid log level."),
     };
-    LOGGER_set_log_level(log_level);
+    set_max_level(log_level);
 }
 
 #[no_mangle]
@@ -162,13 +165,13 @@ pub extern "C" fn spf_cache_SPFCharacterCache_empty() -> SPFCharacterCache {
 }
 
 #[no_mangle]
-pub extern "C" fn spf_cache_SPFCharacterCache_from_characters(
+pub unsafe extern "C" fn spf_cache_SPFCharacterCache_from_characters(
     characters: *mut SPFCharacter,
     characters_length: c_ulong,
 ) -> SPFCharacterCache {
-    let characters = unsafe {
+    let characters: Vec<Character> = unsafe {
         slice::from_raw_parts(characters, characters_length as usize)
-            .into_iter()
+            .iter()
             .map(|c| c.try_into().unwrap())
             .collect()
     };
@@ -184,7 +187,7 @@ pub extern "C" fn spf_printer_SPFPrinter_from_font(font: SPFLayout) -> SPFPrinte
 }
 
 #[no_mangle]
-pub extern "C" fn spf_printer_SPFPrinter_print(
+pub unsafe extern "C" fn spf_printer_SPFPrinter_print(
     printer: SPFPrinter,
     text: *const c_char,
 ) -> SPFSurface {

@@ -61,5 +61,5 @@ pub(crate) fn next_grapheme_cluster(
         }
     }
 
-    return (grapheme_cluster, current_index);
+    (grapheme_cluster, current_index)
 }

@@ -1,7 +1,5 @@
 pub(crate) use super::*;
-
-#[cfg(feature = "log")]
-use super::super::log::{LogLevel, LOGGER};
+pub(crate) use log::*;
 
 pub(crate) fn push_header<'a>(
     buffer: &'a mut byte::ByteStorage,
@@ -55,7 +53,7 @@ pub(crate) fn push_grapheme_cluster<'a>(
 ) -> &'a mut byte::ByteStorage {
     let mut string_bit_string = String::new(); // part of log
 
-    string.bytes().into_iter().for_each(|byte| {
+    string.bytes().for_each(|byte| {
         buffer.push(byte::Byte::from_u8(byte));
         string_bit_string.push_str(&format!("{:08b} ", byte)); // part of log
     });
@@ -66,16 +64,10 @@ pub(crate) fn push_grapheme_cluster<'a>(
     }
 
     #[cfg(feature = "log")]
-    unsafe {
-        let mut logger = LOGGER.lock().unwrap();
-        if logger.log_level as u8 >= LogLevel::Info as u8 {
-            logger.message.push_str(&format!(
-                "Pushed grapheme cluster '{}' with the following bits: {}",
-                string, string_bit_string
-            ));
-            logger.flush_info().unwrap();
-        }
-    }
+    info!(
+        "Pushed grapheme cluster '{}' with the following bits: {}",
+        string, string_bit_string
+    );
 
     buffer
 }
@@ -92,16 +84,10 @@ pub(crate) fn push_width<'a>(
         let width_bit_string = format!("{:08b}", width);
 
         #[cfg(feature = "log")]
-        unsafe {
-            let mut logger = LOGGER.lock().unwrap();
-            if logger.log_level as u8 >= LogLevel::Info as u8 {
-                logger.message.push_str(&format!(
-                    "Pushed character width '{}' with the following bits: {}",
-                    width, width_bit_string
-                ));
-                logger.flush_info().unwrap();
-            }
-        }
+        info!(
+            "Pushed character width '{}' with the following bits: {}",
+            width, width_bit_string
+        )
     }
 
     buffer
@@ -119,16 +105,10 @@ pub(crate) fn push_height<'a>(
         let height_bit_string = format!("{:08b}", height);
 
         #[cfg(feature = "log")]
-        unsafe {
-            let mut logger = LOGGER.lock().unwrap();
-            if logger.log_level as u8 >= LogLevel::Info as u8 {
-                logger.message.push_str(&format!(
-                    "Pushed character height '{}' with the following bits: {}",
-                    height, height_bit_string
-                ));
-                logger.flush_info().unwrap();
-            }
-        }
+        info!(
+            "Pushed character height '{}' with the following bits: {}",
+            height, height_bit_string
+        )
     }
 
     buffer
@@ -143,8 +123,8 @@ pub(crate) fn push_pixmap(
     let mut pixmap_bit_string = String::new();
 
     let used_bytes = character_bytes.len();
-    let mut index = 0;
-    for byte in character_bytes.iter() {
+
+    for (index, byte) in character_bytes.iter().enumerate() {
         pixmap_bit_string.push_str(&format!("{:08b} ", byte));
 
         if header.modifier_flags.compact && index == used_bytes - 1 {
@@ -152,18 +132,11 @@ pub(crate) fn push_pixmap(
         } else {
             buffer.push(byte::Byte::from_u8(*byte));
         }
-        index += 1;
     }
 
     #[cfg(feature = "log")]
-    unsafe {
-        let mut logger = LOGGER.lock().unwrap();
-        if logger.log_level as u8 >= LogLevel::Info as u8 {
-            logger.message.push_str(&format!(
-                "Pushed byte map with the following bits: {}",
-                pixmap_bit_string
-            ));
-            logger.flush_info().unwrap();
-        }
-    }
+    info!(
+        "Pushed byte map with the following bits: {}",
+        pixmap_bit_string
+    );
 }

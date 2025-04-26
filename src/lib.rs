@@ -8,6 +8,7 @@ pub mod core;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "log")))]
 #[cfg(feature = "log")]
+#[deprecated]
 pub mod log;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]

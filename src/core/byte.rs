@@ -4,25 +4,26 @@ pub(crate) struct Byte {
 }
 
 impl Byte {
-    pub(crate) fn to_u8(&self) -> u8 {
+    pub(crate) fn to_u8(self) -> u8 {
         let mut value: u8 = 0;
         let mut modifier = 1;
         for bit in self.bits.iter() {
-            if bit.clone() {
+            if *bit {
                 value += modifier as u8;
             }
             modifier *= 2;
         }
-        return value;
+        value
     }
 
     pub(crate) fn from_u8(value: u8) -> Self {
         let mut bits: [bool; 8] = [false; 8];
-        for i in 0..8 {
-            let bit: bool = ((1 << i) & value) > 0;
-            bits[i] = bit;
+
+        for (index, bit) in bits.iter_mut().enumerate() {
+            *bit = ((1 << index) & value) > 0;
         }
-        return Self { bits: bits };
+
+        Self { bits }
     }
 }
 
@@ -44,7 +45,7 @@ impl ByteStorage {
         for byte in self.bytes.iter() {
             buffer.push(byte.to_u8());
         }
-        return buffer;
+        buffer
     }
     // Dev Comment: 0 0 0 0 0 0 0 0
     //       Index: 0 1 2 3 4 5 6 7
@@ -59,15 +60,11 @@ impl ByteStorage {
             let mut new_byte = byte.bits[8 - self.pointer..8].to_vec();
             let last_index = self.bytes.len() - 1;
 
-            let mut index = 0;
-            for bit in left {
+            for (index, bit) in left.into_iter().enumerate() {
                 self.bytes[last_index].bits[self.pointer + index] = bit;
-                index += 1;
             }
 
-            for _ in 0..8 - new_byte.len() {
-                new_byte.push(false);
-            }
+            new_byte.extend(vec![false; 8 - new_byte.len()]);
             self.bytes.push(Byte {
                 bits: new_byte.try_into().unwrap(),
             });
@@ -80,17 +77,14 @@ impl ByteStorage {
             let left = byte.bits[0..8 - self.pointer].to_vec();
             let last_index = self.bytes.len() - 1;
 
-            let mut index = 0;
-            for bit in left {
+            for (index, bit) in left.into_iter().enumerate() {
                 self.bytes[last_index].bits[self.pointer + index] = bit;
-                index += 1;
             }
 
             if self.pointer + (8 - remainder) > 8 {
                 let mut new_byte = byte.bits[8 - self.pointer..8].to_vec();
-                for _ in 0..8 - new_byte.len() {
-                    new_byte.push(false);
-                }
+                new_byte.extend(vec![false; 8 - new_byte.len()]);
+
                 self.bytes.push(Byte {
                     bits: new_byte.try_into().unwrap(),
                 });
@@ -100,16 +94,14 @@ impl ByteStorage {
 
     pub(crate) fn get(&self, index: usize) -> Byte {
         if self.pointer == 0 {
-            return self.bytes[index];
+            self.bytes[index]
         } else {
             let mut left = self.bytes[index].bits[self.pointer..8].to_vec();
             let mut right = vec![];
             if index < self.bytes.len() - 1 {
                 right = self.bytes[index + 1].bits[0..self.pointer].to_vec();
             } else {
-                for _ in 0..self.pointer {
-                    right.push(false);
-                }
+                right.extend(vec![false; self.pointer]);
             }
 
             left.append(&mut right);

@@ -66,7 +66,7 @@ impl CharacterCache {
     /// // We can retrieve the index of the 'u' character from the cache.
     /// assert_eq!(cache.mappings.get(&"u".to_string()), Some(&1));
     /// ```
-    pub fn from_characters(characters: &Vec<Character>) -> Self {
+    pub fn from_characters(characters: &[Character]) -> Self {
         let mut mapping: std::collections::HashMap<String, usize> =
             std::collections::HashMap::new();
         for (index, character) in characters.iter().enumerate() {

@@ -1,3 +1,4 @@
+#![allow(clippy::mut_range_bound)]
 //! Essential functions and structs used by both the native crate and FFI interface.
 //!
 //! <div class="warning">
@@ -16,8 +17,7 @@ pub(crate) mod composers;
 pub(crate) mod helpers;
 pub(crate) mod parsers;
 
-#[cfg(feature = "log")]
-use crate::log::{LogLevel, LOGGER};
+use log::*;
 
 #[derive(Default, Debug, Clone)]
 #[non_exhaustive]
@@ -119,7 +119,7 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
     let mut body_buffer = byte::ByteStorage::new();
 
     let mut iter = chunks.next();
-    while !iter.is_none() {
+    while iter.is_some() {
         let chunk = iter.unwrap();
 
         match current_index {
@@ -129,7 +129,7 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
                 }
             }
             3 => {
-                let file_properties = byte::Byte::from_u8(chunk.clone()).bits;
+                let file_properties = byte::Byte::from_u8(*chunk).bits;
 
                 configuration_flag_booleans = [
                     file_properties[0],
@@ -142,14 +142,17 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
             }
             _ => {
                 for index in current_configuration_flag_index..4 {
-                    current_configuration_flag_index = index + 1;
+                    {
+                        // Will need to look into this later.
+                        current_configuration_flag_index = index + 1;
+                    }
                     if configuration_flag_booleans[index] {
-                        configuration_flag_values[index] = Some(chunk.clone());
+                        configuration_flag_values[index] = Some(*chunk);
                         break;
                     }
                 }
                 if current_configuration_flag_index == 4 {
-                    body_buffer.push(byte::Byte::from_u8(chunk.clone()));
+                    body_buffer.push(byte::Byte::from_u8(*chunk));
                 }
             }
         }
@@ -185,16 +188,10 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
             character_definition_stage += 1;
 
             #[cfg(feature = "log")]
-            unsafe {
-                let mut logger = LOGGER.lock().unwrap();
-                if logger.log_level as u8 >= LogLevel::Debug as u8 {
-                    logger.message.push_str(&format!(
-                        "Identified grapheme cluster: {:?}",
-                        current_character.grapheme_cluster
-                    ));
-                    logger.flush_debug().unwrap();
-                }
-            }
+            debug!(
+                "Identified grapheme cluster: {:?}",
+                current_character.grapheme_cluster
+            );
         }
 
         if character_definition_stage == 1 {
@@ -222,22 +219,18 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
         }
 
         if character_definition_stage == 3 {
-            let bytes_used = (((current_character_width as f32 * current_character_height as f32)
-                as f32
-                / 8.0) as f32)
-                .ceil() as u8;
+            let bytes_used =
+                ((current_character_width * current_character_height) as f32 / 8.0).ceil() as u8;
 
-            let remainder = bytes_used as usize * 8 as usize
+            let remainder = bytes_used as usize * 8_usize
                 - (current_character_width as usize * current_character_height as usize);
 
             let mut current_byte = body_buffer.get(current_index);
             for i in 0..bytes_used {
-                let mut counter = 0;
-                for bit in current_byte.bits {
+                for (counter, bit) in current_byte.bits.into_iter().enumerate() {
                     if !(i == bytes_used - 1 && counter >= 8 - remainder) {
                         current_character.pixmap.push(bit as u8);
                     }
-                    counter += 1;
                 }
 
                 if i < bytes_used - 1 {
@@ -253,19 +246,11 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
                 if body_buffer.pointer + (8 - remainder) < 8 {
                     current_index -= 1;
                 }
-                body_buffer.pointer = ((8 - remainder) as usize + body_buffer.pointer) % 8;
+                body_buffer.pointer = (8 - remainder + body_buffer.pointer) % 8;
 
                 #[cfg(feature = "log")]
-                unsafe {
-                    let mut logger = LOGGER.lock().unwrap();
-                    if logger.log_level as u8 >= LogLevel::Debug as u8 {
-                        logger.message.push_str(
-                            &format!("Last character pushed had {} padding bits, now reading with offset of {}, starting at byte {}",
-                                remainder, body_buffer.pointer, current_index),
-                        );
-                        logger.flush_debug().unwrap();
-                    }
-                }
+                debug!("Last character pushed had {} padding bits, now reading with offset of {}, starting at byte {}",
+                    remainder, body_buffer.pointer, current_index);
             }
 
             current_character.pixmap = vec![];
@@ -288,7 +273,7 @@ pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
         composers::push_width(&mut buffer, &layout.header, character.custom_width);
         composers::push_height(&mut buffer, &layout.header, character.custom_height);
 
-        let result = helpers::character_pixmap_to_data(&character);
+        let result = helpers::character_pixmap_to_data(character);
         let character_bytes = result.0;
         let remaining_space = result.1;
 
@@ -306,17 +291,11 @@ pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
     }
 
     #[cfg(feature = "log")]
-    unsafe {
-        let mut logger = LOGGER.lock().unwrap();
-        if logger.log_level as u8 >= LogLevel::Debug as u8 {
-            logger.message.push_str(&format!(
-                "Total bits compacted: {} (saved {} bytes)",
-                saved_space,
-                saved_space / 8
-            ));
-            logger.flush_debug().unwrap();
-        }
-    }
+    debug!(
+        "Total bits compacted: {} (saved {} bytes)",
+        saved_space,
+        saved_space / 8
+    );
 
-    return buffer.to_vec_u8();
+    buffer.to_vec_u8()
 }

@@ -48,8 +48,8 @@ impl Surface {
     pub fn new(width: usize, height: usize, data: &[usize]) -> Self {
         Self {
             data: data.to_owned(),
-            width: width,
-            height: height,
+            width,
+            height,
         }
     }
 
@@ -71,8 +71,8 @@ impl Surface {
     /// ```
     pub fn blank(width: usize, height: usize) -> Self {
         Self {
-            width: width,
-            height: height,
+            width,
+            height,
             data: vec![0; width * height],
         }
     }
@@ -140,7 +140,7 @@ impl Surface {
         let mut iter = 0;
 
         while iter < surface.width * surface.height {
-            if !self.get_pixel(x + offset_x, y + offset_y).is_none() {
+            if self.get_pixel(x + offset_x, y + offset_y).is_some() {
                 let self_index = (y + offset_y) * self.width + x + offset_x;
                 self.data[self_index] = surface.data[iter];
             }
@@ -300,8 +300,8 @@ impl Printer {
     pub fn from_font(font: Layout) -> Self {
         let character_cache = CharacterCache::from_characters(&font.body.characters);
         Self {
-            font: font,
-            character_cache: character_cache,
+            font,
+            character_cache,
             letter_spacing: 1,
             // surface_width: None,
             // surface_height: None,
@@ -363,7 +363,7 @@ impl Printer {
         let mut surface = Surface {
             data: vec![0; character_height as usize * width],
             height: character_height as usize,
-            width: width,
+            width,
         };
 
         let mut current_x = 0;
@@ -372,7 +372,7 @@ impl Printer {
             character
                 .pixmap
                 .iter()
-                .for_each(|x| pixmap.push(x.clone() as usize));
+                .for_each(|x| pixmap.push(*x as usize));
             surface.blit(
                 &Surface {
                     data: pixmap,

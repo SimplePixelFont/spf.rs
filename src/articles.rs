@@ -1,3 +1,4 @@
+#![allow(unused_imports)] // Otherwise we get warnings about unused imports even though they are used in the docs.
 //! Helpful guides and learning resources to integrate spf.rs in your next project.
 
 pub(crate) use crate::core::*;

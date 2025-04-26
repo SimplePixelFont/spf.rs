@@ -83,8 +83,6 @@ impl LayoutBuilder {
         self
     }
 
-    /// Pushes a new character with a inffered `Character::custom_size` to the [`Body::characters`]
-    /// field of the builder.
     // pub fn inffered(&mut self, character_utf8: char, character_pixmap: &[u8]) -> &mut Self {
     //     if self.header_required_values_constant_size == 0 {
     //         panic!("Constant size required to add inffered characters.");

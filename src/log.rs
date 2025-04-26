@@ -31,15 +31,16 @@ pub enum LogLevel {
     Debug = 2,
 }
 
+#[allow(dead_code)]
 pub(crate) struct Logger {
     pub(crate) message: String,
-    #[allow(dead_code)]
     pub(crate) ranges: HashMap<Range<usize>, Color>,
     pub(crate) buffer_writer: BufferWriter,
     pub(crate) buffer: Buffer,
     pub(crate) log_level: LogLevel,
 }
 
+#[allow(dead_code)]
 impl Logger {
     pub(crate) fn flush_info(&mut self) -> io::Result<()> {
         self.buffer
@@ -78,16 +79,17 @@ impl Logger {
 pub(crate) static mut LOGGER: LazyLock<Mutex<Logger>> = LazyLock::new(|| {
     let buffer_writer = BufferWriter::stdout(ColorChoice::Always);
     let buffer = buffer_writer.buffer();
-    return Mutex::new(Logger {
+    Mutex::new(Logger {
         message: String::new(),
         ranges: HashMap::new(),
-        buffer_writer: buffer_writer,
-        buffer: buffer,
+        buffer_writer,
+        buffer,
         log_level: LogLevel::None,
-    });
+    })
 });
 
 #[allow(non_snake_case)]
+#[allow(static_mut_refs)]
 /// Sets the `log_level` of the global static `LOGGER` variable.
 pub fn LOGGER_set_log_level(level: LogLevel) {
     unsafe {

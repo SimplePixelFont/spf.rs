@@ -67,12 +67,12 @@ impl TryInto<Character> for &SPFCharacter {
             };
             let pixmap = slice::from_raw_parts(self.pixmap, self.pixmap_length as usize).to_vec();
 
-            return Ok(Character {
+            Ok(Character {
                 grapheme_cluster,
                 custom_width,
                 custom_height,
                 pixmap,
-            });
+            })
         }
     }
 }
@@ -200,9 +200,9 @@ impl TryInto<Layout> for SPFLayout {
                     compact: self.header.modifier_flags.compact != 0,
                 },
                 configuration_values: ConfigurationValues {
-                    constant_cluster_codepoints: constant_cluster_codepoints,
-                    constant_width: constant_width,
-                    constant_height: constant_height,
+                    constant_cluster_codepoints,
+                    constant_width,
+                    constant_height,
                 },
             },
             body: self.body.try_into()?,
@@ -225,7 +225,7 @@ impl TryFrom<CharacterCache> for SPFCharacterCache {
                 utf8_ptr as *const c_char
             })
             .collect();
-        let values: Vec<usize> = cache.mappings.values().map(|a| a.clone()).collect();
+        let values: Vec<usize> = cache.mappings.values().copied().collect();
         let length = keys.len();
 
         let keys_ptr = if length == 0 {
@@ -247,7 +247,7 @@ impl TryFrom<CharacterCache> for SPFCharacterCache {
         };
 
         Ok(SPFCharacterCache {
-            mappings_keys: keys_ptr as *mut *const c_char,
+            mappings_keys: keys_ptr,
             mappings_values: values_ptr as *mut c_ulong,
             mappings_length: length as c_ulong,
         })
@@ -309,7 +309,7 @@ impl TryInto<Surface> for SPFSurface {
             Ok(Surface {
                 width: self.width as usize,
                 height: self.height as usize,
-                data: data,
+                data,
             })
         }
     }
