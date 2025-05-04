@@ -42,7 +42,7 @@ run(`sh -c "cargo build --target wasm32-unknown-unknown --release"`)
 run(`sh -c "cargo install cbindgen"`)
 run(`sh -c "cbindgen --output spf.h --lang c --cpp-compat"`)
 
-### WASM-BINDGEN Generation ###
+### WASM-Bindgen Generation ###
 run(`sh -c "cargo install wasm-bindgen-cli"`)
 run(`sh -c "wasm-bindgen --out-dir target/wasm32-unknown-unknown/dist target/wasm32-unknown-unknown/release/spf.wasm"`)
 
