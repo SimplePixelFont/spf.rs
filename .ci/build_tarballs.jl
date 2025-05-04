@@ -23,7 +23,8 @@ cd $WORKSPACE/srcdir
 cd spf.rs
 mkdir target
 RUSTFLAGS="-C target-feature=-crt-static" cargo build --release
-ls target/${rust_target}/release
+cargo install cbindgen
+cbindgen --output spf.h --lang c --cpp-compat
 
 if [[ "${rust_target}" == "x86_64-pc-windows-gnu" ]]; then
     install -D -m 755 "target/${rust_target}/release/spf.${dlext}" "${libdir}/libspf.${dlext}"
@@ -31,7 +32,8 @@ else
     install -D -m 755 "target/${rust_target}/release/libspf.${dlext}" "${libdir}/libspf.${dlext}"
 fi
 
-install_license UNLICENSE
+install -D -m 755 "spf.h" "${includedir}/spf.h"
+install_license LICENSE-APACHE
 """
 
 # These are the platforms we will build for by default, unless further
