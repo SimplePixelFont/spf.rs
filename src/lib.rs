@@ -4,6 +4,7 @@
     html_logo_url = "https://github.com/SimplePixelFont/spf.rs/blob/main/res/spf.rs.png?raw=true"
 )]
 
+// ok
 pub mod core;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "log")))]
