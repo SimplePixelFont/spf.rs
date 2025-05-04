@@ -1,3 +1,7 @@
+### Header Files Generation (used by BinaryBuilder) ###
+run(`sh -c "cargo install cbindgen"`)
+run(`sh -c "cbindgen --output target/spf.h --lang c --cpp-compat"`)
+
 ### BinaryBuilder Builds ###
 
 jl_platforms = [
@@ -38,10 +42,6 @@ run(`sh -c "cargo xwin build --target x86_64-pc-windows-msvc --release"`)
 run(`sh -c "rustup target add wasm32-unknown-unknown"`)
 run(`sh -c "cargo build --target wasm32-unknown-unknown --release"`)
 
-### Header Files Generation ###
-run(`sh -c "cargo install cbindgen"`)
-run(`sh -c "cbindgen --output spf.h --lang c --cpp-compat"`)
-
 ### WASM-Bindgen Generation ###
 run(`sh -c "cargo install wasm-bindgen-cli"`)
 run(`sh -c "wasm-bindgen --out-dir target/wasm32-unknown-unknown/dist target/wasm32-unknown-unknown/release/spf.wasm"`)
@@ -63,7 +63,7 @@ mkpath("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/include
 mkpath("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/share/licenses/spf")
 
 mv("target/x86_64-pc-windows-msvc/release/spf.dll", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/lib/spf.dll")
-cp("spf.h", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/include/spf.h")
+cp("target/spf.h", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/include/spf.h")
 cp("LICENSE-APACHE", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/share/licenses/spf/LICENSE-APACHE")
 
 Tar.create("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc", "artifacts/spf.v0.5.0.x86_64-w64-msvc.tar.gz")

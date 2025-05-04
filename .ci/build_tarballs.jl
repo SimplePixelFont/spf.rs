@@ -15,6 +15,7 @@ version = v"0.5.0"
 # Collection of sources required to complete build
 sources = [
     GitSource("https://github.com/SimplePixelFont/spf.rs", "e741e5f69ab13a391d0b405ae03fafc9eeffee07")
+    DirectorySource("target")
 ]
 
 # Bash recipe for building across all platforms
@@ -23,8 +24,6 @@ cd $WORKSPACE/srcdir
 cd spf.rs
 mkdir target
 RUSTFLAGS="-C target-feature=-crt-static" cargo build --release
-cargo install cbindgen
-cbindgen --output spf.h --lang c --cpp-compat
 
 if [[ "${rust_target}" == "x86_64-pc-windows-gnu" ]]; then
     install -D -m 755 "target/${rust_target}/release/spf.${dlext}" "${libdir}/libspf.${dlext}"
@@ -32,7 +31,7 @@ else
     install -D -m 755 "target/${rust_target}/release/libspf.${dlext}" "${libdir}/libspf.${dlext}"
 fi
 
-install -D -m 755 "spf.h" "${includedir}/spf.h"
+install -D -m 755 "../target/spf.h" "${includedir}/spf.h"
 install_license LICENSE-APACHE
 """
 
