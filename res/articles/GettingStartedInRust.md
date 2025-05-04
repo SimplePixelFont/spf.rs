@@ -56,7 +56,7 @@ Layout {
 }
 ```
 
-This is a lot to take in, luckily in Rust we dont need to write a [`core::Layout`] struct
+This is a lot to take in, luckily in Rust we don't need to write a [`core::Layout`] struct
 directly, instead we turn to the [`crate::ergonomics`] module which provides the
 [`ergonomics::LayoutBuilder`] struct. Keep in mind that the [`crate::ergonomics`] module is only
 availible in Rust. Lets use the [`ergonomics::LayoutBuilder`] to create the same

@@ -7,7 +7,7 @@ jl_platforms = [
     "'armv6l-linux-gnueabihf'"
     "'armv7l-linux-gnueabihf'"
     "'powerpc64le-linux-gnu'"
-    # "'riscv64-linux-gnu'" no rust toolchain for this platform
+    # "'riscv64-linux-gnu'" No Rust toolchain for this platform
     "'i686-linux-musl'"
     "'x86_64-linux-musl'"
     "'aarch64-linux-musl'"
@@ -16,8 +16,8 @@ jl_platforms = [
     "'x86_64-apple-darwin'"
     "'aarch64-apple-darwin'"
     "'x86_64-unknown-freebsd'"
-    # "'aarch64-unknown-freebsd'" no rust toolchain for this platform
-    # "'i686-w64-mingw32'" fails to build on this platform
+    # "'aarch64-unknown-freebsd'" No Rust toolchain for this platform
+    # "'i686-w64-mingw32'" Fails to build on this platform
     "'x86_64-w64-mingw32'"
 ]
 

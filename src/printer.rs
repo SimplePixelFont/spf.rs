@@ -1,4 +1,4 @@
-//! Render texts onto a bitmap using a font [`Layout`].
+//! Render texts onto a pixmap-like surface using a font [`Layout`].
 
 use crate::cache::*;
 use crate::core::*;

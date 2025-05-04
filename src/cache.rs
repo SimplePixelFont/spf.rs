@@ -2,8 +2,8 @@
 
 use super::core::*;
 
-/// A `CharacterCache` struct is used to store mappings between the utf8 characters and their index
-/// from within a [`Body::characters`] field.
+/// A `CharacterCache` struct is used to store mappings between each [`Character::grapheme_cluster`] and their index
+/// from within the [`Body::characters`] vector field.
 pub struct CharacterCache {
     pub mappings: std::collections::HashMap<String, usize>,
 }
@@ -19,7 +19,7 @@ impl CharacterCache {
     /// # use spf::cache::CharacterCache;
     /// let cache = CharacterCache::empty();
     ///
-    /// // We check that the character_mappings field has 0 keys.
+    /// // We may check that the character_mappings field has 0 keys.
     /// assert_eq!(cache.mappings.len(), 0);
     /// ```
     pub fn empty() -> Self {
