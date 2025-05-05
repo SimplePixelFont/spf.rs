@@ -31,7 +31,7 @@ else
     install -D -m 755 "target/${rust_target}/release/libspf.${dlext}" "${libdir}/libspf.${dlext}"
 fi
 
-install -D -m 755 "../target/spf.h" "${includedir}/spf.h"
+install -D -m 755 "../spf.h" "${includedir}/spf.h"
 install_license LICENSE-APACHE
 """
 
