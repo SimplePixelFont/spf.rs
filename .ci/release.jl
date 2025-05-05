@@ -69,9 +69,9 @@ cp("LICENSE-APACHE", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w6
 Tar.create("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc", "artifacts/spf.v0.5.0.x86_64-w64-msvc.tar.gz")
 
 mkdir("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown")
-mkpath("target/wasm32-unknown-unknown/lib")
-mkpath("target/wasm32-unknown-unknown/include")
-mkpath("target/wasm32-unknown-unknown/share/licenses/spf")
+mkpath("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/lib")
+mkpath("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/include")
+mkpath("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/share/licenses/spf")
 
 mv("target/wasm32-unknown-unknown/release/spf.wasm", "target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/lib/spf_pure.wasm")
 mv("target/wasm32-unknown-unknown/dist/spf_bg.wasm", "target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/lib/spf_bg.wasm")
