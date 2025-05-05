@@ -15,7 +15,7 @@ spf = { version = "0.4", default-features = false, features = ["cache"]}
 
 # Compiling `spf.rs` from source
 
-Sometimes you may wish to compile the `spf.rs` library by hand. This is especially true if a pre-built binary is not available for your OS in the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section. For this you will need the following:
+Sometimes you may wish to compile the `spf.rs` library by hand. This may be useful especially if you wish to create a custom version of the library, using only modules your projects need and thus decreasing the resulting binary size. For this you will need the following:
     - Rust Programming Language
     - Git (Optional)
 

@@ -25,6 +25,7 @@ use log::*;
 ///
 /// Each field is a [`bool`] and in the binary file will be represented by a single bit.
 pub struct ConfigurationFlags {
+    /// If true, then each character is expected to have the same number of graphemes-in other words utf8 codepoints/characters-which is defined in [`ConfigurationValues::constant_cluster_codepoints`].
     pub constant_cluster_codepoints: bool,
     pub constant_width: bool,
     pub constant_height: bool,
@@ -34,7 +35,7 @@ pub struct ConfigurationFlags {
 #[non_exhaustive]
 /// Defines the modifier flags for a font [`Layout`] struct.
 ///
-/// If the field is set to true, then the modifer will be applied to the font [`Layout`] struct.
+/// If the field is set to true, then the modifer will be applied to the font [`Layout`] struct and will be used when encoding to a byte buffer using [`layout_to_data`].
 /// Each field is a [`bool`] and in the binary file will be represented by a single bit.
 pub struct ModifierFlags {
     /// If enabled (value set to true), font body will be compacted, removing padding bytes after each character definition. Without compact enabled, [`layout_to_data`] will end each character bitmap with padding 0's if `(constant_size * custom_size) % 8` results in a remainder that is not 0. The number of padding 0's is the remainder of the formula above.
