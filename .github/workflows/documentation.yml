@@ -1,4 +1,4 @@
-name: documentation badge
+name: documentation
 
 on:
   push:
@@ -38,7 +38,9 @@ jobs:
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: cfebb0fe555ac7e77ada109c469cdeb4
-          filename: badge.json
+          filename: documentation.json
           label: documentation
           message: ${{ steps.coverage.outputs.documented }}
-          color: yellow
+          minColorRange: 50
+          maxColorRange: 90
+          valColorRange: ${{ steps.coverage.outputs.documented }}

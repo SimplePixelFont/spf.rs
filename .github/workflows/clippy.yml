@@ -16,15 +16,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Clippy
-        id: run_clippy
+      - name: clippy
+        id: clippy
         run: |
           cargo clippy -- --deny warnings
-          exit 30
 
-      - name: Create comment if build is ok
-        if: success() && steps.run_clippy.outcome == 'success'
-        run: echo "ok"
-      - name: Create comment if build fails
-        if: failure() && steps.run_clippy.outcome == 'failure'
-        run: echo "fail"
+  badge:
+    runs-on: ubuntu-latest
+    needs: clippy
+    steps:
+      - name: passing
+        if: success() && clippy.steps.clippy.outcome == 'success'
+        uses: schneegans/dynamic-badges-action@v1.1.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: cfebb0fe555ac7e77ada109c469cdeb4
+          filename: lint.json
+          label: Lint
+          message: passing
+          color: light_green
+      - name: failing
+        if: failure() && clippy.steps.clippy.outcome == 'failure'
+        uses: schneegans/dynamic-badges-action@v1.1.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: cfebb0fe555ac7e77ada109c469cdeb4
+          filename: lint.json
+          label: Lint
+          message: failing
+          color: red
