@@ -2,9 +2,9 @@ name: clippy
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "polish_workflows"]
   pull_request:
-    branches: ["main"]
+    branches: ["main", "polish_workflows"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,5 +15,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Run clippy
+
+      - name: Clippy
+        id: run_clippy
         run: cargo clippy -- --deny warnings
+
+      - name: Create comment if build is ok
+        if: steps.run_clippy.outcome == 'success'
+        run: echo "ok"
+      - name: Create comment if build fails
+        if: steps.run_clippy.outcome == 'failure'
+        run: echo "fail"

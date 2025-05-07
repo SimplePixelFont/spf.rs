@@ -2,9 +2,9 @@ name: documentation badge
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "polish_workflows"]
   pull_request:
-    branches: ["main"]
+    branches: ["main", "polish_workflows"]
 
 jobs:
   badge:
