@@ -33,6 +33,9 @@ jobs:
           gist_file_name: documentation.md
           file_type: text
           file_path: documentation.md
+      - name: test
+        run: |
+          echo ${{ steps.coverage.outputs.documented }}
       - name: update documentation badge
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:

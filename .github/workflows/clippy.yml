@@ -26,7 +26,7 @@ jobs:
     needs: clippy
     steps:
       - name: passing
-        if: success() && clippy.steps.clippy.outcome == 'success'
+        if: success() && needs.clippy.steps.clippy.outcome == 'success'
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
@@ -36,7 +36,7 @@ jobs:
           message: passing
           color: light_green
       - name: failing
-        if: failure() && clippy.steps.clippy.outcome == 'failure'
+        if: failure() && needs.clippy.steps.clippy.outcome == 'failure'
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
