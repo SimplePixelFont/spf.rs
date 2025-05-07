@@ -18,7 +18,9 @@ jobs:
 
       - name: Clippy
         id: run_clippy
-        run: cargo clippy -- --deny warnings
+        run: |
+          cargo clippy -- --deny warnings
+          exit 30
 
       - name: Create comment if build is ok
         if: steps.run_clippy.outcome == 'success'
