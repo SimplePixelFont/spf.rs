@@ -23,8 +23,8 @@ jobs:
           exit 30
 
       - name: Create comment if build is ok
-        if: steps.run_clippy.outcome == 'success'
+        if: success() && steps.run_clippy.outcome == 'success'
         run: echo "ok"
       - name: Create comment if build fails
-        if: steps.run_clippy.outcome == 'failure'
+        if: failure() && steps.run_clippy.outcome == 'failure'
         run: echo "fail"
