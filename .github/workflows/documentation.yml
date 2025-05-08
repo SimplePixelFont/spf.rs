@@ -29,8 +29,7 @@ jobs:
           percentage-format: 0%
 
       - name: write
-        run: |
-          echo "${{ steps.coverage.outputs.table }}" > documentation.md
+        run: echo "${{ steps.coverage.outputs.table }}" > documentation.md
 
       - name: update
         uses: exuanbo/actions-deploy-gist@v1

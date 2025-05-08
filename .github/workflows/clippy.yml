@@ -19,9 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: clippy
         id: clippy
-        run: |
-          cargo clippy -- --deny warnings
-          exit 30
+        run: cargo clippy -- --deny warnings
 
   badge:
     runs-on: ubuntu-latest
