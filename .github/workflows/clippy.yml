@@ -20,6 +20,7 @@ jobs:
         id: clippy
         run: |
           cargo clippy -- --deny warnings
+          exit 30
 
   badge:
     runs-on: ubuntu-latest
