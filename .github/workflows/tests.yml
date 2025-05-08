@@ -1,4 +1,4 @@
-name: test
+name: tests
 
 on:
   push:
@@ -10,38 +10,43 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
+  tests:
     runs-on: ubuntu-latest
     outputs:
-      outcome: ${{ steps.test.outcome }}
+      outcome: ${{ steps.tests.outcome }}
+
     steps:
       - uses: actions/checkout@v4
-      - name: test
-        id: test
+      - name: tests
+        id: tests
         run: cargo test --verbose
 
   badge:
     runs-on: ubuntu-latest
-    needs: test
+    needs: tests
     if: always()
+
     steps:
       - name: passing
-        if: needs.test.outputs.outcome == 'success'
+        if: needs.tests.outputs.outcome == 'success'
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: cfebb0fe555ac7e77ada109c469cdeb4
           filename: test.json
-          label: Test
+          label: Tests
           message: passing
           color: light_green
+          namedLogo: githubactions
+
       - name: failing
-        if: needs.test.outputs.outcome == 'failure'
+        if: needs.tests.outputs.outcome == 'failure'
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: cfebb0fe555ac7e77ada109c469cdeb4
           filename: test.json
-          label: Test
+          label: Tests
           message: failing
           color: red
+          namedLogo: githubactions

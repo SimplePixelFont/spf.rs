@@ -7,25 +7,32 @@ on:
     branches: ["main", "polish_workflows"]
 
 jobs:
-  badge:
-    name: documentation badge
+  documentation:
+    name: documentation
     runs-on: ubuntu-latest
+    outputs:
+      percent: ${{ steps.coverage.outputs.documented }}
+
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v2
-      - name: Install rust toolchain
+
+      - name: installation
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-      - name: calculate documentation coverage
+
+      - name: calculation
         id: coverage
         uses: bewee/rustdoc-coverage-action@v1
         with:
           percentage-format: 0%
-      - name: write documentation file
+
+      - name: write
         run: |
           echo "${{ steps.coverage.outputs.table }}" > documentation.md
-      - name: update documentation table
+
+      - name: update
         uses: exuanbo/actions-deploy-gist@v1
         with:
           token: ${{ secrets.GIST_SECRET }}
@@ -33,9 +40,13 @@ jobs:
           gist_file_name: documentation.md
           file_type: text
           file_path: documentation.md
-      - name: test
-        run: |
-          echo ${{ steps.coverage.outputs.documented }}
+
+  badge:
+    runs-on: ubuntu-latest
+    needs: documentation
+    if: always()
+
+    steps:
       - name: update documentation badge
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
@@ -43,7 +54,8 @@ jobs:
           gistID: cfebb0fe555ac7e77ada109c469cdeb4
           filename: documentation.json
           label: documentation
-          message: ${{ steps.coverage.outputs.documented }}
-          valColorRange: ${{ steps.coverage.outputs.documented }}
+          message: ${{ needs.documentation.outputs.percent }}
+          namedLogo: readdotcv
+          valColorRange: ${{ needs.documentation.outputs.percent }}
           maxColorRange: 90
           minColorRange: 50
