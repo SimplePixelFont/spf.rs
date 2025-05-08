@@ -37,13 +37,13 @@ jobs:
         run: |
           echo ${{ steps.coverage.outputs.documented }}
       - name: update documentation badge
-        uses: schneegans/dynamic-badges-action@v1.1.0
+        uses: schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: cfebb0fe555ac7e77ada109c469cdeb4
           filename: documentation.json
           label: documentation
           message: ${{ steps.coverage.outputs.documented }}
-          minColorRange: 50
-          maxColorRange: 90
           valColorRange: ${{ steps.coverage.outputs.documented }}
+          maxColorRange: 90
+          minColorRange: 50
