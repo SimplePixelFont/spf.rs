@@ -58,6 +58,7 @@ pub struct SPFConfigurationFlags {
     pub constant_cluster_codepoints: c_uchar,
     pub constant_width: c_uchar,
     pub constant_height: c_uchar,
+    pub custom_bits_per_pixel: c_uchar,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -74,6 +75,7 @@ pub struct SPFConfigurationValues {
     pub constant_cluster_codepoints: c_uchar,
     pub constant_width: c_uchar,
     pub constant_height: c_uchar,
+    pub custom_bits_per_pixel: c_uchar,
 }
 
 #[derive(Debug, Clone, Copy)]

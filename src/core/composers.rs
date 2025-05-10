@@ -5,44 +5,40 @@ pub(crate) fn push_header<'a>(
     buffer: &'a mut byte::ByteStorage,
     header: &Header,
 ) -> &'a mut byte::ByteStorage {
-    buffer.push(byte::Byte {
-        bits: [
-            header.configuration_flags.constant_cluster_codepoints,
-            header.configuration_flags.constant_width,
-            header.configuration_flags.constant_height,
-            false,
-            //header.configuration_flags.custom_bits_per_pixel,
-            header.modifier_flags.compact,
-            false,
-            false,
-            false,
-        ],
-    });
+    let mut font_properties = 0b00000000;
+    let font_properties_index = buffer.bytes.len();
+    buffer.push(font_properties);
 
     if header.configuration_flags.constant_cluster_codepoints {
-        buffer.push(byte::Byte::from_u8(
+        font_properties |= 0b10000000;
+        buffer.push(
             header
                 .configuration_values
                 .constant_cluster_codepoints
                 .unwrap(),
-        ));
+        );
     }
-    if header.configuration_flags.constant_width {
-        buffer.push(byte::Byte::from_u8(
-            header.configuration_values.constant_width.unwrap(),
-        ));
-    }
-    if header.configuration_flags.constant_height {
-        buffer.push(byte::Byte::from_u8(
-            header.configuration_values.constant_height.unwrap(),
-        ));
-    }
-    // if header.configuration_flags.custom_bits_per_pixel {
-    //     buffer.push(byte::Byte::from_u8(
-    //         header.configuration_values.custom_bits_per_pixel.unwrap(),
-    //     ));
-    // }
 
+    if header.configuration_flags.constant_width {
+        font_properties |= 0b01000000;
+        buffer.push(header.configuration_values.constant_width.unwrap());
+    }
+
+    if header.configuration_flags.constant_height {
+        font_properties |= 0b00100000;
+        buffer.push(header.configuration_values.constant_height.unwrap());
+    }
+
+    if header.configuration_flags.custom_bits_per_pixel {
+        font_properties |= 0b00001000;
+        buffer.push(header.configuration_values.custom_bits_per_pixel.unwrap());
+    }
+
+    if header.modifier_flags.compact {
+        font_properties |= 0b00010000;
+    }
+
+    buffer.bytes[font_properties_index] = font_properties;
     buffer
 }
 
@@ -54,12 +50,12 @@ pub(crate) fn push_grapheme_cluster<'a>(
     let mut string_bit_string = String::new(); // part of log
 
     string.bytes().for_each(|byte| {
-        buffer.push(byte::Byte::from_u8(byte));
+        buffer.push(byte);
         string_bit_string.push_str(&format!("{:08b} ", byte)); // part of log
     });
 
     if !header.configuration_flags.constant_cluster_codepoints {
-        buffer.push(byte::Byte::from_u8(0));
+        buffer.push(0);
         string_bit_string.push_str(&format!("{:08b} ", 0)); // part of log
     }
 
@@ -79,7 +75,7 @@ pub(crate) fn push_width<'a>(
 ) -> &'a mut byte::ByteStorage {
     if !header.configuration_flags.constant_width {
         let width = custom_width.unwrap();
-        buffer.push(byte::Byte::from_u8(width));
+        buffer.push(width);
 
         let width_bit_string = format!("{:08b}", width);
 
@@ -100,7 +96,7 @@ pub(crate) fn push_height<'a>(
 ) -> &'a mut byte::ByteStorage {
     if !header.configuration_flags.constant_height {
         let height = custom_height.unwrap();
-        buffer.push(byte::Byte::from_u8(height));
+        buffer.push(height);
 
         let height_bit_string = format!("{:08b}", height);
 
@@ -114,24 +110,17 @@ pub(crate) fn push_height<'a>(
     buffer
 }
 
-pub(crate) fn push_pixmap(
-    buffer: &mut byte::ByteStorage,
-    header: &Header,
-    character_bytes: Vec<u8>,
-    remaining_space: usize,
-) {
+pub(crate) fn push_pixmap(buffer: &mut byte::ByteStorage, header: &Header, pixmap: &Vec<u8>) {
     let mut pixmap_bit_string = String::new();
+    let mut bits_per_pixel = 1;
 
-    let used_bytes = character_bytes.len();
+    if header.configuration_flags.custom_bits_per_pixel {
+        bits_per_pixel = header.configuration_values.custom_bits_per_pixel.unwrap();
+    }
 
-    for (index, byte) in character_bytes.iter().enumerate() {
-        pixmap_bit_string.push_str(&format!("{:08b} ", byte));
-
-        if header.modifier_flags.compact && index == used_bytes - 1 {
-            buffer.incomplete_push(byte::Byte::from_u8(*byte), remaining_space);
-        } else {
-            buffer.push(byte::Byte::from_u8(*byte));
-        }
+    for pixel in pixmap {
+        pixmap_bit_string.push_str(&format!("{:08b} ", pixel));
+        buffer.incomplete_push(*pixel, bits_per_pixel);
     }
 
     #[cfg(feature = "log")]

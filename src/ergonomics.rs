@@ -16,12 +16,14 @@ pub struct LayoutBuilder {
     pub header_configuration_flags_constant_cluster_codepoints: bool,
     pub header_configuration_flags_constant_width: bool,
     pub header_configuration_flags_constant_height: bool,
+    pub header_configuration_flags_custom_bits_per_pixel: bool,
 
     pub header_modifier_flags_compact: bool,
 
     pub header_configuration_values_constant_cluster_codepoints: Option<u8>,
     pub header_configuration_values_constant_width: Option<u8>,
     pub header_configuration_values_constant_height: Option<u8>,
+    pub header_configuration_values_custom_bits_per_pixel: Option<u8>,
 
     pub body_characters: Vec<Character>,
 }
@@ -56,6 +58,17 @@ impl LayoutBuilder {
         self.header_configuration_flags_constant_height = true;
         self.header_configuration_values_constant_height =
             Some(header_configuration_values_constant_height);
+
+        self
+    }
+
+    pub fn custom_bits_per_pixel(
+        &mut self,
+        header_configuration_values_custom_bits_per_pixel: u8,
+    ) -> &mut Self {
+        self.header_configuration_flags_custom_bits_per_pixel = true;
+        self.header_configuration_values_custom_bits_per_pixel =
+            Some(header_configuration_values_custom_bits_per_pixel);
 
         self
     }
@@ -111,6 +124,7 @@ impl LayoutBuilder {
                         .header_configuration_flags_constant_cluster_codepoints,
                     constant_width: self.header_configuration_flags_constant_width,
                     constant_height: self.header_configuration_flags_constant_height,
+                    custom_bits_per_pixel: self.header_configuration_flags_custom_bits_per_pixel,
                 },
                 modifier_flags: ModifierFlags {
                     compact: self.header_modifier_flags_compact,
@@ -120,6 +134,7 @@ impl LayoutBuilder {
                         .header_configuration_values_constant_cluster_codepoints,
                     constant_width: self.header_configuration_values_constant_width,
                     constant_height: self.header_configuration_values_constant_height,
+                    custom_bits_per_pixel: self.header_configuration_values_custom_bits_per_pixel,
                 },
             },
             body: Body {
