@@ -14,7 +14,6 @@
 
 pub(crate) mod byte;
 pub(crate) mod composers;
-pub(crate) mod helpers;
 pub(crate) mod parsers;
 
 use log::*;
@@ -103,64 +102,65 @@ pub enum ParseError {
 
 /// Parses a [`Vec<u8>`] into a font [`Layout`].
 pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
-    //     let mut current_index = 0;
+    let mut current_index = 0;
 
-    //     let mut chunks = buffer.iter();
+    let storage = byte::ByteStorage {
+        bytes: buffer,
+        pointer: 0,
+    };
 
     let mut layout = Layout::default();
 
-    //     let mut current_configuration_flag_index = 0;
-    //     let mut configuration_flag_booleans = [false; 4];
-    //     let mut configuration_flag_values = [None; 4];
+    let mut current_configuration_flag_index = 0;
+    let mut configuration_flag_booleans = [false; 4];
+    //let mut configuration_flag_values = [None; 4];
 
-    //     let mut character_definition_stage = 0;
-    //     let mut current_character = Character::default();
-    //     let mut current_character_width = 0;
-    //     let mut current_character_height = 0;
+    let mut character_definition_stage = 0;
+    let mut current_character = Character::default();
+    let mut current_character_width = 0;
+    let mut current_character_height = 0;
 
-    //     let mut body_buffer = byte::ByteStorage::new();
+    while current_index < storage.bytes.len() {
+        current_index = parsers::next_signature(&storage, current_index);
+        // match current_index {
+        //     0..3 => {
+        //         if !storage.get(current_index) == [102, 115, 70][current_index] {
+        //             panic!("File is not signed")
+        //         }
+        //     }
+        //     3 => {
+        //         let file_properties = storage.get(current_index);
 
-    //     let mut iter = chunks.next();
+        //         configuration_flag_booleans = [
+        //             (file_properties & 0b10000000) >> 7 == 1,
+        //             (file_properties & 0b01000000) >> 6 == 1,
+        //             (file_properties & 0b00100000) >> 5 == 1,
+        //             (file_properties & 0b00010000) >> 4 == 1,
+        //         ];
+
+        //         layout.header.modifier_flags.compact = (file_properties & 0b00001000) >> 3 == 1;
+        //     }
+        //     _ => {
+        //         for index in current_configuration_flag_index..4 {
+        //             {
+        //                 // Will need to look into this later.
+        //                 current_configuration_flag_index = index + 1;
+        //             }
+        //             if configuration_flag_booleans[index] {
+        //                 configuration_flag_values[index] = Some(storage.get(current_index));
+        //                 break;
+        //             }
+        //         }
+        //         if current_configuration_flag_index == 4 {
+        //             // start main body parsing logic here;
+        //         }
+        //     }
+        // }
+        // current_index += 1;
+    }
+
     //     while iter.is_some() {
     //         let chunk = iter.unwrap();
-
-    //         match current_index {
-    //             0..3 => {
-    //                 if !chunk == [102, 115, 70][current_index] {
-    //                     panic!("File is not signed")
-    //                 }
-    //             }
-    //             3 => {
-    //                 let file_properties = byte::Byte::from_u8(*chunk).bits;
-
-    //                 configuration_flag_booleans = [
-    //                     file_properties[0],
-    //                     file_properties[1],
-    //                     file_properties[2],
-    //                     file_properties[3],
-    //                 ];
-
-    //                 layout.header.modifier_flags.compact = file_properties[4];
-    //             }
-    //             _ => {
-    //                 for index in current_configuration_flag_index..4 {
-    //                     {
-    //                         // Will need to look into this later.
-    //                         current_configuration_flag_index = index + 1;
-    //                     }
-    //                     if configuration_flag_booleans[index] {
-    //                         configuration_flag_values[index] = Some(*chunk);
-    //                         break;
-    //                     }
-    //                 }
-    //                 if current_configuration_flag_index == 4 {
-    //                     body_buffer.push(byte::Byte::from_u8(*chunk));
-    //                 }
-    //             }
-    //         }
-    //         iter = chunks.next();
-    //         current_index += 1;
-    //     }
 
     //     layout
     //         .header
@@ -265,7 +265,7 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
 /// Encodes the provided font [`Layout`] into a [`Vec<u8>`].
 pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
     let mut buffer = byte::ByteStorage::new();
-    helpers::sign_buffer(&mut buffer);
+    composers::push_signature(&mut buffer);
     composers::push_header(&mut buffer, &layout.header);
 
     let mut saved_space = 0;

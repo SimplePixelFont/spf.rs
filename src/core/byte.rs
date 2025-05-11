@@ -32,18 +32,27 @@ impl ByteStorage {
             self.bytes.push(new_byte);
         }
     }
-    pub(crate) fn incomplete_push(&mut self, byte: u8, remainder: u8) {
-        if self.pointer == 0 {
-            self.bytes.push(byte);
-        } else {
-            let mask = byte << self.pointer;
-            let last_index = self.bytes.len() - 1;
-            self.bytes[last_index] |= mask;
+    pub(crate) fn incomplete_push(&mut self, byte: u8, number_of_bits: u8) {
+        println!(
+            "Pushing byte {} with pointer {} and number of bits {} buffer {:?}",
+            byte, self.pointer, number_of_bits, self.bytes
+        );
+        let mut mask = byte << self.pointer;
 
-            if self.pointer + (8 - remainder) > 8 {
-                let new_byte = byte >> 8 - self.pointer;
-                self.bytes.push(new_byte);
-            }
+        // Sanitizes the mask to ensure it doesn't affect other bits in the byte
+        if self.pointer + number_of_bits < 8 {
+            let shift = 8 - self.pointer - number_of_bits;
+            mask = mask << shift >> shift;
+        }
+
+        let last_index = self.bytes.len() - 1;
+        self.bytes[last_index] |= mask;
+        self.pointer += number_of_bits;
+
+        if self.pointer >= 8 {
+            self.pointer -= 8;
+            let new_byte = byte >> self.pointer;
+            self.bytes.push(new_byte);
         }
     }
 

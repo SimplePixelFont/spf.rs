@@ -1,6 +1,17 @@
 pub(crate) use super::*;
 pub(crate) use log::*;
 
+pub(crate) fn push_signature(buffer: &mut byte::ByteStorage) -> &mut byte::ByteStorage {
+    buffer.push(102);
+    buffer.push(115);
+    buffer.push(70);
+
+    #[cfg(feature = "log")]
+    info!("Signed font data.");
+
+    buffer
+}
+
 pub(crate) fn push_header<'a>(
     buffer: &'a mut byte::ByteStorage,
     header: &Header,
@@ -30,12 +41,12 @@ pub(crate) fn push_header<'a>(
     }
 
     if header.configuration_flags.custom_bits_per_pixel {
-        font_properties |= 0b00001000;
+        font_properties |= 0b00010000;
         buffer.push(header.configuration_values.custom_bits_per_pixel.unwrap());
     }
 
     if header.modifier_flags.compact {
-        font_properties |= 0b00010000;
+        font_properties |= 0b00001000;
     }
 
     buffer.bytes[font_properties_index] = font_properties;
@@ -117,9 +128,14 @@ pub(crate) fn push_pixmap(buffer: &mut byte::ByteStorage, header: &Header, pixma
     if header.configuration_flags.custom_bits_per_pixel {
         bits_per_pixel = header.configuration_values.custom_bits_per_pixel.unwrap();
     }
+    println!("cbpp: {}", bits_per_pixel);
 
     for pixel in pixmap {
-        pixmap_bit_string.push_str(&format!("{:08b} ", pixel));
+        pixmap_bit_string.push_str(&format!(
+            "{:0bits_per_pixel$b} ",
+            pixel,
+            bits_per_pixel = bits_per_pixel as usize
+        ));
         buffer.incomplete_push(*pixel, bits_per_pixel);
     }
 
