@@ -14,39 +14,10 @@
  * limitations under the License.
  */
 
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Byte {
-    pub(crate) bits: [bool; 8],
-}
-
-impl Byte {
-    pub(crate) fn to_u8(self) -> u8 {
-        let mut value: u8 = 0;
-        let mut modifier = 1;
-        for bit in self.bits.iter() {
-            if *bit {
-                value += modifier as u8;
-            }
-            modifier *= 2;
-        }
-        value
-    }
-
-    pub(crate) fn from_u8(value: u8) -> Self {
-        let mut bits: [bool; 8] = [false; 8];
-
-        for (index, bit) in bits.iter_mut().enumerate() {
-            *bit = ((1 << index) & value) > 0;
-        }
-
-        Self { bits }
-    }
-}
-
 #[derive(Debug)]
 pub(crate) struct ByteStorage {
-    pub(crate) bytes: Vec<Byte>,
-    pub(crate) pointer: usize,
+    pub(crate) bytes: Vec<u8>,
+    pub(crate) pointer: u8,
 }
 
 impl ByteStorage {
@@ -56,74 +27,64 @@ impl ByteStorage {
             pointer: 0,
         }
     }
-    pub(crate) fn to_vec_u8(&self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::new();
-        for byte in self.bytes.iter() {
-            buffer.push(byte.to_u8());
-        }
-        buffer
-    }
+
     // Dev Comment: 0 0 0 0 0 0 0 0
-    //       Index: 0 1 2 3 4 5 6 7
-    // Ex write with pointer = 2:
-    //              0 0 0 0 0 0 0 0
-    //              (   left  ) (right)
-    pub(crate) fn push(&mut self, byte: Byte) {
+    //       Index: 7 6 5 4 3 2 1 0
+    pub(crate) fn push(&mut self, byte: u8) {
         if self.pointer == 0 {
             self.bytes.push(byte);
         } else {
-            let left = byte.bits[0..8 - self.pointer].to_vec();
-            let mut new_byte = byte.bits[8 - self.pointer..8].to_vec();
+            let mask = byte << self.pointer;
             let last_index = self.bytes.len() - 1;
+            self.bytes[last_index] |= mask;
 
-            for (index, bit) in left.into_iter().enumerate() {
-                self.bytes[last_index].bits[self.pointer + index] = bit;
-            }
-
-            new_byte.extend(vec![false; 8 - new_byte.len()]);
-            self.bytes.push(Byte {
-                bits: new_byte.try_into().unwrap(),
-            });
+            let new_byte = byte >> (8 - self.pointer);
+            self.bytes.push(new_byte);
         }
     }
-    pub(crate) fn incomplete_push(&mut self, byte: Byte, remainder: usize) {
+    pub(crate) fn incomplete_push(&mut self, byte: u8, number_of_bits: u8) {
         if self.pointer == 0 {
             self.bytes.push(byte);
-        } else {
-            let left = byte.bits[0..8 - self.pointer].to_vec();
-            let last_index = self.bytes.len() - 1;
+            self.pointer += number_of_bits;
+            return;
+        }
 
-            for (index, bit) in left.into_iter().enumerate() {
-                self.bytes[last_index].bits[self.pointer + index] = bit;
-            }
+        let mut mask = byte << self.pointer;
 
-            if self.pointer + (8 - remainder) > 8 {
-                let mut new_byte = byte.bits[8 - self.pointer..8].to_vec();
-                new_byte.extend(vec![false; 8 - new_byte.len()]);
+        // Sanitizes the mask to ensure it doesn't affect other bits in the byte
+        if self.pointer + number_of_bits < 8 {
+            let shift = 8 - self.pointer - number_of_bits;
+            mask = mask << shift >> shift;
+        }
 
-                self.bytes.push(Byte {
-                    bits: new_byte.try_into().unwrap(),
-                });
+        let last_index = self.bytes.len() - 1;
+        self.bytes[last_index] |= mask;
+        self.pointer += number_of_bits;
+
+        if self.pointer >= 8 {
+            self.pointer -= 8;
+            if self.pointer != 0 {
+                let new_byte = byte >> self.pointer;
+                self.bytes.push(new_byte);
             }
         }
     }
 
-    pub(crate) fn get(&self, index: usize) -> Byte {
+    pub(crate) fn get(&self, index: usize) -> u8 {
         if self.pointer == 0 {
             self.bytes[index]
         } else {
-            let mut left = self.bytes[index].bits[self.pointer..8].to_vec();
-            let mut right = vec![];
+            let mut byte = self.bytes[index] >> self.pointer;
+
             if index < self.bytes.len() - 1 {
-                right = self.bytes[index + 1].bits[0..self.pointer].to_vec();
-            } else {
-                right.extend(vec![false; self.pointer]);
+                let mask = self.bytes[index + 1] << (8 - self.pointer);
+                byte |= mask;
             }
 
-            left.append(&mut right);
-            Byte {
-                bits: left.try_into().unwrap(),
-            }
+            byte
         }
+    }
+    pub(crate) fn incomplete_get(&self, index: usize, number_of_bits: u8) -> u8 {
+        self.get(index) << (8 - number_of_bits) >> (8 - number_of_bits)
     }
 }

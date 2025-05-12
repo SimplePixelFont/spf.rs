@@ -151,6 +151,8 @@ impl TryFrom<Layout> for SPFLayout {
                         as u8,
                     constant_width: layout.header.configuration_flags.constant_width as u8,
                     constant_height: layout.header.configuration_flags.constant_height as u8,
+                    custom_bits_per_pixel: layout.header.configuration_flags.custom_bits_per_pixel
+                        as u8,
                 },
                 modifier_flags: SPFModifierFlags {
                     compact: layout.header.modifier_flags.compact as u8,
@@ -170,6 +172,11 @@ impl TryFrom<Layout> for SPFLayout {
                         .header
                         .configuration_values
                         .constant_height
+                        .unwrap_or(0),
+                    custom_bits_per_pixel: layout
+                        .header
+                        .configuration_values
+                        .custom_bits_per_pixel
                         .unwrap_or(0),
                 },
             },
@@ -201,6 +208,12 @@ impl TryInto<Layout> for SPFLayout {
             Some(self.header.configuration_values.constant_height)
         };
 
+        let custom_bits_per_pixel = if self.header.configuration_values.custom_bits_per_pixel == 0 {
+            None
+        } else {
+            Some(self.header.configuration_values.custom_bits_per_pixel)
+        };
+
         Ok(Layout {
             header: Header {
                 configuration_flags: ConfigurationFlags {
@@ -211,6 +224,8 @@ impl TryInto<Layout> for SPFLayout {
                         != 0,
                     constant_width: self.header.configuration_flags.constant_width != 0,
                     constant_height: self.header.configuration_flags.constant_height != 0,
+                    custom_bits_per_pixel: self.header.configuration_flags.custom_bits_per_pixel
+                        != 0,
                 },
                 modifier_flags: ModifierFlags {
                     compact: self.header.modifier_flags.compact != 0,
@@ -219,6 +234,7 @@ impl TryInto<Layout> for SPFLayout {
                     constant_cluster_codepoints,
                     constant_width,
                     constant_height,
+                    custom_bits_per_pixel,
                 },
             },
             body: self.body.try_into()?,

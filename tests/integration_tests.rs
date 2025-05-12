@@ -2,8 +2,20 @@ mod common;
 
 use spf::core::*;
 
+fn init_logger() {
+    let _ = env_logger::builder()
+        // Include all events in tests
+        .filter_level(log::LevelFilter::max())
+        // Ensure events are captured by `cargo test`
+        .is_test(true)
+        // Ignore errors initializing the logger if tests race to configure it
+        .try_init();
+}
+
 #[test]
 fn write_font_file() -> Result<(), String> {
+    init_logger();
+
     let mut font = Layout::default();
 
     font.header.modifier_flags.compact = true;
@@ -62,8 +74,8 @@ fn write_font_file() -> Result<(), String> {
 fn read_font_file() -> Result<(), String> {
     let mut buffer: Vec<u8> = vec![];
     common::read_from_file("./res/sampleToyFont.spf", &mut buffer).unwrap();
-
+    buffer.iter().for_each(|a| print!("{:08b} ", a));
+    println!("");
     let _font = layout_from_data(buffer);
-
     Ok(())
 }
