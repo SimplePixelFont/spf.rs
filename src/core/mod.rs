@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 /*
  * Copyright 2025 SimplePixelFont
  *
@@ -16,8 +14,6 @@
  * limitations under the License.
  */
 
-#![allow(clippy::mut_range_bound)]
->>>>>>> main
 //! Essential functions and structs used by both the native crate and FFI interface.
 //!
 //! <div class="warning">
