@@ -1,3 +1,51 @@
+<<<<<<< HEAD
+=======
+/*
+ * Copyright 2025 SimplePixelFont
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Byte {
+    pub(crate) bits: [bool; 8],
+}
+
+impl Byte {
+    pub(crate) fn to_u8(self) -> u8 {
+        let mut value: u8 = 0;
+        let mut modifier = 1;
+        for bit in self.bits.iter() {
+            if *bit {
+                value += modifier as u8;
+            }
+            modifier *= 2;
+        }
+        value
+    }
+
+    pub(crate) fn from_u8(value: u8) -> Self {
+        let mut bits: [bool; 8] = [false; 8];
+
+        for (index, bit) in bits.iter_mut().enumerate() {
+            *bit = ((1 << index) & value) > 0;
+        }
+
+        Self { bits }
+    }
+}
+
+>>>>>>> main
 #[derive(Debug)]
 pub(crate) struct ByteStorage {
     pub(crate) bytes: Vec<u8>,
