@@ -11,12 +11,6 @@ impl ByteStorage {
             pointer: 0,
         }
     }
-    pub(crate) fn with_capacity(capacity: usize) -> Self {
-        Self {
-            bytes: Vec::with_capacity(capacity),
-            pointer: 0,
-        }
-    }
 
     // Dev Comment: 0 0 0 0 0 0 0 0
     //       Index: 7 6 5 4 3 2 1 0
@@ -28,15 +22,17 @@ impl ByteStorage {
             let last_index = self.bytes.len() - 1;
             self.bytes[last_index] |= mask;
 
-            let new_byte = byte >> 8 - self.pointer;
+            let new_byte = byte >> (8 - self.pointer);
             self.bytes.push(new_byte);
         }
     }
     pub(crate) fn incomplete_push(&mut self, byte: u8, number_of_bits: u8) {
-        println!(
-            "Pushing byte {} with pointer {} and number of bits {} buffer {:?}",
-            byte, self.pointer, number_of_bits, self.bytes
-        );
+        if self.pointer == 0 {
+            self.bytes.push(byte);
+            self.pointer += number_of_bits;
+            return;
+        }
+
         let mut mask = byte << self.pointer;
 
         // Sanitizes the mask to ensure it doesn't affect other bits in the byte
@@ -51,8 +47,10 @@ impl ByteStorage {
 
         if self.pointer >= 8 {
             self.pointer -= 8;
-            let new_byte = byte >> self.pointer;
-            self.bytes.push(new_byte);
+            if self.pointer != 0 {
+                let new_byte = byte >> self.pointer;
+                self.bytes.push(new_byte);
+            }
         }
     }
 
@@ -63,10 +61,14 @@ impl ByteStorage {
             let mut byte = self.bytes[index] >> self.pointer;
 
             if index < self.bytes.len() - 1 {
-                let mask = self.bytes[index] << 8 - self.pointer;
+                let mask = self.bytes[index + 1] << (8 - self.pointer);
                 byte |= mask;
             }
+
             byte
         }
+    }
+    pub(crate) fn incomplete_get(&self, index: usize, number_of_bits: u8) -> u8 {
+        self.get(index) << (8 - number_of_bits) >> (8 - number_of_bits)
     }
 }

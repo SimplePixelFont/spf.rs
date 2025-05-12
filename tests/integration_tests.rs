@@ -67,7 +67,6 @@ fn write_font_file() -> Result<(), String> {
     });
 
     common::write_to_file("./res/sampleToyFont.spf", &layout_to_data(&font)).unwrap();
-    panic!();
     Ok(())
 }
 
@@ -78,6 +77,5 @@ fn read_font_file() -> Result<(), String> {
     buffer.iter().for_each(|a| print!("{:08b} ", a));
     println!("");
     let _font = layout_from_data(buffer);
-    panic!();
     Ok(())
 }

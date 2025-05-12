@@ -124,11 +124,11 @@ pub(crate) fn push_height<'a>(
 pub(crate) fn push_pixmap(buffer: &mut byte::ByteStorage, header: &Header, pixmap: &Vec<u8>) {
     let mut pixmap_bit_string = String::new();
     let mut bits_per_pixel = 1;
+    let mut bits_used = 0;
 
     if header.configuration_flags.custom_bits_per_pixel {
         bits_per_pixel = header.configuration_values.custom_bits_per_pixel.unwrap();
     }
-    println!("cbpp: {}", bits_per_pixel);
 
     for pixel in pixmap {
         pixmap_bit_string.push_str(&format!(
@@ -137,11 +137,16 @@ pub(crate) fn push_pixmap(buffer: &mut byte::ByteStorage, header: &Header, pixma
             bits_per_pixel = bits_per_pixel as usize
         ));
         buffer.incomplete_push(*pixel, bits_per_pixel);
+        bits_used += bits_per_pixel;
+    }
+
+    if !header.modifier_flags.compact {
+        buffer.incomplete_push(0, 8 - (bits_used % 8));
     }
 
     #[cfg(feature = "log")]
     info!(
-        "Pushed byte map with the following bits: {}",
+        "Pushed pixmap with the following bits: {}",
         pixmap_bit_string
     );
 }

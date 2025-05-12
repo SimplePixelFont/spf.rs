@@ -1,4 +1,3 @@
-#![allow(clippy::mut_range_bound)]
 //! Essential functions and structs used by both the native crate and FFI interface.
 //!
 //! <div class="warning">
@@ -104,161 +103,70 @@ pub enum ParseError {
 pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
     let mut current_index = 0;
 
-    let storage = byte::ByteStorage {
+    let mut storage = byte::ByteStorage {
         bytes: buffer,
         pointer: 0,
     };
 
     let mut layout = Layout::default();
 
-    let mut current_configuration_flag_index = 0;
-    let mut configuration_flag_booleans = [false; 4];
-    //let mut configuration_flag_values = [None; 4];
+    current_index = parsers::next_signature(&storage, current_index);
+    current_index = parsers::next_header(&mut layout, &storage, current_index);
 
-    let mut character_definition_stage = 0;
-    let mut current_character = Character::default();
-    let mut current_character_width = 0;
-    let mut current_character_height = 0;
+    println!("{:?}", layout.header);
 
-    while current_index < storage.bytes.len() {
-        current_index = parsers::next_signature(&storage, current_index);
-        // match current_index {
-        //     0..3 => {
-        //         if !storage.get(current_index) == [102, 115, 70][current_index] {
-        //             panic!("File is not signed")
-        //         }
-        //     }
-        //     3 => {
-        //         let file_properties = storage.get(current_index);
-
-        //         configuration_flag_booleans = [
-        //             (file_properties & 0b10000000) >> 7 == 1,
-        //             (file_properties & 0b01000000) >> 6 == 1,
-        //             (file_properties & 0b00100000) >> 5 == 1,
-        //             (file_properties & 0b00010000) >> 4 == 1,
-        //         ];
-
-        //         layout.header.modifier_flags.compact = (file_properties & 0b00001000) >> 3 == 1;
-        //     }
-        //     _ => {
-        //         for index in current_configuration_flag_index..4 {
-        //             {
-        //                 // Will need to look into this later.
-        //                 current_configuration_flag_index = index + 1;
-        //             }
-        //             if configuration_flag_booleans[index] {
-        //                 configuration_flag_values[index] = Some(storage.get(current_index));
-        //                 break;
-        //             }
-        //         }
-        //         if current_configuration_flag_index == 4 {
-        //             // start main body parsing logic here;
-        //         }
-        //     }
-        // }
-        // current_index += 1;
+    let mut bits_per_pixel = 1;
+    if layout.header.configuration_flags.custom_bits_per_pixel {
+        bits_per_pixel = layout
+            .header
+            .configuration_values
+            .custom_bits_per_pixel
+            .unwrap();
     }
 
-    //     while iter.is_some() {
-    //         let chunk = iter.unwrap();
+    while current_index < storage.bytes.len() - 1 {
+        let mut current_character = Character::default();
 
-    //     layout
-    //         .header
-    //         .configuration_flags
-    //         .constant_cluster_codepoints = configuration_flag_booleans[0];
-    //     layout.header.configuration_flags.constant_width = configuration_flag_booleans[1];
-    //     layout.header.configuration_flags.constant_height = configuration_flag_booleans[2];
-    //     //layout.header.configuration_flags.custom_bits_per_pixel = configuration_flag_booleans[3];
+        current_index = parsers::next_grapheme_cluster(
+            &storage,
+            &layout.header,
+            &mut current_character,
+            current_index,
+        );
 
-    //     layout
-    //         .header
-    //         .configuration_values
-    //         .constant_cluster_codepoints = configuration_flag_values[0];
-    //     layout.header.configuration_values.constant_width = configuration_flag_values[1];
-    //     layout.header.configuration_values.constant_height = configuration_flag_values[2];
-    //     //layout.header.configuration_values.custom_bits_per_pixel = configuration_flag_values[3];
+        // Raises a warning if added in next_grapheme_cluster.
+        current_index += 1;
 
-    //     current_index = 0;
-    //     let length = body_buffer.bytes.len();
-    //     while current_index < length - 1 {
-    //         if character_definition_stage == 0 {
-    //             let result =
-    //                 parsers::next_grapheme_cluster(&mut body_buffer, &layout.header, current_index);
-    //             current_character.grapheme_cluster = result.0;
-    //             current_index = result.1;
-    //             current_index += 1;
-    //             character_definition_stage += 1;
+        let result = parsers::next_width(
+            &storage,
+            &layout.header,
+            &mut current_character,
+            current_index,
+        );
+        let current_character_width = result.0;
+        current_index = result.1;
 
-    //             #[cfg(feature = "log")]
-    //             debug!(
-    //                 "Identified grapheme cluster: {:?}",
-    //                 current_character.grapheme_cluster
-    //             );
-    //         }
+        let result = parsers::next_height(
+            &storage,
+            &layout.header,
+            &mut current_character,
+            current_index,
+        );
+        let current_character_height = result.0;
+        current_index = result.1;
 
-    //         if character_definition_stage == 1 {
-    //             if !layout.header.configuration_flags.constant_width {
-    //                 current_character.custom_width = Some(body_buffer.get(current_index).to_u8());
-    //                 current_character_width = current_character.custom_width.unwrap();
-    //                 current_index += 1;
-    //             } else {
-    //                 current_character_width =
-    //                     layout.header.configuration_values.constant_width.unwrap();
-    //             }
-    //             character_definition_stage += 1;
-    //         }
+        current_index = parsers::next_pixmap(
+            &mut storage,
+            &layout.header,
+            &mut current_character,
+            current_character_width,
+            current_character_height,
+            bits_per_pixel,
+            current_index,
+        );
 
-    //         if character_definition_stage == 2 {
-    //             if !layout.header.configuration_flags.constant_height {
-    //                 current_character.custom_height = Some(body_buffer.get(current_index).to_u8());
-    //                 current_character_height = current_character.custom_height.unwrap();
-    //                 current_index += 1;
-    //             } else {
-    //                 current_character_height =
-    //                     layout.header.configuration_values.constant_height.unwrap();
-    //             }
-    //             character_definition_stage += 1;
-    //         }
-
-    //         if character_definition_stage == 3 {
-    //             let bytes_used =
-    //                 ((current_character_width * current_character_height) as f32 / 8.0).ceil() as u8;
-
-    //             let remainder = bytes_used as usize * 8_usize
-    //                 - (current_character_width as usize * current_character_height as usize);
-
-    //             let mut current_byte = body_buffer.get(current_index);
-    //             for i in 0..bytes_used {
-    //                 for (counter, bit) in current_byte.bits.into_iter().enumerate() {
-    //                     if !(i == bytes_used - 1 && counter >= 8 - remainder) {
-    //                         current_character.pixmap.push(bit as u8);
-    //                     }
-    //                 }
-
-    //                 if i < bytes_used - 1 {
-    //                     current_index += 1;
-    //                     current_byte = body_buffer.get(current_index);
-    //                 }
-    //             }
-
-    //             layout.body.characters.push(current_character.clone());
-    //             current_index += 1;
-
-    //             if layout.header.modifier_flags.compact {
-    //                 if body_buffer.pointer + (8 - remainder) < 8 {
-    //                     current_index -= 1;
-    //                 }
-    //                 body_buffer.pointer = (8 - remainder + body_buffer.pointer) % 8;
-
-    //                 #[cfg(feature = "log")]
-    //                 debug!("Last character pushed had {} padding bits, now reading with offset of {}, starting at byte {}",
-    //                     remainder, body_buffer.pointer, current_index);
-    //             }
-
-    //             current_character.pixmap = vec![];
-    //             character_definition_stage = 0;
-    //         }
-    //     }
+        layout.body.characters.push(current_character.clone());
+    }
     Ok(layout)
 }
 
@@ -268,7 +176,7 @@ pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
     composers::push_signature(&mut buffer);
     composers::push_header(&mut buffer, &layout.header);
 
-    let mut saved_space = 0;
+    // let mut saved_space = 0;
 
     for character in &layout.body.characters {
         composers::push_grapheme_cluster(&mut buffer, &layout.header, &character.grapheme_cluster);
@@ -283,12 +191,12 @@ pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
         // }
     }
 
-    #[cfg(feature = "log")]
-    debug!(
-        "Total bits compacted: {} (saved {} bytes)",
-        saved_space,
-        saved_space / 8
-    );
+    // #[cfg(feature = "log")]
+    // debug!(
+    //     "Total bits compacted: {} (saved {} bytes)",
+    //     saved_space,
+    //     saved_space / 8
+    // );
 
     buffer.bytes
 }
