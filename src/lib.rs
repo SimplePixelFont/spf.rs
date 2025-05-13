@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
+#![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![doc(
     html_logo_url = "https://github.com/SimplePixelFont/spf.rs/blob/main/res/spf.rs.png?raw=true"
 )]
 
+pub(crate) extern crate alloc;
 pub mod core;
-
-#[cfg_attr(docsrs, doc(cfg(feature = "log")))]
-#[cfg(feature = "log")]
-#[deprecated]
-pub mod log;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
 #[cfg(feature = "cache")]

@@ -19,6 +19,12 @@
 use crate::cache::*;
 use crate::core::*;
 
+use alloc::borrow::ToOwned;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec;
+use alloc::vec::Vec;
+
 /// A [`Surface`] is a one dimensional bitmap with blitting and manipulation methods.
 ///
 /// # Example
@@ -167,44 +173,6 @@ impl Surface {
                 offset_y += 1;
             }
         }
-    }
-    /// Returns a [`Vec<T>`] by replacing all the indicies in the [`Surface::data`] with values
-    /// provided.
-    ///
-    /// This method is provided for convience in replacing all the values of the
-    /// [`Surface`]'s [`Surface::data`] field with predefined values. Please note that `T` must
-    /// implement the [`Copy`] trait.
-    ///
-    /// More in depth, this method will iterate over all values of the [`Surface::data`] field, and
-    /// use the value to determine the index of the value to use within the `values` vector.
-    /// Given a surface is composed of `0` and `1`, you must supply at least two items for
-    /// the `values` vector.
-    ///
-    /// # Example
-    /// ```
-    /// # use spf::printer::Surface;
-    /// let surface = Surface::blank(3,1);
-    ///
-    /// assert_eq!(surface.replace(&['a']), vec!['a', 'a', 'a']);
-    /// ```
-    #[deprecated]
-    pub fn replace<T: Copy>(&self, values: &[T]) -> Vec<T> {
-        let mut returner: Vec<T> = vec![];
-        for flag in self.data.iter() {
-            returner.push(values[*flag]);
-        }
-        returner
-    }
-    /// Return a [`Vec<T>`] by flattening out an array replacing each value.
-    #[deprecated]
-    pub fn flatten_replace<T: Copy>(&self, values: &[Vec<T>]) -> Vec<T> {
-        let mut returner: Vec<T> = vec![];
-        for flag in self.data.iter() {
-            for part in values[*flag].iter() {
-                returner.push(*part);
-            }
-        }
-        returner
     }
     /// Flips a surface
     /// # Example

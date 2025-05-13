@@ -31,6 +31,8 @@ pub(crate) mod byte;
 pub(crate) mod composers;
 pub(crate) mod parsers;
 
+use alloc::string::String;
+use alloc::vec::Vec;
 use log::*;
 
 #[derive(Default, Debug, Clone)]
@@ -128,8 +130,6 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
 
     current_index = parsers::next_signature(&storage, current_index);
     current_index = parsers::next_header(&mut layout, &storage, current_index);
-
-    println!("{:?}", layout.header);
 
     let mut bits_per_pixel = 1;
     if layout.header.configuration_flags.custom_bits_per_pixel {

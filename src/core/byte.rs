@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+use alloc::vec::Vec;
+
 #[derive(Debug)]
 pub(crate) struct ByteStorage {
     pub(crate) bytes: Vec<u8>,
@@ -23,7 +25,7 @@ pub(crate) struct ByteStorage {
 impl ByteStorage {
     pub(crate) fn new() -> Self {
         Self {
-            bytes: vec![],
+            bytes: Vec::new(),
             pointer: 0,
         }
     }

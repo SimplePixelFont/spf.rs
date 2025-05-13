@@ -7,6 +7,8 @@ license = "Apache-2.0"
 edition = "2021"
 
 [lib]
+name = "spf"
+path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [package.metadata.docs.rs]
@@ -25,7 +27,7 @@ articles = []
 [dependencies]
 termcolor = { version = "1.4.1", optional = true }
 log = { version = "0.4.27", optional = true }
-wasm-bindgen = "0.2.100"
+hashbrown = "0.15.3"
 
 [dev-dependencies]
 env_logger = "0.11.8"
