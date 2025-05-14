@@ -5,6 +5,7 @@ description = ".spf (Simple Pixel Font) file parsing, and useful api's to go alo
 repository = "https://github.com/SimplePixelFont/spf.rs"
 license = "Apache-2.0"
 edition = "2021"
+categories = ["parsing", "no-std"]
 
 [lib]
 name = "spf"
