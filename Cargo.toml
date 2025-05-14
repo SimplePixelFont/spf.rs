@@ -5,8 +5,11 @@ description = ".spf (Simple Pixel Font) file parsing, and useful api's to go alo
 repository = "https://github.com/SimplePixelFont/spf.rs"
 license = "Apache-2.0"
 edition = "2021"
+categories = ["parsing", "no-std"]
 
 [lib]
+name = "spf"
+path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [package.metadata.docs.rs]
@@ -14,8 +17,9 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["articles", "log", "cache", "printer", "ergonomics", "ffi"]
-log = ["dep:termcolor", "dep:log"]
+default = ["std", "articles", "log", "cache", "printer", "ergonomics", "ffi"]
+std = []
+log = ["dep:log"]
 cache = []
 printer = ["cache"]
 ergonomics = []
@@ -23,9 +27,8 @@ ffi = []
 articles = []
 
 [dependencies]
-termcolor = { version = "1.4.1", optional = true }
 log = { version = "0.4.27", optional = true }
-wasm-bindgen = "0.2.100"
+hashbrown = { version = "0.15.3" }
 
 [dev-dependencies]
 env_logger = "0.11.8"

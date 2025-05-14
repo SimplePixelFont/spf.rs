@@ -14,18 +14,47 @@
  * limitations under the License.
  */
 
+#![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![doc(
     html_logo_url = "https://github.com/SimplePixelFont/spf.rs/blob/main/res/spf.rs.png?raw=true"
 )]
 
-pub mod core;
+#[cfg(not(feature = "std"))]
+pub(crate) extern crate alloc;
 
-#[cfg_attr(docsrs, doc(cfg(feature = "log")))]
-#[cfg(feature = "log")]
-#[deprecated]
-pub mod log;
+#[cfg(feature = "std")]
+pub(crate) use hashbrown::HashMap;
+#[cfg(feature = "std")]
+pub(crate) use std::borrow::ToOwned;
+#[cfg(feature = "std")]
+pub(crate) use std::format;
+#[cfg(feature = "std")]
+pub(crate) use std::string::String;
+#[cfg(feature = "std")]
+pub(crate) use std::string::ToString;
+#[cfg(feature = "std")]
+pub(crate) use std::vec;
+#[cfg(feature = "std")]
+pub(crate) use std::vec::Vec;
+
+#[cfg(not(feature = "std"))]
+pub(crate) use alloc::borrow::ToOwned;
+#[cfg(not(feature = "std"))]
+pub(crate) use alloc::format;
+#[cfg(not(feature = "std"))]
+pub(crate) use alloc::string::String;
+#[cfg(not(feature = "std"))]
+pub(crate) use alloc::string::ToString;
+#[cfg(not(feature = "std"))]
+pub(crate) use alloc::vec::Vec;
+#[cfg(not(feature = "std"))]
+pub(crate) use alloc::vec::Vec;
+#[cfg(not(feature = "std"))]
+pub(crate) use hashbrown::HashMap;
+
+pub mod core;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
 #[cfg(feature = "cache")]

@@ -18,6 +18,8 @@
 
 pub(crate) use crate::core::*;
 
+use crate::{ToString, Vec};
+
 /// Magic bytes of `SimplePixelFont` files
 ///
 /// The magic bytes can be used to determine if a file is a `SimplePixelFont` regardless of

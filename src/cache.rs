@@ -17,11 +17,12 @@
 //! Caching structs used by the [`crate::printer`] module.
 
 use super::core::*;
+use crate::{HashMap, String};
 
 /// A `CharacterCache` struct is used to store mappings between the utf8 characters and their index
 /// from within a [`Body::characters`] field.
 pub struct CharacterCache {
-    pub mappings: std::collections::HashMap<String, usize>,
+    pub mappings: HashMap<String, usize>,
 }
 
 impl CharacterCache {
@@ -40,7 +41,7 @@ impl CharacterCache {
     /// ```
     pub fn empty() -> Self {
         Self {
-            mappings: std::collections::HashMap::new(),
+            mappings: HashMap::new(),
         }
     }
     /// Creates a new [`CharacterCache`] struct by mapping all characters in a [`Vec<Character>`].
@@ -83,8 +84,7 @@ impl CharacterCache {
     /// assert_eq!(cache.mappings.get(&"u".to_string()), Some(&1));
     /// ```
     pub fn from_characters(characters: &[Character]) -> Self {
-        let mut mapping: std::collections::HashMap<String, usize> =
-            std::collections::HashMap::new();
+        let mut mapping: HashMap<String, usize> = HashMap::new();
         for (index, character) in characters.iter().enumerate() {
             mapping.insert(character.grapheme_cluster.clone(), index);
         }

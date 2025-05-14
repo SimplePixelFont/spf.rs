@@ -14,24 +14,36 @@
  * limitations under the License.
  */
 
-use std::collections::HashMap;
+#[cfg(feature = "std")]
+use std::ffi::*;
+
+#[cfg(feature = "std")]
+use std::str::Utf8Error;
+
+#[cfg(not(feature = "std"))]
+use core::str::Utf8Error;
+
+#[cfg(not(feature = "std"))]
+use alloc::ffi::*;
+
+use hashbrown::HashMap;
 
 use super::*;
 
 #[derive(Debug, Clone)]
 pub enum ConversionError {
-    NulError(std::ffi::NulError),
-    Utf8Error(std::str::Utf8Error),
+    NulError(NulError),
+    Utf8Error(Utf8Error),
 }
 
-impl From<std::ffi::NulError> for ConversionError {
-    fn from(err: std::ffi::NulError) -> Self {
+impl From<NulError> for ConversionError {
+    fn from(err: NulError) -> Self {
         ConversionError::NulError(err)
     }
 }
 
-impl From<std::str::Utf8Error> for ConversionError {
-    fn from(err: std::str::Utf8Error) -> Self {
+impl From<Utf8Error> for ConversionError {
+    fn from(err: Utf8Error) -> Self {
         ConversionError::Utf8Error(err)
     }
 }
@@ -42,18 +54,18 @@ impl TryFrom<Character> for SPFCharacter {
     fn try_from(character: Character) -> Result<Self, Self::Error> {
         let pixmap_len = character.pixmap.len();
         let pixmap_ptr = if pixmap_len == 0 {
-            std::ptr::null_mut()
+            core::ptr::null_mut()
         } else {
             let mut pixmap_vec = character.pixmap.into_boxed_slice();
             let ptr = pixmap_vec.as_mut_ptr();
-            std::mem::forget(pixmap_vec);
+            core::mem::forget(pixmap_vec);
             ptr
         };
 
         let grapheme_cluster = CString::new(character.grapheme_cluster.as_str())?;
 
         let grapheme_cluster_ptr = grapheme_cluster.as_ptr();
-        std::mem::forget(grapheme_cluster);
+        core::mem::forget(grapheme_cluster);
 
         Ok(SPFCharacter {
             grapheme_cluster: grapheme_cluster_ptr,
@@ -105,11 +117,11 @@ impl TryFrom<Body> for SPFBody {
         }
 
         let characters_ptr = if characters_len == 0 {
-            std::ptr::null_mut()
+            core::ptr::null_mut()
         } else {
             let mut characters_raw = characters.into_boxed_slice();
             let ptr = characters_raw.as_mut_ptr();
-            std::mem::forget(characters_raw);
+            core::mem::forget(characters_raw);
             ptr
         };
 
@@ -253,7 +265,7 @@ impl TryFrom<CharacterCache> for SPFCharacterCache {
                 let utf8 =
                     CString::new(a.to_string().as_bytes().to_vec().into_boxed_slice()).unwrap();
                 let utf8_ptr = utf8.as_ptr();
-                std::mem::forget(utf8);
+                core::mem::forget(utf8);
                 utf8_ptr as *const c_char
             })
             .collect();
@@ -261,20 +273,20 @@ impl TryFrom<CharacterCache> for SPFCharacterCache {
         let length = keys.len();
 
         let keys_ptr = if length == 0 {
-            std::ptr::null_mut()
+            core::ptr::null_mut()
         } else {
             let mut keys_vec = keys.into_boxed_slice();
             let ptr = keys_vec.as_mut_ptr();
-            std::mem::forget(keys_vec);
+            core::mem::forget(keys_vec);
             ptr
         };
 
         let values_ptr = if length == 0 {
-            std::ptr::null_mut()
+            core::ptr::null_mut()
         } else {
             let mut values_vec = values.into_boxed_slice();
             let ptr = values_vec.as_mut_ptr();
-            std::mem::forget(values_vec);
+            core::mem::forget(values_vec);
             ptr
         };
 
@@ -313,11 +325,11 @@ impl TryFrom<Surface> for SPFSurface {
     fn try_from(surface: Surface) -> Result<Self, Self::Error> {
         let data_len = surface.data.len();
         let data_ptr = if data_len == 0 {
-            std::ptr::null_mut()
+            core::ptr::null_mut()
         } else {
             let mut data_vec = surface.data.into_boxed_slice();
             let ptr = data_vec.as_mut_ptr();
-            std::mem::forget(data_vec);
+            core::mem::forget(data_vec);
             ptr
         };
         Ok(SPFSurface {
