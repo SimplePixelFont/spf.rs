@@ -1,6 +1,6 @@
 [package]
 name = "spf"
-version = "0.5.0"
+version = "0.6.0"
 description = ".spf (Simple Pixel Font) file parsing, and useful api's to go alongside."
 repository = "https://github.com/SimplePixelFont/spf.rs"
 license = "Apache-2.0"

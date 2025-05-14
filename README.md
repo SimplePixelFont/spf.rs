@@ -17,7 +17,7 @@ A very simple and concrete parser library for the [SimplePixelFont file specific
 cargo add spf
 ```
 
-- To use `spf.rs` as an FFI library in your language of choice you must first download a pre-built library version of `spf.rs` from the [releases section](https://github.com/SimplePixelFont/spf.rs/releases) (a corrosponding header file is also included if you are programming in C/C++). Please note that pre-built binaries are only avaiable for Windows and Linux-x86-64bit architectures. As a result you may want to [compile `spf.rs` from source](https://docs.rs/spf/latest/spf/articles/installing/index.html#compiling-spfrs-from-source), specifically if a pre-built binary is not availible for you.
+- To use `spf.rs` as an FFI library in your language of choice you must first download a pre-built library artifact of `spf.rs` from the [releases section](https://github.com/SimplePixelFont/spf.rs/releases) which includes the dynamic library along with a header file. Pre-built artifacts are available for many architectures, however if there is no build for your architecture-including embedded devices-you can [compile `spf.rs` from source](https://docs.rs/spf/latest/spf/articles/installing/index.html#compiling-spfrs-from-source).
 
 ### Usage
 
@@ -29,6 +29,7 @@ Usage varies depending on the programming language you choose. For a guide using
 | Constant Cluster Codepoints | Configuration | ✔ | `Added in v0.5` |
 | Constant Width | Configuration | ✔ | `Added in v0.5` |
 | Constant Height | Configuration | ✔ | `Added in v0.5` |
+| Custom Bits Per Pixel | Configuration | ✔ | `Added in v0.6` |
 | Compact | Modifier | ✔ | `Added in v0.4` |
 
 Key:
