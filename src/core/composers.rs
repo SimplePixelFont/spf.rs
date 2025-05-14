@@ -15,9 +15,9 @@
  */
 
 pub(crate) use super::*;
-use alloc::format;
-use alloc::string::String;
-use alloc::vec::Vec;
+use crate::{format, String, Vec};
+
+#[cfg(feature = "log")]
 pub(crate) use log::*;
 
 pub(crate) fn push_signature(buffer: &mut byte::ByteStorage) -> &mut byte::ByteStorage {
@@ -107,13 +107,14 @@ pub(crate) fn push_width<'a>(
         let width = custom_width.unwrap();
         buffer.push(width);
 
-        let width_bit_string = format!("{:08b}", width);
-
         #[cfg(feature = "log")]
-        info!(
-            "Pushed character width '{}' with the following bits: {}",
-            width, width_bit_string
-        )
+        {
+            let width_bit_string = format!("{:08b}", width);
+            info!(
+                "Pushed character width '{}' with the following bits: {}",
+                width, width_bit_string
+            )
+        }
     }
 
     buffer
@@ -128,13 +129,14 @@ pub(crate) fn push_height<'a>(
         let height = custom_height.unwrap();
         buffer.push(height);
 
-        let height_bit_string = format!("{:08b}", height);
-
         #[cfg(feature = "log")]
-        info!(
-            "Pushed character height '{}' with the following bits: {}",
-            height, height_bit_string
-        )
+        {
+            let height_bit_string = format!("{:08b}", height);
+            info!(
+                "Pushed character height '{}' with the following bits: {}",
+                height, height_bit_string
+            )
+        }
     }
 
     buffer

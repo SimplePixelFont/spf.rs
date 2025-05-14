@@ -17,8 +17,7 @@
 //! Caching structs used by the [`crate::printer`] module.
 
 use super::core::*;
-use alloc::string::String;
-use hashbrown::HashMap;
+use crate::{HashMap, String};
 
 /// A `CharacterCache` struct is used to store mappings between the utf8 characters and their index
 /// from within a [`Body::characters`] field.

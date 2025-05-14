@@ -42,13 +42,10 @@ use crate::cache::*;
 use crate::core::*;
 use crate::printer::*;
 
-use alloc::borrow::ToOwned;
-use alloc::ffi::*;
-use alloc::string::ToString;
-use alloc::vec::Vec;
+use crate::{ToOwned, ToString, Vec};
+
 use core::ffi::*;
 use core::slice;
-use log::*;
 
 pub mod converters;
 
@@ -172,17 +169,6 @@ pub unsafe extern "C" fn spf_core_layout_from_data(
     let data = unsafe { slice::from_raw_parts(pointer, length as usize) };
     let layout = layout_from_data(data.to_owned()).unwrap();
     layout.try_into().unwrap()
-}
-
-#[no_mangle]
-pub extern "C" fn spf_log_LOGGER_set_log_level(log_level: c_uchar) {
-    let log_level = match log_level {
-        0 => LevelFilter::Off,
-        1 => LevelFilter::Info,
-        2 => LevelFilter::Debug,
-        _ => panic!("Invalid log level."),
-    };
-    set_max_level(log_level);
 }
 
 #[no_mangle]

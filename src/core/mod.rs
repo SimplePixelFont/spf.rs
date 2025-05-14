@@ -31,8 +31,9 @@ pub(crate) mod byte;
 pub(crate) mod composers;
 pub(crate) mod parsers;
 
-use alloc::string::String;
-use alloc::vec::Vec;
+use crate::{String, Vec};
+
+#[cfg(feature = "log")]
 use log::*;
 
 #[derive(Default, Debug, Clone)]

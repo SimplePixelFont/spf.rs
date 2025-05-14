@@ -18,8 +18,7 @@
 
 pub(crate) use crate::core::*;
 
-use alloc::string::ToString;
-use alloc::vec::Vec;
+use crate::{ToString, Vec};
 
 /// Magic bytes of `SimplePixelFont` files
 ///

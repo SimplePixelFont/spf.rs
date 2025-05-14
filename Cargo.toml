@@ -16,8 +16,9 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["articles", "log", "cache", "printer", "ergonomics", "ffi"]
-log = ["dep:termcolor", "dep:log"]
+default = ["std", "articles", "log", "cache", "printer", "ergonomics", "ffi"]
+std = []
+log = ["dep:log"]
 cache = []
 printer = ["cache"]
 ergonomics = []
@@ -25,9 +26,8 @@ ffi = []
 articles = []
 
 [dependencies]
-termcolor = { version = "1.4.1", optional = true }
 log = { version = "0.4.27", optional = true }
-hashbrown = "0.15.3"
+hashbrown = { version = "0.15.3" }
 
 [dev-dependencies]
 env_logger = "0.11.8"

@@ -14,24 +14,36 @@
  * limitations under the License.
  */
 
+#[cfg(feature = "std")]
+use std::ffi::*;
+
+#[cfg(feature = "std")]
+use std::str::Utf8Error;
+
+#[cfg(not(feature = "std"))]
+use core::str::Utf8Error;
+
+#[cfg(not(feature = "std"))]
+use alloc::ffi::*;
+
 use hashbrown::HashMap;
 
 use super::*;
 
 #[derive(Debug, Clone)]
 pub enum ConversionError {
-    NulError(alloc::ffi::NulError),
-    Utf8Error(alloc::str::Utf8Error),
+    NulError(NulError),
+    Utf8Error(Utf8Error),
 }
 
-impl From<alloc::ffi::NulError> for ConversionError {
-    fn from(err: alloc::ffi::NulError) -> Self {
+impl From<NulError> for ConversionError {
+    fn from(err: NulError) -> Self {
         ConversionError::NulError(err)
     }
 }
 
-impl From<alloc::str::Utf8Error> for ConversionError {
-    fn from(err: alloc::str::Utf8Error) -> Self {
+impl From<Utf8Error> for ConversionError {
+    fn from(err: Utf8Error) -> Self {
         ConversionError::Utf8Error(err)
     }
 }

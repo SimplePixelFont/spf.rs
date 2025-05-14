@@ -19,11 +19,7 @@
 use crate::cache::*;
 use crate::core::*;
 
-use alloc::borrow::ToOwned;
-use alloc::string::String;
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
+use crate::{vec, String, ToOwned, ToString, Vec};
 
 /// A [`Surface`] is a one dimensional bitmap with blitting and manipulation methods.
 ///

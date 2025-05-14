@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use alloc::vec::Vec;
+use crate::Vec;
 
 #[derive(Debug)]
 pub(crate) struct ByteStorage {
