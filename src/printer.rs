@@ -262,6 +262,7 @@ impl Surface {
 //     state: usize,
 // }
 
+#[derive(Debug)]
 /// Printer is a struct for generating [`Surface`]'s
 ///
 /// A [`Printer`] struct will hold a [`Layout`] struct to decide the font to
@@ -366,12 +367,4 @@ impl Printer {
         }
         surface
     }
-
-    // pub fn pretty_print(
-    //     &self,
-    //     text: &'static str,
-    //     processor: fn(PixelProcess) -> usize,
-    // ) -> Surface {
-    //     todo!()
-    // }
 }
