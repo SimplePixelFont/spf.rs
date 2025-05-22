@@ -19,6 +19,7 @@
 use super::core::*;
 use crate::{HashMap, String};
 
+#[derive(Debug)]
 /// A `CharacterCache` struct is used to store mappings between the utf8 characters and their index
 /// from within a [`Body::characters`] field.
 pub struct CharacterCache {
