@@ -106,19 +106,22 @@ pub enum ParseError {
     UnexpectedEndOfFile,
 }
 
+trait Table {
+    fn parse(&self, )
+}
+
 /// Parses a [`Vec<u8>`] into a font [`Layout`].
 pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
-    let mut current_index = 0;
-
     let mut storage = byte::ByteStorage {
         bytes: buffer,
         pointer: 0,
+        index: 0,
     };
 
     let mut layout = Layout::default();
 
-    current_index = parsers::next_signature(&storage, current_index);
-    current_index = parsers::next_header(&mut layout, &storage, current_index);
+    parsers::next_signature(&mut storage);
+    parsers::next_header(&mut layout, &mut storage);
 
     let mut bits_per_pixel = 1;
     if layout.header.configuration_flags.custom_bits_per_pixel {
@@ -129,45 +132,37 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
             .unwrap();
     }
 
-    while current_index < storage.bytes.len() - 1 {
+    while storage.index < storage.bytes.len() - 1 {
         let mut current_character = Character::default();
 
-        current_index = parsers::next_grapheme_cluster(
-            &storage,
+        parsers::next_grapheme_cluster(
+            &mut storage,
             &layout.header,
             &mut current_character,
-            current_index,
         );
 
         // Raises a warning if added in next_grapheme_cluster.
-        current_index += 1;
+        storage.index += 1;
 
-        let result = parsers::next_width(
-            &storage,
+        let current_character_width = parsers::next_width(
+            &mut storage,
             &layout.header,
             &mut current_character,
-            current_index,
         );
-        let current_character_width = result.0;
-        current_index = result.1;
 
-        let result = parsers::next_height(
-            &storage,
+        let current_character_height = parsers::next_height(
+            &mut storage,
             &layout.header,
             &mut current_character,
-            current_index,
         );
-        let current_character_height = result.0;
-        current_index = result.1;
 
-        current_index = parsers::next_pixmap(
+        parsers::next_pixmap(
             &mut storage,
             &layout.header,
             &mut current_character,
             current_character_width,
             current_character_height,
             bits_per_pixel,
-            current_index,
         );
 
         layout.body.characters.push(current_character.clone());

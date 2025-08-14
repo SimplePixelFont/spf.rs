@@ -20,6 +20,7 @@ use crate::Vec;
 pub(crate) struct ByteStorage {
     pub(crate) bytes: Vec<u8>,
     pub(crate) pointer: u8,
+    pub(crate) index: usize,
 }
 
 impl ByteStorage {
@@ -27,6 +28,7 @@ impl ByteStorage {
         Self {
             bytes: Vec::new(),
             pointer: 0,
+            index: 0,
         }
     }
 
@@ -72,21 +74,21 @@ impl ByteStorage {
         }
     }
 
-    pub(crate) fn get(&self, index: usize) -> u8 {
+    pub(crate) fn get(&self) -> u8 {
         if self.pointer == 0 {
-            self.bytes[index]
+            self.bytes[self.index]
         } else {
-            let mut byte = self.bytes[index] >> self.pointer;
+            let mut byte = self.bytes[self.index] >> self.pointer;
 
-            if index < self.bytes.len() - 1 {
-                let mask = self.bytes[index + 1] << (8 - self.pointer);
+            if self.index < self.bytes.len() - 1 {
+                let mask = self.bytes[self.index + 1] << (8 - self.pointer);
                 byte |= mask;
             }
 
             byte
         }
     }
-    pub(crate) fn incomplete_get(&self, index: usize, number_of_bits: u8) -> u8 {
-        self.get(index) << (8 - number_of_bits) >> (8 - number_of_bits)
+    pub(crate) fn incomplete_get(&self, number_of_bits: u8) -> u8 {
+        self.get() << (8 - number_of_bits) >> (8 - number_of_bits)
     }
 }
