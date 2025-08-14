@@ -31,6 +31,9 @@ pub(crate) mod byte;
 pub(crate) mod composers;
 pub(crate) mod parsers;
 
+pub(crate) mod bitmap_table;
+pub(crate) mod color_table;
+
 use crate::{String, Vec};
 
 #[cfg(feature = "log")]
@@ -63,6 +66,7 @@ pub struct BitmapTable {
 
     color_tables_indices: Vec<u8>,
 
+    // size: u8
     bitmaps: Vec<Bitmap>,
 }
 
@@ -91,14 +95,17 @@ pub struct Mapping {
 
 #[derive(Default, Debug, Clone)]
 pub struct ColorTable {
-    use_alpha_channel: bool,
+    constant_alpha: Option<u8>,
 
     colors: Vec<Color>,
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct Color {
-    data: Vec<u8>,
+    custom_alpha: Option<u8>,
+    r: u8,
+    g: u8,
+    b: u8,
 }
 
 #[derive(Debug)]
@@ -106,8 +113,12 @@ pub enum ParseError {
     UnexpectedEndOfFile,
 }
 
-trait Table {
-    fn parse(&self, )
+#[derive(Debug)]
+pub enum SerializeError {}
+
+pub(crate) trait Table: Sized {
+    fn deserialize(storage: &mut byte::ByteStorage) -> Result<Self, ParseError>;
+    fn serialize(&self, buffer: &mut byte::ByteStorage) -> Result<(), SerializeError>;
 }
 
 /// Parses a [`Vec<u8>`] into a font [`Layout`].
@@ -135,26 +146,16 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
     while storage.index < storage.bytes.len() - 1 {
         let mut current_character = Character::default();
 
-        parsers::next_grapheme_cluster(
-            &mut storage,
-            &layout.header,
-            &mut current_character,
-        );
+        parsers::next_grapheme_cluster(&mut storage, &layout.header, &mut current_character);
 
         // Raises a warning if added in next_grapheme_cluster.
         storage.index += 1;
 
-        let current_character_width = parsers::next_width(
-            &mut storage,
-            &layout.header,
-            &mut current_character,
-        );
+        let current_character_width =
+            parsers::next_width(&mut storage, &layout.header, &mut current_character);
 
-        let current_character_height = parsers::next_height(
-            &mut storage,
-            &layout.header,
-            &mut current_character,
-        );
+        let current_character_height =
+            parsers::next_height(&mut storage, &layout.header, &mut current_character);
 
         parsers::next_pixmap(
             &mut storage,
