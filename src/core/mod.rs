@@ -36,81 +36,69 @@ use crate::{String, Vec};
 #[cfg(feature = "log")]
 use log::*;
 
-#[derive(Default, Debug, Clone)]
+#[repr(u8)]
 #[non_exhaustive]
-/// Defines the configuration flags for a font [`Layout`] struct.
-///
-/// Each field is a [`bool`] and in the binary file will be represented by a single bit.
-pub struct ConfigurationFlags {
-    pub constant_cluster_codepoints: bool,
-    pub constant_width: bool,
-    pub constant_height: bool,
-    pub custom_bits_per_pixel: bool,
+#[derive(Default, Debug, Clone)]
+pub enum Version {
+    #[default]
+    FV0,
 }
 
 #[derive(Default, Debug, Clone)]
-#[non_exhaustive]
-/// Defines the modifier flags for a font [`Layout`] struct.
-///
-/// If the field is set to true, then the modifer will be applied to the font [`Layout`] struct.
-/// Each field is a [`bool`] and in the binary file will be represented by a single bit.
-pub struct ModifierFlags {
-    /// If enabled (value set to true), font body will be compacted, removing padding bytes after each character definition. Without compact enabled, [`layout_to_data`] will end each character bitmap with padding 0's if `(constant_size * custom_size) % 8` results in a remainder that is not 0. The number of padding 0's is the remainder of the formula above.
-    pub compact: bool,
-}
-
-#[derive(Default, Debug, Clone)]
-#[non_exhaustive]
-/// Defines the required values for a [`Layout`] structs.
-pub struct ConfigurationValues {
-    /// Sets a constant number of utf8 encoded codepoints
-    /// that will be used for each grapheme cluster within a character definition.
-    pub constant_cluster_codepoints: Option<u8>,
-    pub constant_width: Option<u8>,
-    pub constant_height: Option<u8>,
-    pub custom_bits_per_pixel: Option<u8>,
-}
-
-#[derive(Default, Debug, Clone)]
-/// Represents the header of a font [`Layout`] struct.
-///
-/// The [`Header`] struct contains the configuration flags, modifier flags and required values
-/// of a [`Layout`]. These values are essential in determining how the font will be interpreted
-/// by [`layout_to_data`] and [`layout_from_data`] functions.
-pub struct Header {
-    pub configuration_flags: ConfigurationFlags,
-    pub modifier_flags: ModifierFlags,
-    pub configuration_values: ConfigurationValues,
-}
-
-#[derive(Default, Debug, Clone)]
-/// Represents a charater in the font.
-///
-/// The [`Character`] struct contains the utf8 character, custom size and byte map of a character.
-/// Please note that while the pixmap uses a u8 for each pixel, when the font is converted to
-/// a data vector, each pixel will be represented by a single bit.
-pub struct Character {
-    pub grapheme_cluster: String,
-    pub custom_width: Option<u8>,
-    pub custom_height: Option<u8>,
-    pub pixmap: Vec<u8>,
-}
-
-#[derive(Default, Debug, Clone)]
-/// Represents the body of a font [`Layout`] struct.
-///
-/// The [`Body`] struct contains the characters of a [`Layout`] as a Vector.
-pub struct Body {
-    pub characters: Vec<Character>,
-}
-
-#[derive(Default, Debug, Clone)]
-/// Represents the entire font [`Layout`] struct.
-///
-/// The [`Layout`] struct aims to reflect the structure of a `SimplePixelFont` binary file.
 pub struct Layout {
-    pub header: Header,
-    pub body: Body,
+    version: Version,
+
+    compact: bool,
+
+    mapping_tables: Vec<MappingTable>,
+    color_tables: Vec<ColorTable>,
+    bitmap_tables: Vec<BitmapTable>,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct BitmapTable {
+    constant_width: Option<u8>,
+    constant_height: Option<u8>,
+    constant_bits_per_pixel: Option<u8>,
+
+    color_tables_indices: Vec<u8>,
+
+    bitmaps: Vec<Bitmap>,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct Bitmap {
+    custom_width: Option<u8>,
+    custom_height: Option<u8>,
+    custom_bits_per_pixel: Option<u8>,
+    data: Vec<u8>,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct MappingTable {
+    constant_cluster_codepoints: Option<u8>,
+
+    bitmap_tables_indicies: Vec<u8>,
+
+    mappings: Vec<Mapping>,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct Mapping {
+    codepoint: String,
+    bitmap_index: u8,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct ColorTable {
+    use_alpha_channel: bool,
+
+    colors: Vec<Color>,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct Color {
+    data: Vec<u8>,
 }
 
 #[derive(Debug)]
