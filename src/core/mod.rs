@@ -30,9 +30,10 @@
 pub(crate) mod byte;
 pub(crate) mod composers;
 pub(crate) mod parsers;
+pub(crate) mod table;
 
-pub(crate) mod bitmap_table;
 pub(crate) mod color_table;
+pub(crate) mod pixmap_table;
 
 use crate::{String, Vec};
 
@@ -48,30 +49,30 @@ pub enum Version {
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct Layout {
+pub struct Font {
     version: Version,
 
     compact: bool,
 
-    mapping_tables: Vec<MappingTable>,
+    character_tables: Vec<CharacterTable>,
     color_tables: Vec<ColorTable>,
-    bitmap_tables: Vec<BitmapTable>,
+    pixmap_tables: Vec<PixmapTable>,
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct BitmapTable {
+pub struct PixmapTable {
     constant_width: Option<u8>,
     constant_height: Option<u8>,
     constant_bits_per_pixel: Option<u8>,
 
-    color_tables_indices: Vec<u8>,
+    color_tables_indices: Option<Vec<u8>>,
 
     // size: u8
-    bitmaps: Vec<Bitmap>,
+    pixmaps: Vec<Pixmap>,
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct Bitmap {
+pub struct Pixmap {
     custom_width: Option<u8>,
     custom_height: Option<u8>,
     custom_bits_per_pixel: Option<u8>,
@@ -79,18 +80,22 @@ pub struct Bitmap {
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct MappingTable {
+pub struct CharacterTable {
+    use_advance_x: bool,
+
     constant_cluster_codepoints: Option<u8>,
 
-    bitmap_tables_indicies: Vec<u8>,
+    pixmap_tables_indicies: Option<Vec<u8>>,
 
-    mappings: Vec<Mapping>,
+    characters: Vec<Character>,
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct Mapping {
+pub struct Character {
+    advance_x: Option<u8>,
+
     codepoint: String,
-    bitmap_index: u8,
+    pixmap_index: u8,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -108,13 +113,23 @@ pub struct Color {
     b: u8,
 }
 
+#[repr(u8)]
+#[rustfmt::skip]
+enum TableIdentifier {
+    MappingTable = 0b00000001,
+    PixmapTable  = 0b00000010,
+    ColorTable   = 0b00000011,
+}
+
 #[derive(Debug)]
 pub enum ParseError {
     UnexpectedEndOfFile,
 }
 
 #[derive(Debug)]
-pub enum SerializeError {}
+pub enum SerializeError {
+    StaticVectorTooLarge,
+}
 
 pub(crate) trait Table: Sized {
     fn deserialize(storage: &mut byte::ByteStorage) -> Result<Self, ParseError>;

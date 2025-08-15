@@ -60,9 +60,9 @@ pub mod core;
 #[cfg(feature = "cache")]
 pub mod cache;
 
-#[cfg_attr(docsrs, doc(cfg(feature = "printer")))]
-#[cfg(feature = "printer")]
-pub mod printer;
+// #[cfg_attr(docsrs, doc(cfg(feature = "printer")))]
+// #[cfg(feature = "printer")]
+// pub mod printer;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "ergonomics")))]
 #[cfg(feature = "ergonomics")]

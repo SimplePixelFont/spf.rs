@@ -1,13 +1,20 @@
-use crate::core::{Color, ColorTable, Table};
+/*
+ * Copyright 2025 SimplePixelFont
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-pub(crate) fn get_bit(byte: u8, index: u8) -> bool {
-    (byte & 0b00000001) >> (index) == 1
-}
-
-#[repr(u8)]
-enum TableIdentifier {
-    ColorTable = 0b00000001,
-}
+use crate::core::{Color, ColorTable, SerializeError, Table, TableIdentifier};
 
 impl Table for ColorTable {
     fn deserialize(
@@ -15,27 +22,22 @@ impl Table for ColorTable {
     ) -> Result<Self, crate::core::ParseError> {
         let mut color_table = ColorTable::default();
 
-        let table_property_flags = storage.get();
-
-        if get_bit(table_property_flags, 0) {
-            storage.index += 1;
-            color_table.constant_alpha = Some(storage.get());
+        storage.next(); // Skip modifieres
+        let table_property_flags = storage.next();
+        if crate::core::byte::get_bit(table_property_flags, 0) {
+            color_table.constant_alpha = Some(storage.next());
         }
-        storage.index += 1;
+        storage.next(); // Skip table links
 
         let color_count = storage.get();
         for _ in 0..color_count {
             let mut color = Color::default();
-            storage.index += 1;
             if color_table.constant_alpha.is_none() {
-                color.custom_alpha = Some(storage.get());
+                color.custom_alpha = Some(storage.next());
             }
-            storage.index += 1;
-            color.r = storage.get();
-            storage.index += 1;
-            color.g = storage.get();
-            storage.index += 1;
-            color.b = storage.get();
+            color.r = storage.next();
+            color.g = storage.next();
+            color.b = storage.next();
             color_table.colors.push(color);
         }
 
@@ -56,11 +58,14 @@ impl Table for ColorTable {
             table_property_values.push(self.constant_alpha.unwrap());
         }
 
-        buffer.push(table_property_flags);
-        for byte in table_property_values {
-            buffer.push(byte);
-        }
+        buffer.push(0b00000000); // Modifiers byte
+        buffer.push(table_property_flags); // Configuration flags byte
+        buffer.append(&table_property_values); // Configuration values
+        buffer.push(0b00000000); // Table relations byte
 
+        if self.colors.len() > 255 {
+            return Err(SerializeError::StaticVectorTooLarge);
+        }
         buffer.push(self.colors.len() as u8);
         for color in &self.colors {
             if self.constant_alpha.is_none() {

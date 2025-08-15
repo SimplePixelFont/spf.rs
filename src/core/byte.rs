@@ -91,4 +91,17 @@ impl ByteStorage {
     pub(crate) fn incomplete_get(&self, number_of_bits: u8) -> u8 {
         self.get() << (8 - number_of_bits) >> (8 - number_of_bits)
     }
+    pub(crate) fn next(&mut self) -> u8 {
+        self.index += 1;
+        self.get()
+    }
+    pub(crate) fn append(&mut self, bytes: &[u8]) {
+        for byte in bytes {
+            self.push(*byte);
+        }
+    }
+}
+
+pub(crate) fn get_bit(byte: u8, index: u8) -> bool {
+    (byte & 0b00000001) >> (index) == 1
 }
