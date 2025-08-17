@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-use crate::core::{Color, ColorTable, SerializeError, Table, TableIdentifier};
+use crate::core::{Color, ColorTable, Layout, SerializeError, Table, TableIdentifier};
 
 impl Table for ColorTable {
     fn deserialize(
         storage: &mut crate::core::byte::ByteStorage,
+        _layout: &Layout,
     ) -> Result<Self, crate::core::ParseError> {
         let mut color_table = ColorTable::default();
 
-        storage.next(); // Skip modifieres
-        let table_property_flags = storage.next();
-        if crate::core::byte::get_bit(table_property_flags, 0) {
+        storage.next(); // Skip modifires byte
+        let configuration_flags = storage.next();
+        if crate::core::byte::get_bit(configuration_flags, 0) {
             color_table.constant_alpha = Some(storage.next());
         }
         storage.next(); // Skip table links
 
-        let color_count = storage.get();
+        let color_count = storage.next();
         for _ in 0..color_count {
             let mut color = Color::default();
             if color_table.constant_alpha.is_none() {
@@ -47,20 +48,21 @@ impl Table for ColorTable {
     fn serialize(
         &self,
         buffer: &mut crate::core::byte::ByteStorage,
+        layout: &layout,
     ) -> Result<(), crate::core::SerializeError> {
         buffer.push(TableIdentifier::ColorTable as u8);
 
-        let mut table_property_flags = 0b00000000;
-        let mut table_property_values = Vec::new();
+        buffer.push(0b00000000); // Modifiers byte
+
+        let mut configuration_flags = 0b00000000;
+        let mut configuration_values = Vec::new();
 
         if self.constant_alpha.is_some() {
-            table_property_flags |= 0b00000001;
-            table_property_values.push(self.constant_alpha.unwrap());
+            configuration_flags |= 0b00000001;
+            configuration_values.push(self.constant_alpha.unwrap());
         }
-
-        buffer.push(0b00000000); // Modifiers byte
-        buffer.push(table_property_flags); // Configuration flags byte
-        buffer.append(&table_property_values); // Configuration values
+        buffer.push(configuration_flags); // Configuration flags byte
+        buffer.append(&configuration_values); // Configuration values
         buffer.push(0b00000000); // Table relations byte
 
         if self.colors.len() > 255 {

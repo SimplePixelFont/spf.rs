@@ -16,58 +16,40 @@
 
 pub(crate) use super::*;
 
-pub(crate) fn next_signature(storage: &mut byte::ByteStorage) {
-    if storage.index + 3 > storage.bytes.len() {
-        panic!("Unexpected end of file");
+pub(crate) fn next_signature(storage: &mut byte::ByteStorage) -> Result<(), ParseError> {
+    if storage.index + 4 > storage.bytes.len() {
+        return Err(ParseError::UnexpectedEndOfFile);
     }
-
-    for byte in [102, 115, 70].iter() {
+    for byte in [127, 102, 115, 70].iter() {
         if storage.get() != *byte {
-            panic!("File is not signed");
+            return Err(ParseError::InvalidSignature);
         }
         storage.index += 1;
     }
+    Ok(())
 }
 
-pub(crate) fn next_header(layout: &mut Layout, storage: &mut byte::ByteStorage) {
-    let file_properties = storage.get();
+pub(crate) fn next_version(
+    layout: &mut Layout,
+    storage: &mut byte::ByteStorage,
+) -> Result<(), ParseError> {
+    let version = storage.next();
+    let version = match version {
+        0b00000000 => Ok(Version::FV0),
+        _ => Err(ParseError::UnsupportedVersion),
+    };
+    layout.version = version?;
+    Ok(())
+}
 
-    let configuration_flag_booleans = [
-        (file_properties & 0b10000000) >> 7 == 1,
-        (file_properties & 0b01000000) >> 6 == 1,
-        (file_properties & 0b00100000) >> 5 == 1,
-        (file_properties & 0b00010000) >> 4 == 1,
-    ];
+pub(crate) fn next_header(
+    layout: &mut Layout,
+    storage: &mut byte::ByteStorage,
+) -> Result<(), ParseError> {
+    let file_properties = storage.next();
 
-    layout.header.modifier_flags.compact = (file_properties & 0b00001000) >> 3 == 1;
-    storage.index += 1;
-
-    let mut configuration_flag_values = [None; 4];
-
-    for (current_configuration_flag_index, configuration_flag) in
-        configuration_flag_booleans.iter().enumerate()
-    {
-        if *configuration_flag {
-            configuration_flag_values[current_configuration_flag_index] = Some(storage.get());
-            storage.index += 1;
-        }
-    }
-
-    layout
-        .header
-        .configuration_flags
-        .constant_cluster_codepoints = configuration_flag_booleans[0];
-    layout.header.configuration_flags.constant_width = configuration_flag_booleans[1];
-    layout.header.configuration_flags.constant_height = configuration_flag_booleans[2];
-    layout.header.configuration_flags.custom_bits_per_pixel = configuration_flag_booleans[3];
-
-    layout
-        .header
-        .configuration_values
-        .constant_cluster_codepoints = configuration_flag_values[0];
-    layout.header.configuration_values.constant_width = configuration_flag_values[1];
-    layout.header.configuration_values.constant_height = configuration_flag_values[2];
-    layout.header.configuration_values.custom_bits_per_pixel = configuration_flag_values[3];
+    layout.compact = byte::get_bit(file_properties, 0);
+    Ok(())
 }
 
 pub(crate) fn next_grapheme_cluster(

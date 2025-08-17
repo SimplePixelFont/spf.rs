@@ -32,9 +32,6 @@ pub(crate) mod composers;
 pub(crate) mod parsers;
 pub(crate) mod table;
 
-pub(crate) mod color_table;
-pub(crate) mod pixmap_table;
-
 use crate::{String, Vec};
 
 #[cfg(feature = "log")]
@@ -49,7 +46,7 @@ pub enum Version {
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct Font {
+pub struct Layout {
     version: Version,
 
     compact: bool,
@@ -67,7 +64,6 @@ pub struct PixmapTable {
 
     color_tables_indices: Option<Vec<u8>>,
 
-    // size: u8
     pixmaps: Vec<Pixmap>,
 }
 
@@ -124,6 +120,8 @@ enum TableIdentifier {
 #[derive(Debug)]
 pub enum ParseError {
     UnexpectedEndOfFile,
+    InvalidSignature,
+    UnsupportedVersion,
 }
 
 #[derive(Debug)]
@@ -132,8 +130,12 @@ pub enum SerializeError {
 }
 
 pub(crate) trait Table: Sized {
-    fn deserialize(storage: &mut byte::ByteStorage) -> Result<Self, ParseError>;
-    fn serialize(&self, buffer: &mut byte::ByteStorage) -> Result<(), SerializeError>;
+    fn deserialize(storage: &mut byte::ByteStorage, layout: &Layout) -> Result<Self, ParseError>;
+    fn serialize(
+        &self,
+        buffer: &mut byte::ByteStorage,
+        layout: &Layout,
+    ) -> Result<(), SerializeError>;
 }
 
 /// Parses a [`Vec<u8>`] into a font [`Layout`].
@@ -143,11 +145,14 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
         pointer: 0,
         index: 0,
     };
-
     let mut layout = Layout::default();
 
-    parsers::next_signature(&mut storage);
-    parsers::next_header(&mut layout, &mut storage);
+    parsers::next_signature(&mut storage)?;
+    // next_signature() offsets the index by one, so we need to undo that
+    storage.index -= 1;
+
+    parsers::next_version(&mut layout, &mut storage)?;
+    parsers::next_header(&mut layout, &mut storage)?;
 
     let mut bits_per_pixel = 1;
     if layout.header.configuration_flags.custom_bits_per_pixel {

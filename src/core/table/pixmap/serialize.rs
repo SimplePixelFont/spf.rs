@@ -1,77 +1,23 @@
-use crate::core::{ParseError, Pixmap, PixmapTable, SerializeError, Table, TableIdentifier};
-use crate::Vec;
+/*
+ * Copyright 2025 SimplePixelFont
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-pub(crate) fn serialize(
-    &self,
-    buffer: &mut crate::core::byte::ByteStorage,
-) -> Result<(), SerializeError> {
-    buffer.push(TableIdentifier::PixmapTable as u8);
+use crate::core::{Pixmap, SerializeError};
 
-    buffer.push(0b00000000); // Modifiers Byte
-
-    let mut table_property_flags = 0b00000000;
-    let mut table_property_values = Vec::new();
-
-    // Configuration flags
-    if self.constant_width.is_some() {
-        table_property_flags |= 0b00000001;
-        table_property_values.push(self.constant_width.unwrap());
-    }
-    if self.constant_height.is_some() {
-        table_property_flags |= 0b00000010;
-        table_property_values.push(self.constant_height.unwrap());
-    }
-    if self.constant_bits_per_pixel.is_some() {
-        table_property_flags |= 0b00000100;
-        table_property_values.push(self.constant_bits_per_pixel.unwrap());
-    }
-
-    buffer.push(table_property_flags);
-    buffer.append(&table_property_values);
-
-    // Table Links
-    let mut table_link_flags = 0b00000000;
-    let mut table_link_bytes = Vec::new();
-    if self.color_tables_indices.is_some() {
-        table_link_flags |= 0b00000001;
-        let colors_tables_length = self.color_tables_indices.as_ref().unwrap().len();
-        if colors_tables_length > 255 {
-            return Err(SerializeError::StaticVectorTooLarge);
-        }
-        buffer.push(colors_tables_length as u8);
-        for table_index in self.color_tables_indices.as_ref().unwrap() {
-            table_link_bytes.push(*table_index);
-        }
-    }
-
-    // Table relations
-    buffer.push(table_link_flags);
-    buffer.append(&table_link_bytes);
-
-    if self.pixmaps.len() > 255 {
-        return Err(SerializeError::StaticVectorTooLarge);
-    }
-    buffer.push(self.pixmaps.len() as u8);
-    for pixmap in self.pixmaps.iter() {
-        push_width(buffer, self.constant_width, pixmap.custom_width);
-        push_height(buffer, self.constant_height, pixmap.custom_height);
-        push_bits_per_pixel(
-            buffer,
-            self.constant_bits_per_pixel,
-            pixmap.custom_bits_per_pixel,
-        );
-        push_pixmap(
-            buffer,
-            true,
-            self.constant_width,
-            self.constant_height,
-            self.constant_bits_per_pixel,
-            pixmap,
-        );
-    }
-
-    Ok(())
-}
+#[cfg(feature = "log")]
+pub(crate) use log::*;
 
 pub(crate) fn push_width<'a>(
     buffer: &mut byte::ByteStorage,
