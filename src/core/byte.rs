@@ -92,8 +92,9 @@ impl ByteStorage {
         self.get() << (8 - number_of_bits) >> (8 - number_of_bits)
     }
     pub(crate) fn next(&mut self) -> u8 {
+        let byte = self.get();
         self.index += 1;
-        self.get()
+        byte
     }
     pub(crate) fn append(&mut self, bytes: &[u8]) {
         for byte in bytes {

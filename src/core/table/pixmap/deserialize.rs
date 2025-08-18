@@ -14,64 +14,71 @@
  * limitations under the License.
  */
 
-pub(crate) use crate::core::Character;
+use crate::core::byte;
+use crate::core::Pixmap;
 
 #[cfg(feature = "log")]
-pub(crate) use log::*;
+use log::*;
 
-pub(crate) fn next_width(storage: &mut byte::ByteStorage, constant_width: Option<u8>) -> u8 {
+pub(crate) fn next_width(
+    storage: &mut byte::ByteStorage,
+    pixmap: &mut Pixmap,
+    constant_width: Option<u8>,
+) {
     if constant_width.is_none() {
-        character.custom_width = Some(storage.get());
-    }
-
-    let current_character_width;
-    if !header.configuration_flags.constant_width {
-        character.custom_width = Some(storage.get());
-        current_character_width = character.custom_width.unwrap();
-        storage.index += 1;
+        pixmap.custom_width = Some(storage.next());
 
         #[cfg(feature = "log")]
-        info!("Identified custom width: {:?}", current_character_width);
-    } else {
-        current_character_width = header.configuration_values.constant_width.unwrap();
+        info!("Identified custom width: {:?}", pixmap.custom_width);
     }
-
-    current_character_width
 }
 
 pub(crate) fn next_height(
     storage: &mut byte::ByteStorage,
-    header: &Header,
-    character: &mut Character,
-) -> u8 {
-    let current_character_height;
-    if !header.configuration_flags.constant_height {
-        character.custom_height = Some(storage.get());
-        current_character_height = character.custom_height.unwrap();
-        storage.index += 1;
+    pixmap: &mut Pixmap,
+    constant_height: Option<u8>,
+) {
+    if constant_height.is_none() {
+        pixmap.custom_height = Some(storage.next());
 
         #[cfg(feature = "log")]
-        info!("Identified custom height: {:?}", current_character_height);
-    } else {
-        current_character_height = header.configuration_values.constant_height.unwrap();
+        info!("Identified custom height: {:?}", pixmap.custom_height);
     }
+}
 
-    current_character_height
+pub(crate) fn next_bits_per_pixel(
+    storage: &mut byte::ByteStorage,
+    pixmap: &mut Pixmap,
+    constant_bits_per_pixel: Option<u8>,
+) {
+    if constant_bits_per_pixel.is_none() {
+        pixmap.custom_bits_per_pixel = Some(storage.next());
+
+        #[cfg(feature = "log")]
+        info!(
+            "Identified custom bits per pixel: {:?}",
+            pixmap.custom_bits_per_pixel
+        );
+    }
 }
 
 pub(crate) fn next_pixmap(
     storage: &mut byte::ByteStorage,
-    header: &Header,
-    character: &mut Character,
-    width: u8,
-    height: u8,
-    bits_per_pixel: u8,
+    pixmap: &mut Pixmap,
+    compact: bool,
+    constant_width: Option<u8>,
+    constant_height: Option<u8>,
+    constant_bits_per_pixel: Option<u8>,
 ) {
+    let bits_per_pixel = constant_bits_per_pixel.unwrap_or(pixmap.custom_bits_per_pixel.unwrap());
+    let width = constant_width.unwrap_or(pixmap.custom_width.unwrap());
+    let height = constant_height.unwrap_or(pixmap.custom_height.unwrap());
+
     let pixels_used = width * height;
     let mut current_bit = storage.pointer;
     for _ in 0..pixels_used {
         let pixel = storage.incomplete_get(bits_per_pixel);
-        character.pixmap.push(pixel);
+        pixmap.data.push(pixel);
         current_bit += bits_per_pixel;
         if current_bit >= 8 {
             storage.index += 1;
@@ -80,11 +87,11 @@ pub(crate) fn next_pixmap(
         storage.pointer = current_bit;
     }
 
-    if !header.modifier_flags.compact && (width * height * bits_per_pixel) % 8 != 0 {
+    if !compact && (width * height * bits_per_pixel) % 8 != 0 {
         storage.index += 1;
         storage.pointer = 0;
     }
 
     #[cfg(feature = "log")]
-    info!("Identified pixmap: {:?}", character.pixmap);
+    info!("Identified pixmap: {:?}", pixmap.data);
 }

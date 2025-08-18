@@ -17,15 +17,15 @@
 pub(crate) mod deserialize;
 pub(crate) mod serialize;
 
-use crate::core::{Character, Layout, PixmapTable, Table};
-pub use deserialize::*;
-pub use serialize::*;
+use crate::core::{Layout, Pixmap, PixmapTable, SerializeError, Table, TableIdentifier};
+pub(crate) use deserialize::*;
+pub(crate) use serialize::*;
 
 impl Table for PixmapTable {
     fn deserialize(
         storage: &mut crate::core::byte::ByteStorage,
         layout: &Layout,
-    ) -> Result<Self, crate::core::ParseError> {
+    ) -> Result<Self, crate::core::DeserializeError> {
         let mut pixmap_table = PixmapTable::default();
 
         storage.next(); // Skip modifieres
@@ -42,17 +42,28 @@ impl Table for PixmapTable {
 
         let links_flags = storage.next();
         if crate::core::byte::get_bit(links_flags, 0) {
-            let color_table_indicies_length = storage.next();
-            let mut color_table_indicies = vec![];
-            for _ in 0..color_table_indicies_length {
-                color_table_indicies.push(storage.next());
+            let color_table_indexes_length = storage.next();
+            let mut color_table_indexes = vec![];
+            for _ in 0..color_table_indexes_length {
+                color_table_indexes.push(storage.next());
             }
-            pixmap_table.color_tables_indices = Some(color_table_indicies);
+            pixmap_table.color_table_indexes = Some(color_table_indexes);
         }
 
         let pixmap_count = storage.get();
         for _ in 0..pixmap_count {
-            let mut character = Character::default();
+            let mut pixmap = Pixmap::default();
+            next_width(storage, &mut pixmap, pixmap_table.constant_width);
+            next_height(storage, &mut pixmap, pixmap_table.constant_height);
+            next_bits_per_pixel(storage, &mut pixmap, pixmap_table.constant_bits_per_pixel);
+            next_pixmap(
+                storage,
+                &mut pixmap,
+                layout.compact,
+                pixmap_table.constant_width,
+                pixmap_table.constant_height,
+                pixmap_table.constant_bits_per_pixel,
+            );
         }
 
         Ok(pixmap_table)
@@ -89,14 +100,14 @@ impl Table for PixmapTable {
         // Table Links
         let mut link_flags = 0b00000000;
         let mut link_bytes = Vec::new();
-        if self.color_tables_indices.is_some() {
+        if self.color_table_indexes.is_some() {
             link_flags |= 0b00000001;
-            let colors_tables_length = self.color_tables_indices.as_ref().unwrap().len();
+            let colors_tables_length = self.color_table_indexes.as_ref().unwrap().len();
             if colors_tables_length > 255 {
                 return Err(SerializeError::StaticVectorTooLarge);
             }
             buffer.push(colors_tables_length as u8);
-            for color_table_index in self.color_tables_indices.as_ref().unwrap() {
+            for color_table_index in self.color_table_indexes.as_ref().unwrap() {
                 link_bytes.push(*color_table_index);
             }
         }

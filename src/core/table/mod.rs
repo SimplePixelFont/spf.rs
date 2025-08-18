@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
+pub(crate) mod character;
 pub(crate) mod color;
 pub(crate) mod pixmap;

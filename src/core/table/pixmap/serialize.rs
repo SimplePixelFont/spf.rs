@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::core::byte;
 use crate::core::{Pixmap, SerializeError};
 
 #[cfg(feature = "log")]

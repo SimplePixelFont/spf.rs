@@ -62,7 +62,7 @@ pub struct PixmapTable {
     constant_height: Option<u8>,
     constant_bits_per_pixel: Option<u8>,
 
-    color_tables_indices: Option<Vec<u8>>,
+    color_table_indexes: Option<Vec<u8>>,
 
     pixmaps: Vec<Pixmap>,
 }
@@ -81,7 +81,7 @@ pub struct CharacterTable {
 
     constant_cluster_codepoints: Option<u8>,
 
-    pixmap_tables_indicies: Option<Vec<u8>>,
+    pixmap_table_indexes: Option<Vec<u8>>,
 
     characters: Vec<Character>,
 }
@@ -90,7 +90,7 @@ pub struct CharacterTable {
 pub struct Character {
     advance_x: Option<u8>,
 
-    codepoint: String,
+    grapheme_cluster: String,
     pixmap_index: u8,
 }
 
@@ -112,16 +112,30 @@ pub struct Color {
 #[repr(u8)]
 #[rustfmt::skip]
 enum TableIdentifier {
-    MappingTable = 0b00000001,
-    PixmapTable  = 0b00000010,
-    ColorTable   = 0b00000011,
+    CharacterTable = 0b00000001,
+    PixmapTable    = 0b00000010,
+    ColorTable     = 0b00000011,
+}
+
+impl TryFrom<u8> for TableIdentifier {
+    type Error = DeserializeError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0b00000001 => Ok(TableIdentifier::CharacterTable),
+            0b00000010 => Ok(TableIdentifier::PixmapTable),
+            0b00000011 => Ok(TableIdentifier::ColorTable),
+            _ => Err(DeserializeError::UnsupportedTableIdentifier),
+        }
+    }
 }
 
 #[derive(Debug)]
-pub enum ParseError {
+pub enum DeserializeError {
     UnexpectedEndOfFile,
     InvalidSignature,
     UnsupportedVersion,
+    UnsupportedTableIdentifier,
 }
 
 #[derive(Debug)]
@@ -130,7 +144,10 @@ pub enum SerializeError {
 }
 
 pub(crate) trait Table: Sized {
-    fn deserialize(storage: &mut byte::ByteStorage, layout: &Layout) -> Result<Self, ParseError>;
+    fn deserialize(
+        storage: &mut byte::ByteStorage,
+        layout: &Layout,
+    ) -> Result<Self, DeserializeError>;
     fn serialize(
         &self,
         buffer: &mut byte::ByteStorage,
@@ -139,7 +156,7 @@ pub(crate) trait Table: Sized {
 }
 
 /// Parses a [`Vec<u8>`] into a font [`Layout`].
-pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
+pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, DeserializeError> {
     let mut storage = byte::ByteStorage {
         bytes: buffer,
         pointer: 0,
@@ -148,69 +165,58 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
     let mut layout = Layout::default();
 
     parsers::next_signature(&mut storage)?;
-    // next_signature() offsets the index by one, so we need to undo that
-    storage.index -= 1;
-
     parsers::next_version(&mut layout, &mut storage)?;
     parsers::next_header(&mut layout, &mut storage)?;
 
-    let mut bits_per_pixel = 1;
-    if layout.header.configuration_flags.custom_bits_per_pixel {
-        bits_per_pixel = layout
-            .header
-            .configuration_values
-            .custom_bits_per_pixel
-            .unwrap();
-    }
-
     while storage.index < storage.bytes.len() - 1 {
-        let mut current_character = Character::default();
-
-        parsers::next_grapheme_cluster(&mut storage, &layout.header, &mut current_character);
-
-        // Raises a warning if added in next_grapheme_cluster.
-        storage.index += 1;
-
-        let current_character_width =
-            parsers::next_width(&mut storage, &layout.header, &mut current_character);
-
-        let current_character_height =
-            parsers::next_height(&mut storage, &layout.header, &mut current_character);
-
-        parsers::next_pixmap(
-            &mut storage,
-            &layout.header,
-            &mut current_character,
-            current_character_width,
-            current_character_height,
-            bits_per_pixel,
-        );
-
-        layout.body.characters.push(current_character.clone());
+        match storage.next().try_into().unwrap() {
+            TableIdentifier::CharacterTable => {
+                CharacterTable::deserialize(&mut storage, &layout)?;
+            }
+            TableIdentifier::PixmapTable => {
+                PixmapTable::deserialize(&mut storage, &layout)?;
+            }
+            TableIdentifier::ColorTable => {
+                ColorTable::deserialize(&mut storage, &layout)?;
+            }
+        };
     }
     Ok(layout)
 }
 
 /// Encodes the provided font [`Layout`] into a [`Vec<u8>`].
-pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
+pub fn layout_to_data(layout: &Layout) -> Result<Vec<u8>, SerializeError> {
     let mut buffer = byte::ByteStorage::new();
     composers::push_signature(&mut buffer);
-    composers::push_header(&mut buffer, &layout.header);
+    composers::push_version(&mut buffer, &layout.version);
+    composers::push_header(&mut buffer, &layout);
+
+    for character_table in &layout.character_tables {
+        character_table.serialize(&mut buffer, &layout)?;
+    }
+    for pixmap_table in &layout.pixmap_tables {
+        pixmap_table.serialize(&mut buffer, &layout)?;
+    }
+    for color_table in &layout.color_tables {
+        color_table.serialize(&mut buffer, &layout)?;
+    }
+
+    // composers::push_header(&mut buffer, &layout.header);
 
     // let mut saved_space = 0;
 
-    for character in &layout.body.characters {
-        composers::push_grapheme_cluster(&mut buffer, &layout.header, &character.grapheme_cluster);
-        composers::push_width(&mut buffer, &layout.header, character.custom_width);
-        composers::push_height(&mut buffer, &layout.header, character.custom_height);
+    // for character in &layout.body.characters {
+    //     composers::push_grapheme_cluster(&mut buffer, &layout.header, &character.grapheme_cluster);
+    //     composers::push_width(&mut buffer, &layout.header, character.custom_width);
+    //     composers::push_height(&mut buffer, &layout.header, character.custom_height);
 
-        composers::push_pixmap(&mut buffer, &layout.header, &character.pixmap);
+    //     composers::push_pixmap(&mut buffer, &layout.header, &character.pixmap);
 
-        // if layout.header.modifier_flags.compact {
-        //     saved_space += remaining_space;
-        //     buffer.pointer = ((8 - remaining_space) + buffer.pointer) % 8;
-        // }
-    }
+    // if layout.header.modifier_flags.compact {
+    //     saved_space += remaining_space;
+    //     buffer.pointer = ((8 - remaining_space) + buffer.pointer) % 8;
+    // }
+    // }
 
     // #[cfg(feature = "log")]
     // debug!(
@@ -219,5 +225,5 @@ pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
     //     saved_space / 8
     // );
 
-    buffer.bytes
+    Ok(buffer.bytes)
 }

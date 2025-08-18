@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-use crate::core::{Color, ColorTable, Layout, SerializeError, Table, TableIdentifier};
+use crate::core::{
+    Color, ColorTable, DeserializeError, Layout, SerializeError, Table, TableIdentifier,
+};
 
 impl Table for ColorTable {
     fn deserialize(
         storage: &mut crate::core::byte::ByteStorage,
         _layout: &Layout,
-    ) -> Result<Self, crate::core::ParseError> {
+    ) -> Result<Self, DeserializeError> {
         let mut color_table = ColorTable::default();
 
         storage.next(); // Skip modifires byte
@@ -48,7 +50,7 @@ impl Table for ColorTable {
     fn serialize(
         &self,
         buffer: &mut crate::core::byte::ByteStorage,
-        layout: &layout,
+        _layout: &Layout,
     ) -> Result<(), crate::core::SerializeError> {
         buffer.push(TableIdentifier::ColorTable as u8);
 

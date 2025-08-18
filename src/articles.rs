@@ -18,8 +18,8 @@
 //! Helpful guides and learning resources to integrate spf.rs in your next project.
 
 pub(crate) use crate::core::*;
-pub(crate) use crate::ergonomics::*;
-pub(crate) use crate::printer::*;
+// pub(crate) use crate::ergonomics::*;
+// pub(crate) use crate::printer::*;
 pub(crate) use crate::*;
 
 /// Guide for `spf.rs` printer module and creating text renderings.
