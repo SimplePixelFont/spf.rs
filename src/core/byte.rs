@@ -16,6 +16,9 @@
 
 use crate::Vec;
 
+#[cfg(feature = "log")]
+use log::*;
+
 #[derive(Debug)]
 pub(crate) struct ByteStorage {
     pub(crate) bytes: Vec<u8>,
@@ -47,6 +50,7 @@ impl ByteStorage {
         }
     }
     pub(crate) fn incomplete_push(&mut self, byte: u8, number_of_bits: u8) {
+        info!("idx: {:?} ptr: {:?}", self.index, self.pointer);
         if self.pointer == 0 {
             self.bytes.push(byte);
             self.pointer += number_of_bits;
@@ -66,6 +70,7 @@ impl ByteStorage {
         self.pointer += number_of_bits;
 
         if self.pointer >= 8 {
+            info!("why is this happening?");
             self.pointer -= 8;
             if self.pointer != 0 {
                 let new_byte = byte >> self.pointer;
@@ -96,13 +101,25 @@ impl ByteStorage {
         self.index += 1;
         byte
     }
+    pub(crate) fn peek(&self) -> u8 {
+        self.bytes[self.index]
+    }
     pub(crate) fn append(&mut self, bytes: &[u8]) {
         for byte in bytes {
             self.push(*byte);
         }
     }
+    pub(crate) fn bits_from_index(&self) -> String {
+        let mut string = String::new();
+        for (index, byte) in self.bytes.iter().enumerate() {
+            if index >= self.index - 1 {
+                string += &format!("{:08b} ", byte);
+            }
+        }
+        string
+    }
 }
 
 pub(crate) fn get_bit(byte: u8, index: u8) -> bool {
-    (byte & 0b00000001) >> (index) == 1
+    (byte >> (index)) & 0b00000001 == 1
 }

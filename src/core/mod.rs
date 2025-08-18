@@ -47,66 +47,66 @@ pub enum Version {
 
 #[derive(Default, Debug, Clone)]
 pub struct Layout {
-    version: Version,
+    pub version: Version,
 
-    compact: bool,
+    pub compact: bool,
 
-    character_tables: Vec<CharacterTable>,
-    color_tables: Vec<ColorTable>,
-    pixmap_tables: Vec<PixmapTable>,
+    pub character_tables: Vec<CharacterTable>,
+    pub color_tables: Vec<ColorTable>,
+    pub pixmap_tables: Vec<PixmapTable>,
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct PixmapTable {
-    constant_width: Option<u8>,
-    constant_height: Option<u8>,
-    constant_bits_per_pixel: Option<u8>,
+    pub constant_width: Option<u8>,
+    pub constant_height: Option<u8>,
+    pub constant_bits_per_pixel: Option<u8>,
 
-    color_table_indexes: Option<Vec<u8>>,
+    pub color_table_indexes: Option<Vec<u8>>,
 
-    pixmaps: Vec<Pixmap>,
+    pub pixmaps: Vec<Pixmap>,
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct Pixmap {
-    custom_width: Option<u8>,
-    custom_height: Option<u8>,
-    custom_bits_per_pixel: Option<u8>,
-    data: Vec<u8>,
+    pub custom_width: Option<u8>,
+    pub custom_height: Option<u8>,
+    pub custom_bits_per_pixel: Option<u8>,
+    pub data: Vec<u8>,
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct CharacterTable {
-    use_advance_x: bool,
+    pub use_advance_x: bool,
 
-    constant_cluster_codepoints: Option<u8>,
+    pub constant_cluster_codepoints: Option<u8>,
 
-    pixmap_table_indexes: Option<Vec<u8>>,
+    pub pixmap_table_indexes: Option<Vec<u8>>,
 
-    characters: Vec<Character>,
+    pub characters: Vec<Character>,
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct Character {
-    advance_x: Option<u8>,
+    pub advance_x: Option<u8>,
 
-    grapheme_cluster: String,
-    pixmap_index: u8,
+    pub grapheme_cluster: String,
+    pub pixmap_index: u8,
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct ColorTable {
-    constant_alpha: Option<u8>,
+    pub constant_alpha: Option<u8>,
 
-    colors: Vec<Color>,
+    pub colors: Vec<Color>,
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct Color {
-    custom_alpha: Option<u8>,
-    r: u8,
-    g: u8,
-    b: u8,
+    pub custom_alpha: Option<u8>,
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
 }
 
 #[repr(u8)]
@@ -171,13 +171,19 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, DeserializeError> {
     while storage.index < storage.bytes.len() - 1 {
         match storage.next().try_into().unwrap() {
             TableIdentifier::CharacterTable => {
-                CharacterTable::deserialize(&mut storage, &layout)?;
+                layout
+                    .character_tables
+                    .push(CharacterTable::deserialize(&mut storage, &layout)?);
             }
             TableIdentifier::PixmapTable => {
-                PixmapTable::deserialize(&mut storage, &layout)?;
+                layout
+                    .pixmap_tables
+                    .push(PixmapTable::deserialize(&mut storage, &layout)?);
             }
             TableIdentifier::ColorTable => {
-                ColorTable::deserialize(&mut storage, &layout)?;
+                layout
+                    .color_tables
+                    .push(ColorTable::deserialize(&mut storage, &layout)?);
             }
         };
     }
@@ -200,30 +206,6 @@ pub fn layout_to_data(layout: &Layout) -> Result<Vec<u8>, SerializeError> {
     for color_table in &layout.color_tables {
         color_table.serialize(&mut buffer, &layout)?;
     }
-
-    // composers::push_header(&mut buffer, &layout.header);
-
-    // let mut saved_space = 0;
-
-    // for character in &layout.body.characters {
-    //     composers::push_grapheme_cluster(&mut buffer, &layout.header, &character.grapheme_cluster);
-    //     composers::push_width(&mut buffer, &layout.header, character.custom_width);
-    //     composers::push_height(&mut buffer, &layout.header, character.custom_height);
-
-    //     composers::push_pixmap(&mut buffer, &layout.header, &character.pixmap);
-
-    // if layout.header.modifier_flags.compact {
-    //     saved_space += remaining_space;
-    //     buffer.pointer = ((8 - remaining_space) + buffer.pointer) % 8;
-    // }
-    // }
-
-    // #[cfg(feature = "log")]
-    // debug!(
-    //     "Total bits compacted: {} (saved {} bytes)",
-    //     saved_space,
-    //     saved_space / 8
-    // );
 
     Ok(buffer.bytes)
 }

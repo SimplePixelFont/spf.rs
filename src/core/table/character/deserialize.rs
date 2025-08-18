@@ -64,8 +64,9 @@ pub(crate) fn next_grapheme_cluster(
                 end_cluster = true;
             }
         } else {
-            if storage.next() == 0 {
+            if storage.peek() == 0 {
                 end_cluster = true;
+                storage.index += 1;
             }
         }
     }

@@ -62,6 +62,7 @@ impl Table for CharacterTable {
                 character_table.constant_cluster_codepoints,
             );
             character.pixmap_index = storage.next();
+            character_table.characters.push(character);
         }
 
         Ok(character_table)

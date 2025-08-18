@@ -91,9 +91,11 @@ pub(crate) fn push_pixmap(
     let mut pixmap_bit_string = String::new();
     let mut bits_used = 0;
 
-    let bits_per_pixel = constant_bits_per_pixel.unwrap_or(pixmap.custom_bits_per_pixel.unwrap());
-    let width = constant_width.unwrap_or(pixmap.custom_width.unwrap());
-    let height = constant_height.unwrap_or(pixmap.custom_height.unwrap());
+    let bits_per_pixel = constant_bits_per_pixel
+        .or(pixmap.custom_bits_per_pixel)
+        .unwrap();
+    let width = constant_width.or(pixmap.custom_width).unwrap();
+    let height = constant_height.or(pixmap.custom_height).unwrap();
 
     if pixmap.data.len() > width as usize * height as usize {
         return Err(SerializeError::StaticVectorTooLarge);
@@ -109,7 +111,7 @@ pub(crate) fn push_pixmap(
         bits_used += bits_per_pixel;
     }
 
-    if !compact {
+    if !compact && buffer.pointer != 0 {
         buffer.incomplete_push(0, 8 - (bits_used % 8));
     }
 
