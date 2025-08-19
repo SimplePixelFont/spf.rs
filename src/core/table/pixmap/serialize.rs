@@ -89,7 +89,7 @@ pub(crate) fn push_pixmap(
     pixmap: &Pixmap,
 ) -> Result<(), SerializeError> {
     let mut pixmap_bit_string = String::new();
-    let mut bits_used = 0;
+    let mut bits_used: u64 = 0;
 
     let bits_per_pixel = constant_bits_per_pixel
         .or(pixmap.custom_bits_per_pixel)
@@ -108,11 +108,11 @@ pub(crate) fn push_pixmap(
             bits_per_pixel = bits_per_pixel as usize
         ));
         buffer.incomplete_push(*pixel, bits_per_pixel);
-        bits_used += bits_per_pixel;
+        bits_used += bits_per_pixel as u64;
     }
 
     if !compact && buffer.pointer != 0 {
-        buffer.incomplete_push(0, 8 - (bits_used % 8));
+        buffer.incomplete_push(0, 8 - (bits_used % 8) as u8);
     }
 
     #[cfg(feature = "log")]
