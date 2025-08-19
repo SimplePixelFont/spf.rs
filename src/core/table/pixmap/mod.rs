@@ -50,15 +50,12 @@ impl Table for PixmapTable {
             pixmap_table.color_table_indexes = Some(color_table_indexes);
         }
 
-        info!("The before state: {:?}", pixmap_table);
         let pixmap_count = storage.next();
-        for i in 0..pixmap_count {
+        for _ in 0..pixmap_count {
             let mut pixmap = Pixmap::default();
-            info!("iter; {:?}------------------", i);
             next_width(storage, &mut pixmap, pixmap_table.constant_width);
             next_height(storage, &mut pixmap, pixmap_table.constant_height);
             next_bits_per_pixel(storage, &mut pixmap, pixmap_table.constant_bits_per_pixel);
-            info!("before pixmap {:?}", storage.bits_from_index());
             next_pixmap(
                 storage,
                 &mut pixmap,
@@ -125,7 +122,6 @@ impl Table for PixmapTable {
         }
         buffer.push(self.pixmaps.len() as u8);
         for pixmap in self.pixmaps.iter() {
-            // info!("ok idx: {} ptr: {}", buffer.index, buffer.pointer);
             push_width(buffer, self.constant_width, pixmap.custom_width);
             push_height(buffer, self.constant_height, pixmap.custom_height);
             push_bits_per_pixel(

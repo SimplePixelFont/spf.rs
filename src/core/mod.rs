@@ -34,9 +34,6 @@ pub(crate) mod table;
 
 use crate::{String, Vec};
 
-#[cfg(feature = "log")]
-use log::*;
-
 #[repr(u8)]
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
@@ -78,6 +75,7 @@ pub struct Pixmap {
 #[derive(Default, Debug, Clone)]
 pub struct CharacterTable {
     pub use_advance_x: bool,
+    pub use_pixmap_index: bool,
 
     pub constant_cluster_codepoints: Option<u8>,
 
@@ -89,9 +87,9 @@ pub struct CharacterTable {
 #[derive(Default, Debug, Clone)]
 pub struct Character {
     pub advance_x: Option<u8>,
+    pub pixmap_index: Option<u8>,
 
     pub grapheme_cluster: String,
-    pub pixmap_index: u8,
 }
 
 #[derive(Default, Debug, Clone)]

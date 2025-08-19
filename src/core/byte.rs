@@ -16,9 +16,6 @@
 
 use crate::Vec;
 
-#[cfg(feature = "log")]
-use log::*;
-
 #[derive(Debug)]
 pub(crate) struct ByteStorage {
     pub(crate) bytes: Vec<u8>,
@@ -50,7 +47,6 @@ impl ByteStorage {
         }
     }
     pub(crate) fn incomplete_push(&mut self, byte: u8, number_of_bits: u8) {
-        info!("idx: {:?} ptr: {:?}", self.index, self.pointer);
         if self.pointer == 0 {
             self.bytes.push(byte);
             self.pointer += number_of_bits;
@@ -64,16 +60,14 @@ impl ByteStorage {
             let shift = 8 - self.pointer - number_of_bits;
             mask = mask << shift >> shift;
         }
-
         let last_index = self.bytes.len() - 1;
         self.bytes[last_index] |= mask;
         self.pointer += number_of_bits;
 
         if self.pointer >= 8 {
-            info!("why is this happening?");
             self.pointer -= 8;
             if self.pointer != 0 {
-                let new_byte = byte >> self.pointer;
+                let new_byte = byte >> (number_of_bits - self.pointer);
                 self.bytes.push(new_byte);
             }
         }
@@ -109,6 +103,7 @@ impl ByteStorage {
             self.push(*byte);
         }
     }
+    #[allow(dead_code)]
     pub(crate) fn bits_from_index(&self) -> String {
         let mut string = String::new();
         for (index, byte) in self.bytes.iter().enumerate() {

@@ -76,22 +76,15 @@ pub(crate) fn next_pixmap(
     let width = constant_width.or(pixmap.custom_width).unwrap();
     let height = constant_height.or(pixmap.custom_height).unwrap();
 
-    info!(
-        "hmm constant_bits_per_pixel {:?} width {:?} height {:?}",
-        constant_bits_per_pixel, width, height
-    );
-
     let pixels_used = width * height;
-    let mut current_bit = storage.pointer;
     for _ in 0..pixels_used {
         let pixel = storage.incomplete_get(bits_per_pixel);
         pixmap.data.push(pixel);
-        current_bit += bits_per_pixel;
-        if current_bit >= 8 {
+        storage.pointer += bits_per_pixel;
+        if storage.pointer >= 8 {
             storage.index += 1;
-            current_bit = 0;
+            storage.pointer -= 8;
         }
-        storage.pointer = current_bit;
     }
 
     if !compact && (width * height * bits_per_pixel) % 8 != 0 {

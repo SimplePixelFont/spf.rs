@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-use crate::core::{
-    byte, Character, CharacterTable, DeserializeError, Layout, SerializeError, Table,
-    TableIdentifier,
-};
+use crate::core::byte;
 #[cfg(feature = "log")]
 use log::*;
 

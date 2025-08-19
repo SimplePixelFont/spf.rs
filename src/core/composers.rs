@@ -15,7 +15,6 @@
  */
 
 pub(crate) use super::*;
-use crate::{format, String, Vec};
 
 #[cfg(feature = "log")]
 pub(crate) use log::*;

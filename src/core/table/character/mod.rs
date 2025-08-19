@@ -35,6 +35,10 @@ impl Table for CharacterTable {
         if byte::get_bit(modifier_flags, 0) {
             character_table.use_advance_x = true;
         }
+        if byte::get_bit(modifier_flags, 1) {
+            character_table.use_pixmap_index = true;
+        }
+
         let configuration_flags = storage.next();
         if byte::get_bit(configuration_flags, 0) {
             character_table.constant_cluster_codepoints = Some(storage.next());
@@ -56,12 +60,14 @@ impl Table for CharacterTable {
             if character_table.use_advance_x {
                 character.advance_x = Some(storage.next());
             }
+            if character_table.use_pixmap_index {
+                character.pixmap_index = Some(storage.next());
+            }
             next_grapheme_cluster(
                 storage,
                 &mut character,
                 character_table.constant_cluster_codepoints,
             );
-            character.pixmap_index = storage.next();
             character_table.characters.push(character);
         }
 
@@ -71,13 +77,16 @@ impl Table for CharacterTable {
     fn serialize(
         &self,
         buffer: &mut crate::core::byte::ByteStorage,
-        layout: &Layout,
+        _layout: &Layout,
     ) -> Result<(), crate::core::SerializeError> {
         buffer.push(TableIdentifier::CharacterTable as u8);
 
         let mut modifier_flags = 0b00000000;
         if self.use_advance_x {
             modifier_flags |= 0b00000001;
+        }
+        if self.use_pixmap_index {
+            modifier_flags |= 0b00000010;
         }
         buffer.push(modifier_flags);
 
@@ -118,12 +127,14 @@ impl Table for CharacterTable {
             if self.use_advance_x {
                 buffer.push(character.advance_x.unwrap());
             }
+            if self.use_pixmap_index {
+                buffer.push(character.pixmap_index.unwrap());
+            }
             push_grapheme_cluster(
                 buffer,
                 self.constant_cluster_codepoints,
                 &character.grapheme_cluster,
             );
-            buffer.push(character.pixmap_index);
         }
 
         Ok(())

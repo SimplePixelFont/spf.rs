@@ -9,7 +9,6 @@ mod tests {
     use std::io;
 
     use super::common;
-    use log::debug;
     use spf::core::*;
 
     fn init_logger() {
@@ -18,13 +17,27 @@ mod tests {
             .is_test(true)
             .try_init();
     }
+    fn second_sample_pixmap_table() -> PixmapTable {
+        PixmapTable {
+            constant_width: None,
+            constant_height: Some(4),
+            constant_bits_per_pixel: Some(7),
+            color_table_indexes: Some(vec![0]),
+            pixmaps: vec![Pixmap {
+                custom_width: Some(1),
+                custom_height: None,
+                custom_bits_per_pixel: None,
+                data: vec![0b1000010, 0b1000010, 0b1000010, 0b1000010],
+            }],
+        }
+    }
 
     fn sample_pixmap_table() -> PixmapTable {
         PixmapTable {
             constant_width: None,
             constant_height: Some(4),
             constant_bits_per_pixel: Some(1),
-            color_table_indexes: None,
+            color_table_indexes: Some(vec![0]),
             pixmaps: vec![
                 Pixmap {
                     custom_width: Some(4),
@@ -79,33 +92,33 @@ mod tests {
 
         font.character_tables = vec![CharacterTable {
             use_advance_x: false,
+            use_pixmap_index: false,
             constant_cluster_codepoints: None,
             pixmap_table_indexes: Some(vec![0]),
             characters: vec![
                 Character {
                     advance_x: None,
+                    pixmap_index: None,
                     grapheme_cluster: "o".to_string(),
-                    pixmap_index: 0,
                 },
                 Character {
                     advance_x: None,
+                    pixmap_index: None,
                     grapheme_cluster: "w".to_string(),
-                    pixmap_index: 1,
                 },
                 Character {
                     advance_x: None,
+                    pixmap_index: None,
                     grapheme_cluster: "😊".to_string(),
-                    pixmap_index: 2,
                 },
                 Character {
                     advance_x: None,
+                    pixmap_index: None,
                     grapheme_cluster: "!=".to_string(),
-                    pixmap_index: 3,
                 },
             ],
         }];
-
-        font.pixmap_tables = vec![sample_pixmap_table()];
+        font.pixmap_tables = vec![sample_pixmap_table(), second_sample_pixmap_table()];
         font.color_tables = vec![sample_color_table()];
 
         font.compact = true;
@@ -132,19 +145,3 @@ mod tests {
         Ok(())
     }
 }
-//     #[test]
-//     fn print_string() -> Result<(), ()> {
-//         let printer = Printer::from_font(sample_layout());
-//         let text = printer.print("wow".to_string());
-
-//         #[rustfmt::skip]
-//         assert_eq!(text.data, vec![
-//             1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1,
-//             1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1,
-//             1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1,
-//             1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1,
-//         ]);
-
-//         Ok(())
-//     }
-// }
