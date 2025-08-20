@@ -18,8 +18,8 @@ use crate::core::byte;
 #[cfg(feature = "log")]
 use log::*;
 
-pub(crate) fn push_grapheme_cluster<'a>(
-    buffer: &'a mut byte::ByteStorage,
+pub(crate) fn push_grapheme_cluster(
+    buffer: &mut byte::ByteStorage,
     constant_cluster_codepoints: Option<u8>,
     string: &String,
 ) {

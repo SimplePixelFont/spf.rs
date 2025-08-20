@@ -110,9 +110,9 @@ pub struct Color {
 #[repr(u8)]
 #[rustfmt::skip]
 enum TableIdentifier {
-    CharacterTable = 0b00000001,
-    PixmapTable    = 0b00000010,
-    ColorTable     = 0b00000011,
+    Character = 0b00000001,
+    Pixmap    = 0b00000010,
+    Color     = 0b00000011,
 }
 
 impl TryFrom<u8> for TableIdentifier {
@@ -120,9 +120,9 @@ impl TryFrom<u8> for TableIdentifier {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0b00000001 => Ok(TableIdentifier::CharacterTable),
-            0b00000010 => Ok(TableIdentifier::PixmapTable),
-            0b00000011 => Ok(TableIdentifier::ColorTable),
+            0b00000001 => Ok(TableIdentifier::Character),
+            0b00000010 => Ok(TableIdentifier::Pixmap),
+            0b00000011 => Ok(TableIdentifier::Color),
             _ => Err(DeserializeError::UnsupportedTableIdentifier),
         }
     }
@@ -168,17 +168,17 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, DeserializeError> {
 
     while storage.index < storage.bytes.len() - 1 {
         match storage.next().try_into().unwrap() {
-            TableIdentifier::CharacterTable => {
+            TableIdentifier::Character => {
                 layout
                     .character_tables
                     .push(CharacterTable::deserialize(&mut storage, &layout)?);
             }
-            TableIdentifier::PixmapTable => {
+            TableIdentifier::Pixmap => {
                 layout
                     .pixmap_tables
                     .push(PixmapTable::deserialize(&mut storage, &layout)?);
             }
-            TableIdentifier::ColorTable => {
+            TableIdentifier::Color => {
                 layout
                     .color_tables
                     .push(ColorTable::deserialize(&mut storage, &layout)?);
@@ -193,16 +193,16 @@ pub fn layout_to_data(layout: &Layout) -> Result<Vec<u8>, SerializeError> {
     let mut buffer = byte::ByteStorage::new();
     composers::push_signature(&mut buffer);
     composers::push_version(&mut buffer, &layout.version);
-    composers::push_header(&mut buffer, &layout);
+    composers::push_header(&mut buffer, layout);
 
     for character_table in &layout.character_tables {
-        character_table.serialize(&mut buffer, &layout)?;
+        character_table.serialize(&mut buffer, layout)?;
     }
     for pixmap_table in &layout.pixmap_tables {
-        pixmap_table.serialize(&mut buffer, &layout)?;
+        pixmap_table.serialize(&mut buffer, layout)?;
     }
     for color_table in &layout.color_tables {
-        color_table.serialize(&mut buffer, &layout)?;
+        color_table.serialize(&mut buffer, layout)?;
     }
 
     Ok(buffer.bytes)

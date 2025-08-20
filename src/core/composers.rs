@@ -37,7 +37,7 @@ pub(crate) fn push_version(buffer: &mut byte::ByteStorage, version: &Version) {
     });
 }
 
-pub(crate) fn push_header<'a>(buffer: &mut byte::ByteStorage, layout: &Layout) {
+pub(crate) fn push_header(buffer: &mut byte::ByteStorage, layout: &Layout) {
     let mut font_properties = 0b00000000;
     if layout.compact {
         font_properties |= 0b00000001;

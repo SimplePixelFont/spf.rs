@@ -52,7 +52,7 @@ impl Table for ColorTable {
         buffer: &mut crate::core::byte::ByteStorage,
         _layout: &Layout,
     ) -> Result<(), crate::core::SerializeError> {
-        buffer.push(TableIdentifier::ColorTable as u8);
+        buffer.push(TableIdentifier::Color as u8);
 
         buffer.push(0b00000000); // Modifiers byte
 

@@ -20,7 +20,7 @@ use crate::core::{Pixmap, SerializeError};
 #[cfg(feature = "log")]
 pub(crate) use log::*;
 
-pub(crate) fn push_width<'a>(
+pub(crate) fn push_width(
     buffer: &mut byte::ByteStorage,
     constant_width: Option<u8>,
     custom_width: Option<u8>,

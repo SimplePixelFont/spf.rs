@@ -56,15 +56,13 @@ pub(crate) fn next_grapheme_cluster(
         );
         codepoint_count += 1;
 
-        if constant_cluster_codepoints.is_some() {
-            if codepoint_count == constant_cluster_codepoints.unwrap() {
+        if let Some(constant_cluster_codepoints) = constant_cluster_codepoints {
+            if codepoint_count == constant_cluster_codepoints {
                 end_cluster = true;
             }
-        } else {
-            if storage.peek() == 0 {
-                end_cluster = true;
-                storage.index += 1;
-            }
+        } else if storage.peek() == 0 {
+            end_cluster = true;
+            storage.index += 1;
         }
     }
 

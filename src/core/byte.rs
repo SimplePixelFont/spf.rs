@@ -47,6 +47,10 @@ impl ByteStorage {
         }
     }
     pub(crate) fn incomplete_push(&mut self, byte: u8, number_of_bits: u8) {
+        if number_of_bits == 8 {
+            self.push(byte);
+            return;
+        }
         if self.pointer == 0 {
             self.bytes.push(byte);
             self.pointer += number_of_bits;
@@ -88,6 +92,9 @@ impl ByteStorage {
         }
     }
     pub(crate) fn incomplete_get(&self, number_of_bits: u8) -> u8 {
+        if number_of_bits == 8 {
+            return self.get();
+        }
         self.get() << (8 - number_of_bits) >> (8 - number_of_bits)
     }
     pub(crate) fn next(&mut self) -> u8 {

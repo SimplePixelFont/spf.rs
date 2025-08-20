@@ -79,7 +79,7 @@ impl Table for CharacterTable {
         buffer: &mut crate::core::byte::ByteStorage,
         _layout: &Layout,
     ) -> Result<(), crate::core::SerializeError> {
-        buffer.push(TableIdentifier::CharacterTable as u8);
+        buffer.push(TableIdentifier::Character as u8);
 
         let mut modifier_flags = 0b00000000;
         if self.use_advance_x {

@@ -74,7 +74,7 @@ impl Table for PixmapTable {
         buffer: &mut crate::core::byte::ByteStorage,
         layout: &Layout,
     ) -> Result<(), crate::core::SerializeError> {
-        buffer.push(TableIdentifier::PixmapTable as u8);
+        buffer.push(TableIdentifier::Pixmap as u8);
 
         buffer.push(0b00000000); // Modifiers Byte
 

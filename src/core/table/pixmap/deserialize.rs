@@ -76,7 +76,7 @@ pub(crate) fn next_pixmap(
     let width = constant_width.or(pixmap.custom_width).unwrap();
     let height = constant_height.or(pixmap.custom_height).unwrap();
 
-    let pixels_used = width * height;
+    let pixels_used = width as u16 * height as u16;
     for _ in 0..pixels_used {
         let pixel = storage.incomplete_get(bits_per_pixel);
         pixmap.data.push(pixel);
