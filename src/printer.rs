@@ -1,7 +1,25 @@
-//! Render texts onto a pixmap-like surface using a font [`Layout`].
+/*
+ * Copyright 2025 SimplePixelFont
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//! Render texts onto a bitmap using a font [`Layout`].
 
 use crate::cache::*;
 use crate::core::*;
+
+use crate::{vec, String, ToOwned, ToString, Vec};
 
 /// A [`Surface`] is a one dimensional bitmap with blitting and manipulation methods.
 ///
@@ -152,44 +170,6 @@ impl Surface {
             }
         }
     }
-    /// Returns a [`Vec<T>`] by replacing all the indicies in the [`Surface::data`] with values
-    /// provided.
-    ///
-    /// This method is provided for convience in replacing all the values of the
-    /// [`Surface`]'s [`Surface::data`] field with predefined values. Please note that `T` must
-    /// implement the [`Copy`] trait.
-    ///
-    /// More in depth, this method will iterate over all values of the [`Surface::data`] field, and
-    /// use the value to determine the index of the value to use within the `values` vector.
-    /// Given a surface is composed of `0` and `1`, you must supply at least two items for
-    /// the `values` vector.
-    ///
-    /// # Example
-    /// ```
-    /// # use spf::printer::Surface;
-    /// let surface = Surface::blank(3,1);
-    ///
-    /// assert_eq!(surface.replace(&['a']), vec!['a', 'a', 'a']);
-    /// ```
-    #[deprecated]
-    pub fn replace<T: Copy>(&self, values: &[T]) -> Vec<T> {
-        let mut returner: Vec<T> = vec![];
-        for flag in self.data.iter() {
-            returner.push(values[*flag]);
-        }
-        returner
-    }
-    /// Return a [`Vec<T>`] by flattening out an array replacing each value.
-    #[deprecated]
-    pub fn flatten_replace<T: Copy>(&self, values: &[Vec<T>]) -> Vec<T> {
-        let mut returner: Vec<T> = vec![];
-        for flag in self.data.iter() {
-            for part in values[*flag].iter() {
-                returner.push(*part);
-            }
-        }
-        returner
-    }
     /// Flips a surface
     /// # Example
     ///
@@ -282,6 +262,7 @@ impl Surface {
 //     state: usize,
 // }
 
+#[derive(Debug)]
 /// Printer is a struct for generating [`Surface`]'s
 ///
 /// A [`Printer`] struct will hold a [`Layout`] struct to decide the font to
@@ -386,12 +367,4 @@ impl Printer {
         }
         surface
     }
-
-    // pub fn pretty_print(
-    //     &self,
-    //     text: &'static str,
-    //     processor: fn(PixelProcess) -> usize,
-    // ) -> Surface {
-    //     todo!()
-    // }
 }

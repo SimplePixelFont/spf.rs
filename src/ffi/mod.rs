@@ -1,4 +1,21 @@
-#![allow(clippy::missing_safety_doc)] // FFI will always be unsafe no reason to document :)
+/*
+ * Copyright 2025 SimplePixelFont
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#![allow(clippy::missing_safety_doc)] // FFI will always be unsafe, no reason to document :)
+#![allow(non_snake_case)]
 //! A C compatible FFI layer for `spf.rs`.
 //!
 //! This module provides a thin wrapper around all the modules in `spf.rs` that allows it to be used
@@ -25,21 +42,21 @@ use crate::cache::*;
 use crate::core::*;
 use crate::printer::*;
 
-use log::*;
+use crate::{ToOwned, ToString, Vec};
 
-use std::ffi::*;
-use std::slice;
+use core::ffi::*;
+use core::slice;
 
 pub mod converters;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct SPFLayout {
     pub header: SPFHeader,
     pub body: SPFBody,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct SPFHeader {
     pub configuration_flags: SPFConfigurationFlags,
@@ -47,29 +64,31 @@ pub struct SPFHeader {
     pub configuration_values: SPFConfigurationValues,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct SPFConfigurationFlags {
     pub constant_cluster_codepoints: c_uchar,
     pub constant_width: c_uchar,
     pub constant_height: c_uchar,
+    pub custom_bits_per_pixel: c_uchar,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct SPFModifierFlags {
     pub compact: c_uchar,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct SPFConfigurationValues {
     pub constant_cluster_codepoints: c_uchar,
     pub constant_width: c_uchar,
     pub constant_height: c_uchar,
+    pub custom_bits_per_pixel: c_uchar,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct SPFCharacter {
     pub grapheme_cluster: *const c_char,
@@ -79,13 +98,14 @@ pub struct SPFCharacter {
     pub pixmap_length: c_ulong,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct SPFBody {
     pub characters: *mut SPFCharacter,
     pub characters_length: c_ulong,
 }
 
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 /// Used to represent a [`Vec<u8>`] in the C ABI. This is simply a `u_char` array on the heap which can be reconstructed with the pointer `data` and length `data_length`.
 pub struct SPFData {
@@ -93,6 +113,7 @@ pub struct SPFData {
     pub data_length: c_ulong,
 }
 
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct SPFCharacterCache {
     pub mappings_keys: *mut *const c_char,
@@ -100,6 +121,7 @@ pub struct SPFCharacterCache {
     pub mappings_length: c_ulong,
 }
 
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct SPFPrinter {
     pub font: SPFLayout,
@@ -107,6 +129,7 @@ pub struct SPFPrinter {
     pub letter_spacing: c_ulong,
 }
 
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct SPFSurface {
     pub width: c_ulong,
@@ -125,7 +148,7 @@ pub extern "C" fn spf_core_layout_to_data(layout: SPFLayout) -> SPFData {
     let mut data = layout_to_data(&layout.try_into().unwrap()).into_boxed_slice();
     let data_length = data.len() as c_ulong;
     let data_ptr = data.as_mut_ptr();
-    std::mem::forget(data);
+    core::mem::forget(data);
     SPFData {
         data: data_ptr,
         data_length,
@@ -146,17 +169,6 @@ pub unsafe extern "C" fn spf_core_layout_from_data(
     let data = unsafe { slice::from_raw_parts(pointer, length as usize) };
     let layout = layout_from_data(data.to_owned()).unwrap();
     layout.try_into().unwrap()
-}
-
-#[no_mangle]
-pub extern "C" fn spf_log_LOGGER_set_log_level(log_level: c_uchar) {
-    let log_level = match log_level {
-        0 => LevelFilter::Off,
-        1 => LevelFilter::Info,
-        2 => LevelFilter::Debug,
-        _ => panic!("Invalid log level."),
-    };
-    set_max_level(log_level);
 }
 
 #[no_mangle]

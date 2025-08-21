@@ -1,3 +1,7 @@
+### Header Files Generation (used by BinaryBuilder) ###
+run(`sh -c "cargo install cbindgen"`)
+run(`sh -c "cbindgen --output target/spf.h --lang c --cpp-compat"`)
+
 ### BinaryBuilder Builds ###
 
 jl_platforms = [
@@ -34,13 +38,15 @@ run(`sh -c "cargo install --locked cargo-xwin"`)
 run(`sh -c "rustup target add x86_64-pc-windows-msvc"`)
 run(`sh -c "cargo xwin build --target x86_64-pc-windows-msvc --release"`)
 
+# Will be figured out during 0.6.x
 # WASM build
-run(`sh -c "rustup target add wasm32-unknown-unknown"`)
-run(`sh -c "cargo build --target wasm32-unknown-unknown --release"`)
+# run(`sh -c "rustup target add wasm32-unknown-unknown"`)
+# run(`sh -c "cargo build --target wasm32-unknown-unknown --release"`)
 
-### Header Files Generation ###
-run(`sh -c "cargo install cbindgen"`)
-run(`sh -c "cbindgen --output bindspf.h --lang c --cpp-compat"`)
+# Will be figured out during 0.6.x
+### WASM-Bindgen Generation ###
+# run(`sh -c "cargo install wasm-bindgen-cli"`)
+# run(`sh -c "wasm-bindgen --out-dir target/wasm32-unknown-unknown/dist target/wasm32-unknown-unknown/release/spf.wasm"`)
 
 ### Bring Builds Together ###
 mkdir("artifacts")
@@ -53,14 +59,27 @@ using Pkg
 Pkg.add("Tar")
 using Tar
 
-mkdir("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-pc-windows-msvc")
-mv("target/x86_64-pc-windows-msvc/release/spf.dll", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-pc-windows-msvc/spf.dll")
-Tar.create("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-pc-windows-msvc", "artifacts/spf.v0.5.0.x86_64-pc-windows-msvc.tar.gz")
+mkdir("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc")
+mkpath("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/lib")
+mkpath("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/include")
+mkpath("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/share/licenses/spf")
 
-mkdir("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown")
-mv("target/wasm32-unknown-unknown/release/spf.wasm", "target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/spf.wasm")
-Tar.create("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown", "artifacts/spf.v0.5.0.wasm32-unknown-unknown.tar.gz")
+mv("target/x86_64-pc-windows-msvc/release/spf.dll", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/lib/spf.dll")
+cp("target/spf.h", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/include/spf.h")
+cp("LICENSE-APACHE", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/share/licenses/spf/LICENSE-APACHE")
 
-mkdir("headers")
-mv("bindspf.h", "headers/bindspf.h")
-Tar.create("headers", "artifacts/headers.tar.gz")
+Tar.create("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc", "artifacts/spf.v0.5.0.x86_64-w64-msvc.tar.gz")
+
+# Will be figured out during 0.6.x
+# mkdir("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown")
+# mkpath("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/lib")
+# mkpath("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/include")
+# mkpath("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/share/licenses/spf")
+
+# mv("target/wasm32-unknown-unknown/release/spf.wasm", "target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/lib/spf_pure.wasm")
+# mv("target/wasm32-unknown-unknown/dist/spf_bg.wasm", "target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/lib/spf_bg.wasm")
+# mv("target/wasm32-unknown-unknown/dist/spf.js", "target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/include/spf.js")
+# mv("target/wasm32-unknown-unknown/dist/spf_bg.js", "target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/include/spf_bg.js")
+# cp("LICENSE-APACHE", "target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown/share/licenses/spf/LICENSE-APACHE")
+
+# Tar.create("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown", "artifacts/spf.v0.5.0.wasm32-unknown-unknown.tar.gz")
