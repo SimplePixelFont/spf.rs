@@ -17,11 +17,11 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["log", "std"]
+default = ["std", "log", "ffi"]
 std = []
-# log = ["dep:log"]
+log = ["dep:log"]
 # ergonomics = []
-# ffi = []
+ffi = []
 # articles = []
 
 [dependencies]

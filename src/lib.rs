@@ -68,9 +68,9 @@ pub mod core;
 // #[cfg(feature = "ergonomics")]
 // pub mod ergonomics;
 
-// #[cfg_attr(docsrs, doc(cfg(feature = "ffi")))]
-// #[cfg(feature = "ffi")]
-// pub mod ffi;
+#[cfg_attr(docsrs, doc(cfg(feature = "ffi")))]
+#[cfg(feature = "ffi")]
+pub mod ffi;
 
 // #[cfg_attr(docsrs, doc(cfg(feature = "articles")))]
 // #[cfg(feature = "articles")]
