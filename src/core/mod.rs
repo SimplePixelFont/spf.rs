@@ -39,7 +39,7 @@ use crate::{String, Vec};
 #[derive(Default, Debug, Clone)]
 pub enum Version {
     #[default]
-    FV0,
+    FV0 = 0b00000000,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -124,6 +124,17 @@ impl TryFrom<u8> for TableIdentifier {
             0b00000010 => Ok(TableIdentifier::Pixmap),
             0b00000011 => Ok(TableIdentifier::Color),
             _ => Err(DeserializeError::UnsupportedTableIdentifier),
+        }
+    }
+}
+
+impl TryFrom<u8> for Version {
+    type Error = DeserializeError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0b00000000 => Ok(Version::FV0),
+            _ => Err(DeserializeError::UnsupportedVersion),
         }
     }
 }
