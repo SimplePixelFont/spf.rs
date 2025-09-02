@@ -17,16 +17,17 @@
 #[cfg(feature = "std")]
 use std::ffi::*;
 
+#[cfg(not(feature = "std"))]
+use alloc::ffi::*;
+
 #[cfg(feature = "std")]
 use std::str::Utf8Error;
 
 #[cfg(not(feature = "std"))]
 use core::str::Utf8Error;
 
-#[cfg(not(feature = "std"))]
-use alloc::ffi::*;
-
 use super::*;
+use crate::{ToOwned, Vec};
 
 #[derive(Debug, Clone)]
 pub enum ConversionError {
@@ -74,12 +75,12 @@ impl TryInto<Character> for &SPFCharacter {
             let advance_x = if self.has_advance_x == 0 {
                 None
             } else {
-                Some(self.advance_x as u8)
+                Some(self.advance_x)
             };
             let pixmap_index = if self.has_pixmap_index == 0 {
                 None
             } else {
-                Some(self.pixmap_index as u8)
+                Some(self.pixmap_index)
             };
 
             Ok(Character {
@@ -126,17 +127,17 @@ impl TryInto<Pixmap> for &SPFPixmap {
             let custom_width = if self.has_custom_width == 0 {
                 None
             } else {
-                Some(self.custom_width as u8)
+                Some(self.custom_width)
             };
             let custom_height = if self.has_custom_height == 0 {
                 None
             } else {
-                Some(self.custom_height as u8)
+                Some(self.custom_height)
             };
             let custom_bits_per_pixel = if self.has_custom_bits_per_pixel == 0 {
                 None
             } else {
-                Some(self.custom_bits_per_pixel as u8)
+                Some(self.custom_bits_per_pixel)
             };
 
             Ok(Pixmap {
@@ -171,11 +172,11 @@ impl TryInto<Color> for &SPFColor {
             custom_alpha: if self.has_custom_alpha == 0 {
                 None
             } else {
-                Some(self.custom_alpha as u8)
+                Some(self.custom_alpha)
             },
-            r: self.r as u8,
-            g: self.g as u8,
-            b: self.b as u8,
+            r: self.r,
+            g: self.g,
+            b: self.b,
         })
     }
 }
@@ -257,17 +258,17 @@ impl TryInto<PixmapTable> for &SPFPixmapTable {
                 constant_width: if self.has_constant_width == 0 {
                     None
                 } else {
-                    Some(self.constant_width as u8)
+                    Some(self.constant_width)
                 },
                 constant_height: if self.has_constant_height == 0 {
                     None
                 } else {
-                    Some(self.constant_height as u8)
+                    Some(self.constant_height)
                 },
                 constant_bits_per_pixel: if self.has_constant_bits_per_pixel == 0 {
                     None
                 } else {
-                    Some(self.constant_bits_per_pixel as u8)
+                    Some(self.constant_bits_per_pixel)
                 },
                 color_table_indexes: if self.has_color_table_indexes == 0 {
                     None
@@ -357,7 +358,7 @@ impl TryInto<CharacterTable> for &SPFCharacterTable {
                 constant_cluster_codepoints: if self.has_constant_cluster_codepoints == 0 {
                     None
                 } else {
-                    Some(self.constant_cluster_codepoints as u8)
+                    Some(self.constant_cluster_codepoints)
                 },
                 pixmap_table_indexes: if self.has_pixmap_table_indexes == 0 {
                     None
@@ -415,7 +416,7 @@ impl TryInto<ColorTable> for &SPFColorTable {
                 constant_alpha: if self.has_constant_alpha == 0 {
                     None
                 } else {
-                    Some(self.constant_alpha as u8)
+                    Some(self.constant_alpha)
                 },
                 colors,
             })

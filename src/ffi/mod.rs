@@ -39,8 +39,7 @@
 //! All functions that return a [`Vec<u8>`] return a [`SPFData`] struct instead.
 
 use crate::core::*;
-
-// use crate::{ToOwned, ToString, Vec};
+use crate::ToOwned;
 
 use core::ffi::*;
 use core::slice;

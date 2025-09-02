@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-use crate::core::byte;
-use crate::core::Pixmap;
+use crate::core::{byte, Pixmap};
 
 #[cfg(feature = "log")]
 use log::*;

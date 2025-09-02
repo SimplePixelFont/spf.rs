@@ -17,6 +17,7 @@
 use crate::core::{
     Color, ColorTable, DeserializeError, Layout, SerializeError, Table, TableIdentifier,
 };
+use crate::Vec;
 
 impl Table for ColorTable {
     fn deserialize(
