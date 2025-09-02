@@ -64,9 +64,9 @@ pub mod core;
 // #[cfg(feature = "printer")]
 // pub mod printer;
 
-// #[cfg_attr(docsrs, doc(cfg(feature = "ergonomics")))]
-// #[cfg(feature = "ergonomics")]
-// pub mod ergonomics;
+#[cfg_attr(docsrs, doc(cfg(feature = "ergonomics")))]
+#[cfg(feature = "ergonomics")]
+pub mod ergonomics;
 
 // #[cfg_attr(docsrs, doc(cfg(feature = "ffi")))]
 // #[cfg(feature = "ffi")]
