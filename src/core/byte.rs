@@ -15,6 +15,8 @@
  */
 
 use crate::Vec;
+// temporary
+use crate::{format, String};
 
 #[derive(Debug)]
 pub(crate) struct ByteStorage {

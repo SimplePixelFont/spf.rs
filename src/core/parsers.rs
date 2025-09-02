@@ -33,11 +33,8 @@ pub(crate) fn next_version(
     storage: &mut byte::ByteStorage,
 ) -> Result<(), DeserializeError> {
     let version = storage.next();
-    let version = match version {
-        0b00000000 => Ok(Version::FV0),
-        _ => Err(DeserializeError::UnsupportedVersion),
-    };
-    layout.version = version?;
+    let version = Version::try_from(version)?;
+    layout.version = version;
     Ok(())
 }
 

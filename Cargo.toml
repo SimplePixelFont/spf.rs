@@ -1,6 +1,6 @@
 [package]
 name = "spf"
-version = "0.7.0-alpha.0"
+version = "0.7.0-beta.0"
 description = ".spf (Simple Pixel Font) file parser"
 repository = "https://github.com/SimplePixelFont/spf.rs"
 license = "Apache-2.0"
@@ -17,12 +17,12 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["log", "std", "ergonomics"]
+default = ["std", "log", "ergonomics", "ffi", "articles"]
 std = []
-# log = ["dep:log"]
+log = ["dep:log"]
 ergonomics = []
-# ffi = []
-# articles = []
+ffi = []
+articles = []
 
 [dependencies]
 log = { version = "0.4.27", optional = true }
