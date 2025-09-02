@@ -56,6 +56,6 @@ pub mod core;
 #[cfg(feature = "ffi")]
 pub mod ffi;
 
-// #[cfg_attr(docsrs, doc(cfg(feature = "articles")))]
-// #[cfg(feature = "articles")]
-// pub mod articles;
+#[cfg_attr(docsrs, doc(cfg(feature = "articles")))]
+#[cfg(feature = "articles")]
+pub mod articles;

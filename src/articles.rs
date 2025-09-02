@@ -22,15 +22,15 @@ pub(crate) use crate::core::*;
 // pub(crate) use crate::printer::*;
 pub(crate) use crate::*;
 
-/// Guide for `spf.rs` printer module and creating text renderings.
-pub mod printer_guide {
-    #![doc = include_str!("../res/articles/PrinterModuleAndTextRenderings.md")]
-}
+// /// Guide for `spf.rs` printer module and creating text renderings.
+// pub mod printer_guide {
+//     #![doc = include_str!("../res/articles/PrinterModuleAndTextRenderings.md")]
+// }
 
-/// Guide for spf.rs basics and understanding the file format via Rust.
-pub mod getting_started {
-    #![doc = include_str!("../res/articles/GettingStartedInRust.md")]
-}
+// /// Guide for spf.rs basics and understanding the file format via Rust.
+// pub mod getting_started {
+//     #![doc = include_str!("../res/articles/GettingStartedInRust.md")]
+// }
 
 /// Guide for installing `spf.rs` crate and dynamic FFI library.
 pub mod installing {
