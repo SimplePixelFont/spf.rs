@@ -28,8 +28,8 @@
 //! can be used to convert between the structs and the binary data.
 
 pub(crate) mod byte;
-pub(crate) mod composers;
-pub(crate) mod parsers;
+pub(crate) mod deserialize;
+pub(crate) mod serialize;
 pub(crate) mod table;
 
 use crate::{String, Vec};
@@ -173,9 +173,9 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, DeserializeError> {
     };
     let mut layout = Layout::default();
 
-    parsers::next_signature(&mut storage)?;
-    parsers::next_version(&mut layout, &mut storage)?;
-    parsers::next_header(&mut layout, &mut storage)?;
+    deserialize::next_signature(&mut storage)?;
+    deserialize::next_version(&mut layout, &mut storage)?;
+    deserialize::next_header(&mut layout, &mut storage)?;
 
     while storage.index < storage.bytes.len() - 1 {
         match storage.next().try_into().unwrap() {
@@ -202,9 +202,9 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, DeserializeError> {
 /// Encodes the provided font [`Layout`] into a [`Vec<u8>`].
 pub fn layout_to_data(layout: &Layout) -> Result<Vec<u8>, SerializeError> {
     let mut buffer = byte::ByteStorage::new();
-    composers::push_signature(&mut buffer);
-    composers::push_version(&mut buffer, &layout.version);
-    composers::push_header(&mut buffer, layout);
+    serialize::push_signature(&mut buffer);
+    serialize::push_version(&mut buffer, &layout.version);
+    serialize::push_header(&mut buffer, layout);
 
     for character_table in &layout.character_tables {
         character_table.serialize(&mut buffer, layout)?;

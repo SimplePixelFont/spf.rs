@@ -9,7 +9,10 @@ mod tests {
     use std::io;
 
     use super::common;
-    use spf::core::*;
+    use spf::{
+        core::*,
+        ergonomics::{CharacterBuilder, CharacterTableBuilder, ColorTableBuilder, LayoutBuilder},
+    };
 
     fn init_logger() {
         let _ = env_logger::builder()
@@ -143,5 +146,20 @@ mod tests {
         common::read_from_file("./res/sampleToyFont.spf", &mut buffer)?;
         let _font = layout_from_data(buffer);
         Ok(())
+    }
+
+    #[test]
+    fn builder_pattern() {
+        init_logger();
+        let mut layout = LayoutBuilder::default();
+        layout.compact(true);
+
+        let palette = ColorTableBuilder::default()
+            .constant_alpha(255)
+            .rgb(0, 0, 0)
+            .rgb(255, 255, 255);
+
+        let o = CharacterBuilder::from("o");
+        let characters = CharacterTableBuilder::default();
     }
 }
