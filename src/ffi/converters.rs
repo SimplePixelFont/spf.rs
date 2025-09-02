@@ -1,21 +1,49 @@
-use std::collections::HashMap;
+/*
+ * Copyright 2025 SimplePixelFont
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#[cfg(feature = "std")]
+use std::ffi::*;
+
+#[cfg(feature = "std")]
+use std::str::Utf8Error;
+
+#[cfg(not(feature = "std"))]
+use core::str::Utf8Error;
+
+#[cfg(not(feature = "std"))]
+use alloc::ffi::*;
+
+use hashbrown::HashMap;
 
 use super::*;
 
 #[derive(Debug, Clone)]
 pub enum ConversionError {
-    NulError(std::ffi::NulError),
-    Utf8Error(std::str::Utf8Error),
+    NulError(NulError),
+    Utf8Error(Utf8Error),
 }
 
-impl From<std::ffi::NulError> for ConversionError {
-    fn from(err: std::ffi::NulError) -> Self {
+impl From<NulError> for ConversionError {
+    fn from(err: NulError) -> Self {
         ConversionError::NulError(err)
     }
 }
 
-impl From<std::str::Utf8Error> for ConversionError {
-    fn from(err: std::str::Utf8Error) -> Self {
+impl From<Utf8Error> for ConversionError {
+    fn from(err: Utf8Error) -> Self {
         ConversionError::Utf8Error(err)
     }
 }
@@ -26,18 +54,18 @@ impl TryFrom<Character> for SPFCharacter {
     fn try_from(character: Character) -> Result<Self, Self::Error> {
         let pixmap_len = character.pixmap.len();
         let pixmap_ptr = if pixmap_len == 0 {
-            std::ptr::null_mut()
+            core::ptr::null_mut()
         } else {
             let mut pixmap_vec = character.pixmap.into_boxed_slice();
             let ptr = pixmap_vec.as_mut_ptr();
-            std::mem::forget(pixmap_vec);
+            core::mem::forget(pixmap_vec);
             ptr
         };
 
         let grapheme_cluster = CString::new(character.grapheme_cluster.as_str())?;
 
         let grapheme_cluster_ptr = grapheme_cluster.as_ptr();
-        std::mem::forget(grapheme_cluster);
+        core::mem::forget(grapheme_cluster);
 
         Ok(SPFCharacter {
             grapheme_cluster: grapheme_cluster_ptr,
@@ -89,11 +117,11 @@ impl TryFrom<Body> for SPFBody {
         }
 
         let characters_ptr = if characters_len == 0 {
-            std::ptr::null_mut()
+            core::ptr::null_mut()
         } else {
             let mut characters_raw = characters.into_boxed_slice();
             let ptr = characters_raw.as_mut_ptr();
-            std::mem::forget(characters_raw);
+            core::mem::forget(characters_raw);
             ptr
         };
 
@@ -135,6 +163,8 @@ impl TryFrom<Layout> for SPFLayout {
                         as u8,
                     constant_width: layout.header.configuration_flags.constant_width as u8,
                     constant_height: layout.header.configuration_flags.constant_height as u8,
+                    custom_bits_per_pixel: layout.header.configuration_flags.custom_bits_per_pixel
+                        as u8,
                 },
                 modifier_flags: SPFModifierFlags {
                     compact: layout.header.modifier_flags.compact as u8,
@@ -154,6 +184,11 @@ impl TryFrom<Layout> for SPFLayout {
                         .header
                         .configuration_values
                         .constant_height
+                        .unwrap_or(0),
+                    custom_bits_per_pixel: layout
+                        .header
+                        .configuration_values
+                        .custom_bits_per_pixel
                         .unwrap_or(0),
                 },
             },
@@ -185,6 +220,12 @@ impl TryInto<Layout> for SPFLayout {
             Some(self.header.configuration_values.constant_height)
         };
 
+        let custom_bits_per_pixel = if self.header.configuration_values.custom_bits_per_pixel == 0 {
+            None
+        } else {
+            Some(self.header.configuration_values.custom_bits_per_pixel)
+        };
+
         Ok(Layout {
             header: Header {
                 configuration_flags: ConfigurationFlags {
@@ -195,6 +236,8 @@ impl TryInto<Layout> for SPFLayout {
                         != 0,
                     constant_width: self.header.configuration_flags.constant_width != 0,
                     constant_height: self.header.configuration_flags.constant_height != 0,
+                    custom_bits_per_pixel: self.header.configuration_flags.custom_bits_per_pixel
+                        != 0,
                 },
                 modifier_flags: ModifierFlags {
                     compact: self.header.modifier_flags.compact != 0,
@@ -203,6 +246,7 @@ impl TryInto<Layout> for SPFLayout {
                     constant_cluster_codepoints,
                     constant_width,
                     constant_height,
+                    custom_bits_per_pixel,
                 },
             },
             body: self.body.try_into()?,
@@ -221,7 +265,7 @@ impl TryFrom<CharacterCache> for SPFCharacterCache {
                 let utf8 =
                     CString::new(a.to_string().as_bytes().to_vec().into_boxed_slice()).unwrap();
                 let utf8_ptr = utf8.as_ptr();
-                std::mem::forget(utf8);
+                core::mem::forget(utf8);
                 utf8_ptr as *const c_char
             })
             .collect();
@@ -229,20 +273,20 @@ impl TryFrom<CharacterCache> for SPFCharacterCache {
         let length = keys.len();
 
         let keys_ptr = if length == 0 {
-            std::ptr::null_mut()
+            core::ptr::null_mut()
         } else {
             let mut keys_vec = keys.into_boxed_slice();
             let ptr = keys_vec.as_mut_ptr();
-            std::mem::forget(keys_vec);
+            core::mem::forget(keys_vec);
             ptr
         };
 
         let values_ptr = if length == 0 {
-            std::ptr::null_mut()
+            core::ptr::null_mut()
         } else {
             let mut values_vec = values.into_boxed_slice();
             let ptr = values_vec.as_mut_ptr();
-            std::mem::forget(values_vec);
+            core::mem::forget(values_vec);
             ptr
         };
 
@@ -281,11 +325,11 @@ impl TryFrom<Surface> for SPFSurface {
     fn try_from(surface: Surface) -> Result<Self, Self::Error> {
         let data_len = surface.data.len();
         let data_ptr = if data_len == 0 {
-            std::ptr::null_mut()
+            core::ptr::null_mut()
         } else {
             let mut data_vec = surface.data.into_boxed_slice();
             let ptr = data_vec.as_mut_ptr();
-            std::mem::forget(data_vec);
+            core::mem::forget(data_vec);
             ptr
         };
         Ok(SPFSurface {

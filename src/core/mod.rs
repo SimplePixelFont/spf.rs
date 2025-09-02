@@ -1,4 +1,19 @@
-#![allow(clippy::mut_range_bound)]
+/*
+ * Copyright 2025 SimplePixelFont
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 //! Essential functions and structs used by both the native crate and FFI interface.
 //!
 //! <div class="warning">
@@ -14,288 +29,181 @@
 
 pub(crate) mod byte;
 pub(crate) mod composers;
-pub(crate) mod helpers;
 pub(crate) mod parsers;
+pub(crate) mod table;
 
-use log::*;
+use crate::{String, Vec};
 
-#[derive(Default, Debug, Clone)]
+#[repr(u8)]
 #[non_exhaustive]
-/// Defines the configuration flags for a font [`Layout`] struct.
-///
-/// Each field is a [`bool`] and in the binary file will be represented by a single bit.
-pub struct ConfigurationFlags {
-    pub constant_cluster_codepoints: bool,
-    pub constant_width: bool,
-    pub constant_height: bool,
+#[derive(Default, Debug, Clone)]
+pub enum Version {
+    #[default]
+    FV0,
 }
 
 #[derive(Default, Debug, Clone)]
-#[non_exhaustive]
-/// Defines the modifier flags for a font [`Layout`] struct.
-///
-/// If the field is set to true, then the modifer will be applied to the font [`Layout`] struct.
-/// Each field is a [`bool`] and in the binary file will be represented by a single bit.
-pub struct ModifierFlags {
-    /// If enabled (value set to true), font body will be compacted, removing padding bytes after each character definition. Without compact enabled, [`layout_to_data`] will end each character bitmap with padding 0's if `(constant_size * custom_size) % 8` results in a remainder that is not 0. The number of padding 0's is the remainder of the formula above.
+pub struct Layout {
+    pub version: Version,
+
     pub compact: bool,
+
+    pub character_tables: Vec<CharacterTable>,
+    pub color_tables: Vec<ColorTable>,
+    pub pixmap_tables: Vec<PixmapTable>,
 }
 
 #[derive(Default, Debug, Clone)]
-#[non_exhaustive]
-/// Defines the required values for a [`Layout`] structs.
-pub struct ConfigurationValues {
-    /// Sets a constant number of utf8 encoded codepoints
-    /// that will be used for each grapheme cluster within a character definition.
-    pub constant_cluster_codepoints: Option<u8>,
+pub struct PixmapTable {
     pub constant_width: Option<u8>,
     pub constant_height: Option<u8>,
+    pub constant_bits_per_pixel: Option<u8>,
+
+    pub color_table_indexes: Option<Vec<u8>>,
+
+    pub pixmaps: Vec<Pixmap>,
 }
 
 #[derive(Default, Debug, Clone)]
-/// Represents the header of a font [`Layout`] struct.
-///
-/// The [`Header`] struct contains the configuration flags, modifier flags and required values
-/// of a [`Layout`]. These values are essential in determining how the font will be interpreted
-/// by [`layout_to_data`] and [`layout_from_data`] functions.
-pub struct Header {
-    pub configuration_flags: ConfigurationFlags,
-    pub modifier_flags: ModifierFlags,
-    pub configuration_values: ConfigurationValues,
-}
-
-#[derive(Default, Debug, Clone)]
-/// Represents a charater in the font.
-///
-/// The [`Character`] struct contains the utf8 character, custom size and byte map of a character.
-/// Please note that while the pixmap uses a u8 for each pixel, when the font is converted to
-/// a data vector, each pixel will be represented by a single bit.
-pub struct Character {
-    pub grapheme_cluster: String,
+pub struct Pixmap {
     pub custom_width: Option<u8>,
     pub custom_height: Option<u8>,
-    pub pixmap: Vec<u8>,
+    pub custom_bits_per_pixel: Option<u8>,
+    pub data: Vec<u8>,
 }
 
 #[derive(Default, Debug, Clone)]
-/// Represents the body of a font [`Layout`] struct.
-///
-/// The [`Body`] struct contains the characters of a [`Layout`] as a Vector.
-pub struct Body {
+pub struct CharacterTable {
+    pub use_advance_x: bool,
+    pub use_pixmap_index: bool,
+
+    pub constant_cluster_codepoints: Option<u8>,
+
+    pub pixmap_table_indexes: Option<Vec<u8>>,
+
     pub characters: Vec<Character>,
 }
 
 #[derive(Default, Debug, Clone)]
-/// Represents the entire font [`Layout`] struct.
-///
-/// The [`Layout`] struct aims to reflect the structure of a `SimplePixelFont` binary file.
-pub struct Layout {
-    pub header: Header,
-    pub body: Body,
+pub struct Character {
+    pub advance_x: Option<u8>,
+    pub pixmap_index: Option<u8>,
+
+    pub grapheme_cluster: String,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct ColorTable {
+    pub constant_alpha: Option<u8>,
+
+    pub colors: Vec<Color>,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct Color {
+    pub custom_alpha: Option<u8>,
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
+
+#[repr(u8)]
+#[rustfmt::skip]
+enum TableIdentifier {
+    Character = 0b00000001,
+    Pixmap    = 0b00000010,
+    Color     = 0b00000011,
+}
+
+impl TryFrom<u8> for TableIdentifier {
+    type Error = DeserializeError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0b00000001 => Ok(TableIdentifier::Character),
+            0b00000010 => Ok(TableIdentifier::Pixmap),
+            0b00000011 => Ok(TableIdentifier::Color),
+            _ => Err(DeserializeError::UnsupportedTableIdentifier),
+        }
+    }
 }
 
 #[derive(Debug)]
-pub enum ParseError {
+pub enum DeserializeError {
     UnexpectedEndOfFile,
+    InvalidSignature,
+    UnsupportedVersion,
+    UnsupportedTableIdentifier,
+}
+
+#[derive(Debug)]
+pub enum SerializeError {
+    StaticVectorTooLarge,
+}
+
+pub(crate) trait Table: Sized {
+    fn deserialize(
+        storage: &mut byte::ByteStorage,
+        layout: &Layout,
+    ) -> Result<Self, DeserializeError>;
+    fn serialize(
+        &self,
+        buffer: &mut byte::ByteStorage,
+        layout: &Layout,
+    ) -> Result<(), SerializeError>;
 }
 
 /// Parses a [`Vec<u8>`] into a font [`Layout`].
-pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, ParseError> {
-    let mut current_index = 0;
-
-    let mut chunks = buffer.iter();
-
+pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, DeserializeError> {
+    let mut storage = byte::ByteStorage {
+        bytes: buffer,
+        pointer: 0,
+        index: 0,
+    };
     let mut layout = Layout::default();
 
-    let mut current_configuration_flag_index = 0;
-    let mut configuration_flag_booleans = [false; 4];
-    let mut configuration_flag_values = [None; 4];
+    parsers::next_signature(&mut storage)?;
+    parsers::next_version(&mut layout, &mut storage)?;
+    parsers::next_header(&mut layout, &mut storage)?;
 
-    let mut character_definition_stage = 0;
-    let mut current_character = Character::default();
-    let mut current_character_width = 0;
-    let mut current_character_height = 0;
-
-    let mut body_buffer = byte::ByteStorage::new();
-
-    let mut iter = chunks.next();
-    while iter.is_some() {
-        let chunk = iter.unwrap();
-
-        match current_index {
-            0..3 => {
-                if !chunk == [102, 115, 70][current_index] {
-                    panic!("File is not signed")
-                }
+    while storage.index < storage.bytes.len() - 1 {
+        match storage.next().try_into().unwrap() {
+            TableIdentifier::Character => {
+                layout
+                    .character_tables
+                    .push(CharacterTable::deserialize(&mut storage, &layout)?);
             }
-            3 => {
-                let file_properties = byte::Byte::from_u8(*chunk).bits;
-
-                configuration_flag_booleans = [
-                    file_properties[0],
-                    file_properties[1],
-                    file_properties[2],
-                    file_properties[3],
-                ];
-
-                layout.header.modifier_flags.compact = file_properties[4];
+            TableIdentifier::Pixmap => {
+                layout
+                    .pixmap_tables
+                    .push(PixmapTable::deserialize(&mut storage, &layout)?);
             }
-            _ => {
-                for index in current_configuration_flag_index..4 {
-                    {
-                        // Will need to look into this later.
-                        current_configuration_flag_index = index + 1;
-                    }
-                    if configuration_flag_booleans[index] {
-                        configuration_flag_values[index] = Some(*chunk);
-                        break;
-                    }
-                }
-                if current_configuration_flag_index == 4 {
-                    body_buffer.push(byte::Byte::from_u8(*chunk));
-                }
+            TableIdentifier::Color => {
+                layout
+                    .color_tables
+                    .push(ColorTable::deserialize(&mut storage, &layout)?);
             }
-        }
-        iter = chunks.next();
-        current_index += 1;
-    }
-
-    layout
-        .header
-        .configuration_flags
-        .constant_cluster_codepoints = configuration_flag_booleans[0];
-    layout.header.configuration_flags.constant_width = configuration_flag_booleans[1];
-    layout.header.configuration_flags.constant_height = configuration_flag_booleans[2];
-    //layout.header.configuration_flags.custom_bits_per_pixel = configuration_flag_booleans[3];
-
-    layout
-        .header
-        .configuration_values
-        .constant_cluster_codepoints = configuration_flag_values[0];
-    layout.header.configuration_values.constant_width = configuration_flag_values[1];
-    layout.header.configuration_values.constant_height = configuration_flag_values[2];
-    //layout.header.configuration_values.custom_bits_per_pixel = configuration_flag_values[3];
-
-    current_index = 0;
-    let length = body_buffer.bytes.len();
-    while current_index < length - 1 {
-        if character_definition_stage == 0 {
-            let result =
-                parsers::next_grapheme_cluster(&mut body_buffer, &layout.header, current_index);
-            current_character.grapheme_cluster = result.0;
-            current_index = result.1;
-            current_index += 1;
-            character_definition_stage += 1;
-
-            #[cfg(feature = "log")]
-            debug!(
-                "Identified grapheme cluster: {:?}",
-                current_character.grapheme_cluster
-            );
-        }
-
-        if character_definition_stage == 1 {
-            if !layout.header.configuration_flags.constant_width {
-                current_character.custom_width = Some(body_buffer.get(current_index).to_u8());
-                current_character_width = current_character.custom_width.unwrap();
-                current_index += 1;
-            } else {
-                current_character_width =
-                    layout.header.configuration_values.constant_width.unwrap();
-            }
-            character_definition_stage += 1;
-        }
-
-        if character_definition_stage == 2 {
-            if !layout.header.configuration_flags.constant_height {
-                current_character.custom_height = Some(body_buffer.get(current_index).to_u8());
-                current_character_height = current_character.custom_height.unwrap();
-                current_index += 1;
-            } else {
-                current_character_height =
-                    layout.header.configuration_values.constant_height.unwrap();
-            }
-            character_definition_stage += 1;
-        }
-
-        if character_definition_stage == 3 {
-            let bytes_used =
-                ((current_character_width * current_character_height) as f32 / 8.0).ceil() as u8;
-
-            let remainder = bytes_used as usize * 8_usize
-                - (current_character_width as usize * current_character_height as usize);
-
-            let mut current_byte = body_buffer.get(current_index);
-            for i in 0..bytes_used {
-                for (counter, bit) in current_byte.bits.into_iter().enumerate() {
-                    if !(i == bytes_used - 1 && counter >= 8 - remainder) {
-                        current_character.pixmap.push(bit as u8);
-                    }
-                }
-
-                if i < bytes_used - 1 {
-                    current_index += 1;
-                    current_byte = body_buffer.get(current_index);
-                }
-            }
-
-            layout.body.characters.push(current_character.clone());
-            current_index += 1;
-
-            if layout.header.modifier_flags.compact {
-                if body_buffer.pointer + (8 - remainder) < 8 {
-                    current_index -= 1;
-                }
-                body_buffer.pointer = (8 - remainder + body_buffer.pointer) % 8;
-
-                #[cfg(feature = "log")]
-                debug!("Last character pushed had {} padding bits, now reading with offset of {}, starting at byte {}",
-                    remainder, body_buffer.pointer, current_index);
-            }
-
-            current_character.pixmap = vec![];
-            character_definition_stage = 0;
-        }
+        };
     }
     Ok(layout)
 }
 
 /// Encodes the provided font [`Layout`] into a [`Vec<u8>`].
-pub fn layout_to_data(layout: &Layout) -> Vec<u8> {
+pub fn layout_to_data(layout: &Layout) -> Result<Vec<u8>, SerializeError> {
     let mut buffer = byte::ByteStorage::new();
-    helpers::sign_buffer(&mut buffer);
-    composers::push_header(&mut buffer, &layout.header);
+    composers::push_signature(&mut buffer);
+    composers::push_version(&mut buffer, &layout.version);
+    composers::push_header(&mut buffer, layout);
 
-    let mut saved_space = 0;
-
-    for character in &layout.body.characters {
-        composers::push_grapheme_cluster(&mut buffer, &layout.header, &character.grapheme_cluster);
-        composers::push_width(&mut buffer, &layout.header, character.custom_width);
-        composers::push_height(&mut buffer, &layout.header, character.custom_height);
-
-        let result = helpers::character_pixmap_to_data(character);
-        let character_bytes = result.0;
-        let remaining_space = result.1;
-
-        composers::push_pixmap(
-            &mut buffer,
-            &layout.header,
-            character_bytes,
-            remaining_space,
-        );
-
-        if layout.header.modifier_flags.compact {
-            saved_space += remaining_space;
-            buffer.pointer = ((8 - remaining_space) + buffer.pointer) % 8;
-        }
+    for character_table in &layout.character_tables {
+        character_table.serialize(&mut buffer, layout)?;
+    }
+    for pixmap_table in &layout.pixmap_tables {
+        pixmap_table.serialize(&mut buffer, layout)?;
+    }
+    for color_table in &layout.color_tables {
+        color_table.serialize(&mut buffer, layout)?;
     }
 
-    #[cfg(feature = "log")]
-    debug!(
-        "Total bits compacted: {} (saved {} bytes)",
-        saved_space,
-        saved_space / 8
-    );
-
-    buffer.to_vec_u8()
+    Ok(buffer.bytes)
 }

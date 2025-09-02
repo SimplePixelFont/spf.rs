@@ -10,7 +10,8 @@
 ![Lint](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4/raw/lint.json)
 ![Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4/raw/test.json)
 
-A very simple and concrete parser library for the [SimplePixelFont file specifications](https://github.com/SimplePixelFont/Specification), written in Rust. `spf.rs` is both a native crate and also an FFI library which can be used  in a variety of other programming languages which support library loading. `spf.rs` is additionally shipped with features/modules to help integration be faster and easier for you next pixelated project.
+Parser library for the [SimplePixelFont file specifications](https://github.com/SimplePixelFont/Specification), written in Rust.
+`spf.rs` is both a native crate and also an FFI library which can be used  in a variety of other programming languages which support library loading.
 
 ### Installation
 
@@ -19,19 +20,24 @@ A very simple and concrete parser library for the [SimplePixelFont file specific
 cargo add spf
 ```
 
-- To use `spf.rs` as an FFI library in your language of choice you must first download a pre-built library version of `spf.rs` from the [releases section](https://github.com/SimplePixelFont/spf.rs/releases) (a corrosponding header file is also included if you are programming in C/C++). Please note that pre-built binaries are only avaiable for Windows and Linux-x86-64bit architectures. As a result you may want to [compile `spf.rs` from source](https://docs.rs/spf/latest/spf/articles/installing/index.html#compiling-spfrs-from-source), specifically if a pre-built binary is not availible for you.
+- To use `spf.rs` as an FFI library in your language of choice you must first download a pre-built library artifact of `spf.rs` from the [releases section](https://github.com/SimplePixelFont/spf.rs/releases) which includes the dynamic library along with a header file. Pre-built artifacts are available for many architectures, however if there is no build for your architecture-including embedded devices-you can [compile `spf.rs` from source](https://docs.rs/spf/latest/spf/articles/installing/index.html#compiling-spfrs-from-source).
 
 ### Usage
 
+**Note:** `spf.rs` documentation is currently out of date, however actively being updated to reflect the SimplePixelFont new standardized specification.
+
 Usage varies depending on the programming language you choose. For a guide using the native Rust interface check out the [Getting Started in Rust](https://docs.rs/spf/latest/spf/articles/getting_started/index.html) article. You can also check out the [Using the FFI in C](https://docs.rs/spf/latest/spf/articles/c_usage/index.html) article for usage with the `spf.rs` library.
 
-### Supported SPF Header Properties
-| Flag | Type | Stability | Notes |
+### Supported SPF Tables
+
+`spf.rs` is the official parser for the SimplePixelFont file specifications, and will always attempt
+to parallel developments within the specifictaitons. The following tables are supported:
+
+| Type | Stability | Notes |
 | --- | --- | --- | --- |
-| Constant Cluster Codepoints | Configuration | ✔ | `Added in v0.5` |
-| Constant Width | Configuration | ✔ | `Added in v0.5` |
-| Constant Height | Configuration | ✔ | `Added in v0.5` |
-| Compact | Modifier | ✔ | `Added in v0.4` |
+| Character Table | ✔ | `Added in v0.7.0-alpha.0` |
+| Pixmap Table | ✔ | `Added in v0.7.0-alpha.0` |
+| Color Table | ✔ | `Added in v0.7.0-alpha.0` |
 
 Key:
 - `⚠️` = Work in progress

@@ -1,11 +1,29 @@
+/*
+ * Copyright 2025 SimplePixelFont
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 //! Caching structs used by the [`crate::printer`] module.
 
 use super::core::*;
+use crate::{HashMap, String};
 
+#[derive(Debug)]
 /// A `CharacterCache` struct is used to store mappings between the utf8 characters and their index
 /// from within a [`Body::characters`] field.
 pub struct CharacterCache {
-    pub mappings: std::collections::HashMap<String, usize>,
+    pub mappings: HashMap<String, usize>,
 }
 
 impl CharacterCache {
@@ -24,7 +42,7 @@ impl CharacterCache {
     /// ```
     pub fn empty() -> Self {
         Self {
-            mappings: std::collections::HashMap::new(),
+            mappings: HashMap::new(),
         }
     }
     /// Creates a new [`CharacterCache`] struct by mapping all characters in a [`Vec<Character>`].
@@ -67,8 +85,7 @@ impl CharacterCache {
     /// assert_eq!(cache.mappings.get(&"u".to_string()), Some(&1));
     /// ```
     pub fn from_characters(characters: &[Character]) -> Self {
-        let mut mapping: std::collections::HashMap<String, usize> =
-            std::collections::HashMap::new();
+        let mut mapping: HashMap<String, usize> = HashMap::new();
         for (index, character) in characters.iter().enumerate() {
             mapping.insert(character.grapheme_cluster.clone(), index);
         }
