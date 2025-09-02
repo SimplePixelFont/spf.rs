@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use crate::core::byte;
-use crate::core::{Pixmap, SerializeError};
+use crate::core::{byte, Pixmap, SerializeError};
+use crate::{format, String};
 
 #[cfg(feature = "log")]
 pub(crate) use log::*;

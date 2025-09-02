@@ -38,71 +38,106 @@
 //!
 //! All functions that return a [`Vec<u8>`] return a [`SPFData`] struct instead.
 
-use crate::cache::*;
 use crate::core::*;
-use crate::printer::*;
-
-use crate::{ToOwned, ToString, Vec};
+use crate::ToOwned;
 
 use core::ffi::*;
 use core::slice;
 
 pub mod converters;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone)]
 #[repr(C)]
 pub struct SPFLayout {
-    pub header: SPFHeader,
-    pub body: SPFBody,
-}
+    pub version: c_uchar,
 
-#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-pub struct SPFHeader {
-    pub configuration_flags: SPFConfigurationFlags,
-    pub modifier_flags: SPFModifierFlags,
-    pub configuration_values: SPFConfigurationValues,
-}
-
-#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-pub struct SPFConfigurationFlags {
-    pub constant_cluster_codepoints: c_uchar,
-    pub constant_width: c_uchar,
-    pub constant_height: c_uchar,
-    pub custom_bits_per_pixel: c_uchar,
-}
-
-#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-pub struct SPFModifierFlags {
     pub compact: c_uchar,
+
+    pub character_tables: *mut SPFCharacterTable,
+    pub character_tables_length: c_ulong,
+    pub color_tables: *mut SPFColorTable,
+    pub color_tables_length: c_ulong,
+    pub pixmap_tables: *mut SPFPixmapTable,
+    pub pixmap_tables_length: c_ulong,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone)]
 #[repr(C)]
-pub struct SPFConfigurationValues {
-    pub constant_cluster_codepoints: c_uchar,
+pub struct SPFPixmapTable {
+    pub has_constant_width: c_uchar,
     pub constant_width: c_uchar,
+    pub has_constant_height: c_uchar,
     pub constant_height: c_uchar,
-    pub custom_bits_per_pixel: c_uchar,
+    pub has_constant_bits_per_pixel: c_uchar,
+    pub constant_bits_per_pixel: c_uchar,
+
+    pub has_color_table_indexes: c_uchar,
+    pub color_table_indexes: *mut c_uchar,
+    pub color_table_indexes_length: c_ulong,
+
+    pub pixmaps: *mut SPFPixmap,
+    pub pixmaps_length: c_ulong,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone)]
 #[repr(C)]
-pub struct SPFCharacter {
-    pub grapheme_cluster: *const c_char,
+pub struct SPFPixmap {
+    pub has_custom_width: c_uchar,
     pub custom_width: c_uchar,
+    pub has_custom_height: c_uchar,
     pub custom_height: c_uchar,
-    pub pixmap: *mut c_uchar,
-    pub pixmap_length: c_ulong,
+    pub has_custom_bits_per_pixel: c_uchar,
+    pub custom_bits_per_pixel: c_uchar,
+    pub data: *mut c_uchar,
+    pub data_length: c_ulong,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone)]
 #[repr(C)]
-pub struct SPFBody {
+pub struct SPFCharacterTable {
+    pub use_advance_x: c_uchar,
+    pub use_pixmap_index: c_uchar,
+
+    pub has_constant_cluster_codepoints: c_uchar,
+    pub constant_cluster_codepoints: c_uchar,
+
+    pub has_pixmap_table_indexes: c_uchar,
+    pub pixmap_table_indexes: *mut c_uchar,
+    pub pixmap_table_indexes_length: c_ulong,
+
     pub characters: *mut SPFCharacter,
     pub characters_length: c_ulong,
+}
+
+#[derive(Default, Debug, Clone)]
+#[repr(C)]
+pub struct SPFCharacter {
+    pub has_advance_x: c_uchar,
+    pub advance_x: c_uchar,
+    pub has_pixmap_index: c_uchar,
+    pub pixmap_index: c_uchar,
+
+    pub grapheme_cluster: *mut c_char,
+}
+
+#[derive(Default, Debug, Clone)]
+#[repr(C)]
+pub struct SPFColorTable {
+    pub has_constant_alpha: c_uchar,
+    pub constant_alpha: c_uchar,
+
+    pub colors: *mut SPFColor,
+    pub colors_length: c_ulong,
+}
+
+#[derive(Default, Debug, Clone)]
+#[repr(C)]
+pub struct SPFColor {
+    pub has_custom_alpha: c_uchar,
+    pub custom_alpha: c_uchar,
+    pub r: c_uchar,
+    pub g: c_uchar,
+    pub b: c_uchar,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -113,31 +148,6 @@ pub struct SPFData {
     pub data_length: c_ulong,
 }
 
-#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-pub struct SPFCharacterCache {
-    pub mappings_keys: *mut *const c_char,
-    pub mappings_values: *mut c_ulong,
-    pub mappings_length: c_ulong,
-}
-
-#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-pub struct SPFPrinter {
-    pub font: SPFLayout,
-    pub character_cache: SPFCharacterCache,
-    pub letter_spacing: c_ulong,
-}
-
-#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-pub struct SPFSurface {
-    pub width: c_ulong,
-    pub height: c_ulong,
-    pub data: *mut c_ulong,
-    pub data_length: c_ulong,
-}
-
 #[no_mangle]
 /// Thin wrapper around [`layout_to_data`] compatible with the C ABI.
 ///
@@ -145,7 +155,9 @@ pub struct SPFSurface {
 /// The [`Layout`] struct is then parsed into a [`Vec<u8>`] with the [`layout_to_data`] function.
 /// The [`Vec<u8>`] is then converted into a [`SPFData`] struct and returned.
 pub extern "C" fn spf_core_layout_to_data(layout: SPFLayout) -> SPFData {
-    let mut data = layout_to_data(&layout.try_into().unwrap()).into_boxed_slice();
+    let mut data = layout_to_data(&layout.try_into().unwrap())
+        .unwrap()
+        .into_boxed_slice();
     let data_length = data.len() as c_ulong;
     let data_ptr = data.as_mut_ptr();
     core::mem::forget(data);
@@ -169,82 +181,4 @@ pub unsafe extern "C" fn spf_core_layout_from_data(
     let data = unsafe { slice::from_raw_parts(pointer, length as usize) };
     let layout = layout_from_data(data.to_owned()).unwrap();
     layout.try_into().unwrap()
-}
-
-#[no_mangle]
-pub extern "C" fn spf_cache_SPFCharacterCache_empty() -> SPFCharacterCache {
-    CharacterCache::empty().try_into().unwrap()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn spf_cache_SPFCharacterCache_from_characters(
-    characters: *mut SPFCharacter,
-    characters_length: c_ulong,
-) -> SPFCharacterCache {
-    let characters: Vec<Character> = unsafe {
-        slice::from_raw_parts(characters, characters_length as usize)
-            .iter()
-            .map(|c| c.try_into().unwrap())
-            .collect()
-    };
-    CharacterCache::from_characters(&characters)
-        .try_into()
-        .unwrap()
-}
-
-#[no_mangle]
-pub extern "C" fn spf_printer_SPFPrinter_from_font(font: SPFLayout) -> SPFPrinter {
-    let printer = Printer::from_font(font.try_into().unwrap());
-    printer.try_into().unwrap()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn spf_printer_SPFPrinter_print(
-    printer: SPFPrinter,
-    text: *const c_char,
-) -> SPFSurface {
-    let printer: Printer = printer.try_into().unwrap();
-    let text = unsafe { CStr::from_ptr(text).to_str().unwrap() };
-    printer.print(text.to_string()).try_into().unwrap()
-}
-
-#[no_mangle]
-pub extern "C" fn spf_printer_SPFSurface_blank(width: c_ulong, height: c_ulong) -> SPFSurface {
-    Surface::blank(width as usize, height as usize)
-        .try_into()
-        .unwrap()
-}
-
-#[no_mangle]
-pub extern "C" fn spf_printer_SPFSurface_get_pixel(
-    surface: SPFSurface,
-    x: c_ulong,
-    y: c_ulong,
-) -> c_ulong {
-    let surface: Surface = surface.try_into().unwrap();
-    surface.get_pixel(x as usize, y as usize).unwrap() as c_ulong
-}
-
-#[no_mangle]
-pub extern "C" fn spf_printer_SPFSurface_blit(
-    surface: SPFSurface,
-    surface2: SPFSurface,
-    x: c_ulong,
-    y: c_ulong,
-) {
-    let mut surface: Surface = surface.try_into().unwrap();
-    let surface2: Surface = surface2.try_into().unwrap();
-    surface.blit(&surface2, x as usize, y as usize);
-}
-
-#[no_mangle]
-pub extern "C" fn spf_printer_SPFSurface_flip_vertical(surface: SPFSurface) -> SPFSurface {
-    let surface: Surface = surface.try_into().unwrap();
-    surface.flip_vertical().try_into().unwrap()
-}
-
-#[no_mangle]
-pub extern "C" fn spf_printer_SPFSurface_flip_horizontal(surface: SPFSurface) -> SPFSurface {
-    let surface: Surface = surface.try_into().unwrap();
-    surface.flip_horizontal().try_into().unwrap()
 }

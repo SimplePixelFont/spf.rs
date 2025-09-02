@@ -80,33 +80,108 @@ Now that we have our symbols defined, here is a simple script that uses the abov
 ```c
 struct SPFLayout layout = spf_core_layout_from_data(buffer, file_size);
 
-printf("Constant Cluster Codepoints: %s(%d)\n",
-    (bool)layout.header.configuration_flags.constant_cluster_codepoints ? "true" : "false",
-    layout.header.configuration_values.constant_cluster_codepoints
-);
-printf("Constant Width: %s(%d)\n",
-    (bool)layout.header.configuration_flags.constant_width ? "true" : "false",
-    layout.header.configuration_values.constant_width
-);
-printf("Constant Height: %s(%d)\n",
-    (bool)layout.header.configuration_flags.constant_height ? "true" : "false",
-    layout.header.configuration_values.constant_height
-);
-printf("Compact: %s\n", (bool)layout.header.modifier_flags.compact ? "true" : "false");
+printf("---Header Data---\n");
+printf("Format Version: %d\n", layout.version);
+printf("Compact: %s\n", (bool)layout.compact ? "true" : "false");
 
-for (int i = 0; i < layout.body.characters_length; i++) {
-    printf("Loaded character with index %d:\n", i);
-    printf("    grapheme_cluster: '%s' - custom_width: %s(%d) - custom_height: %s(%d) - pixmap: ",
-        layout.body.characters[i].grapheme_cluster,
-        (bool)layout.body.characters[i].custom_width ? "true" : "false",
-        layout.body.characters[i].custom_width,
-        (bool)layout.body.characters[i].custom_height ? "true" : "false",
-        layout.body.characters[i].custom_height
+printf("---Character Tables---\n");
+for(int i = 0; i < layout.character_tables_length; i++) {
+    printf("Character Table %d:\n", i);
+    printf("  Use advance_x: %s\n", (bool)layout.character_tables[i].use_advance_x ? "true" : "false");
+    printf("  Use pixmap_index: %s\n", (bool)layout.character_tables[i].use_pixmap_index ? "true" : "false");
+    printf("  Constant Cluster Codepoints: %s(%d)\n",
+        (bool)layout.character_tables[i].has_constant_cluster_codepoints ? "true" : "false",
+        layout.character_tables[i].constant_cluster_codepoints
     );
-    for (int j = 0; j < layout.body.characters[i].pixmap_length; j++) {
-        printf("%d ", layout.body.characters[i].pixmap[j]);
+    printf("  Pixmap Table Indexes: %s(", (bool)layout.character_tables[i].has_pixmap_table_indexes ? "true" : "false");
+    for (int j = 0; j < layout.character_tables[i].pixmap_table_indexes_length; j++) {
+        if (j == layout.character_tables[i].pixmap_table_indexes_length - 1) {
+            printf("%d", layout.character_tables[i].pixmap_table_indexes[j]);
+        } else {
+            printf("%d, ", layout.character_tables[i].pixmap_table_indexes[j]);
+        }
     }
-    printf("\n");
+    printf(")\n");
+    printf("  Characters:\n");
+    for (int j = 0; j < layout.character_tables[i].characters_length; j++) {
+        printf("  - Character %d:\n", j);
+        printf("    advance_x: %s(%d)\n",
+            (bool)layout.character_tables[i].characters[j].has_advance_x ? "true" : "false",
+            layout.character_tables[i].characters[j].advance_x
+        );
+        printf("    pixmap_index: %s(%d)\n",
+            (bool)layout.character_tables[i].characters[j].has_pixmap_index ? "true" : "false",
+            layout.character_tables[i].characters[j].pixmap_index
+        );
+        printf("    grapheme_cluster: '%s'\n", layout.character_tables[i].characters[j].grapheme_cluster);
+    }
+}
+
+printf("---Color Tables---\n");
+for(int i = 0; i < layout.color_tables_length; i++) {
+    printf("Color Table %d:\n", i);
+    printf("  Constant Alpha: %s(%d)\n",
+        (bool)layout.color_tables[i].has_constant_alpha ? "true" : "false",
+        layout.color_tables[i].constant_alpha
+    );
+    printf("  Colors:\n");
+    for (int j = 0; j < layout.color_tables[i].colors_length; j++) {
+        printf("  - Color %d:\n", j);
+        printf("    custom_alpha: %s(%d)\n",
+            (bool)layout.color_tables[i].colors[j].has_custom_alpha ? "true" : "false",
+            layout.color_tables[i].colors[j].custom_alpha
+        );
+        printf("    r: %d\n", layout.color_tables[i].colors[j].r);
+        printf("    g: %d\n", layout.color_tables[i].colors[j].g);
+        printf("    b: %d\n", layout.color_tables[i].colors[j].b);
+    }
+}
+
+printf("--- Pixmap Tables ---\n");
+for(int i = 0; i < layout.pixmap_tables_length; i++) {
+    printf("Pixmap Table %d:\n", i);
+    printf("  Constant Width: %s(%d)\n",
+        (bool)layout.pixmap_tables[i].has_constant_width ? "true" : "false",
+        layout.pixmap_tables[i].constant_width
+    );
+    printf("  Constant Height: %s(%d)\n",
+        (bool)layout.pixmap_tables[i].has_constant_height ? "true" : "false",
+        layout.pixmap_tables[i].constant_height
+    );
+    printf("  Constant Bits Per Pixel: %s(%d)\n",
+        (bool)layout.pixmap_tables[i].has_constant_bits_per_pixel ? "true" : "false",
+        layout.pixmap_tables[i].constant_bits_per_pixel
+    );
+    printf("  Color Table Indexes: %s(", (bool)layout.pixmap_tables[i].has_color_table_indexes ? "true" : "false");
+    for (int j = 0; j < layout.pixmap_tables[i].color_table_indexes_length; j++) {
+        if (j == layout.pixmap_tables[i].color_table_indexes_length - 1) {
+            printf("%d", layout.pixmap_tables[i].color_table_indexes[j]);
+        } else {
+            printf("%d, ", layout.pixmap_tables[i].color_table_indexes[j]);
+        }
+    }
+    printf(")\n");
+    printf("  Pixmaps:\n");
+    for (int j = 0; j < layout.pixmap_tables[i].pixmaps_length; j++) {
+        printf("  - Pixmap %d:\n", j);
+        printf("    custom_width: %s(%d)\n",
+            (bool)layout.pixmap_tables[i].pixmaps[j].has_custom_width ? "true" : "false",
+            layout.pixmap_tables[i].pixmaps[j].custom_width
+        );
+        printf("    custom_height: %s(%d)\n",
+            (bool)layout.pixmap_tables[i].pixmaps[j].has_custom_height ? "true" : "false",
+            layout.pixmap_tables[i].pixmaps[j].custom_height
+        );
+        printf("    custom_bits_per_pixel: %s(%d)\n",
+            (bool)layout.pixmap_tables[i].pixmaps[j].has_custom_bits_per_pixel ? "true" : "false",
+            layout.pixmap_tables[i].pixmaps[j].custom_bits_per_pixel
+        );
+        printf("    data: ");
+        for (int k = 0; k < layout.pixmap_tables[i].pixmaps[j].data_length; k++) {
+            printf("%d ", layout.pixmap_tables[i].pixmaps[j].data[k]);
+        }
+        printf("\n");
+    }
 }
 ```
 And now that we have a `crate::core::Layout` in C, or more precisely a `core::ffi::SPFLayout`, we can also convert it back into data:
@@ -198,33 +273,108 @@ int main() {
 
     struct SPFLayout layout = spf_core_layout_from_data(buffer, file_size);
 
-    printf("Constant Cluster Codepoints: %s(%d)\n",
-        (bool)layout.header.configuration_flags.constant_cluster_codepoints ? "true" : "false",
-        layout.header.configuration_values.constant_cluster_codepoints
-    );
-    printf("Constant Width: %s(%d)\n",
-        (bool)layout.header.configuration_flags.constant_width ? "true" : "false",
-        layout.header.configuration_values.constant_width
-    );
-    printf("Constant Height: %s(%d)\n",
-        (bool)layout.header.configuration_flags.constant_height ? "true" : "false",
-        layout.header.configuration_values.constant_height
-    );
-    printf("Compact: %s\n", (bool)layout.header.modifier_flags.compact ? "true" : "false");
+    printf("---Header Data---\n");
+    printf("Format Version: %d\n", layout.version);
+    printf("Compact: %s\n", (bool)layout.compact ? "true" : "false");
 
-    for (int i = 0; i < layout.body.characters_length; i++) {
-        printf("Loaded character with index %d:\n", i);
-        printf("    grapheme_cluster: '%s' - custom_width: %s(%d) - custom_height: %s(%d) - pixmap: ",
-            layout.body.characters[i].grapheme_cluster,
-            (bool)layout.body.characters[i].custom_width ? "true" : "false",
-            layout.body.characters[i].custom_width,
-            (bool)layout.body.characters[i].custom_height ? "true" : "false",
-            layout.body.characters[i].custom_height
+    printf("---Character Tables---\n");
+    for(int i = 0; i < layout.character_tables_length; i++) {
+        printf("Character Table %d:\n", i);
+        printf("  Use advance_x: %s\n", (bool)layout.character_tables[i].use_advance_x ? "true" : "false");
+        printf("  Use pixmap_index: %s\n", (bool)layout.character_tables[i].use_pixmap_index ? "true" : "false");
+        printf("  Constant Cluster Codepoints: %s(%d)\n",
+            (bool)layout.character_tables[i].has_constant_cluster_codepoints ? "true" : "false",
+            layout.character_tables[i].constant_cluster_codepoints
         );
-        for (int j = 0; j < layout.body.characters[i].pixmap_length; j++) {
-            printf("%d ", layout.body.characters[i].pixmap[j]);
+        printf("  Pixmap Table Indexes: %s(", (bool)layout.character_tables[i].has_pixmap_table_indexes ? "true" : "false");
+        for (int j = 0; j < layout.character_tables[i].pixmap_table_indexes_length; j++) {
+            if (j == layout.character_tables[i].pixmap_table_indexes_length - 1) {
+                printf("%d", layout.character_tables[i].pixmap_table_indexes[j]);
+            } else {
+                printf("%d, ", layout.character_tables[i].pixmap_table_indexes[j]);
+            }
         }
-        printf("\n");
+        printf(")\n");
+        printf("  Characters:\n");
+        for (int j = 0; j < layout.character_tables[i].characters_length; j++) {
+            printf("  - Character %d:\n", j);
+            printf("    advance_x: %s(%d)\n",
+                (bool)layout.character_tables[i].characters[j].has_advance_x ? "true" : "false",
+                layout.character_tables[i].characters[j].advance_x
+            );
+            printf("    pixmap_index: %s(%d)\n",
+                (bool)layout.character_tables[i].characters[j].has_pixmap_index ? "true" : "false",
+                layout.character_tables[i].characters[j].pixmap_index
+            );
+            printf("    grapheme_cluster: '%s'\n", layout.character_tables[i].characters[j].grapheme_cluster);
+        }
+    }
+
+    printf("---Color Tables---\n");
+    for(int i = 0; i < layout.color_tables_length; i++) {
+        printf("Color Table %d:\n", i);
+        printf("  Constant Alpha: %s(%d)\n",
+            (bool)layout.color_tables[i].has_constant_alpha ? "true" : "false",
+            layout.color_tables[i].constant_alpha
+        );
+        printf("  Colors:\n");
+        for (int j = 0; j < layout.color_tables[i].colors_length; j++) {
+            printf("  - Color %d:\n", j);
+            printf("    custom_alpha: %s(%d)\n",
+                (bool)layout.color_tables[i].colors[j].has_custom_alpha ? "true" : "false",
+                layout.color_tables[i].colors[j].custom_alpha
+            );
+            printf("    r: %d\n", layout.color_tables[i].colors[j].r);
+            printf("    g: %d\n", layout.color_tables[i].colors[j].g);
+            printf("    b: %d\n", layout.color_tables[i].colors[j].b);
+        }
+    }
+
+    printf("--- Pixmap Tables ---\n");
+    for(int i = 0; i < layout.pixmap_tables_length; i++) {
+        printf("Pixmap Table %d:\n", i);
+        printf("  Constant Width: %s(%d)\n",
+            (bool)layout.pixmap_tables[i].has_constant_width ? "true" : "false",
+            layout.pixmap_tables[i].constant_width
+        );
+        printf("  Constant Height: %s(%d)\n",
+            (bool)layout.pixmap_tables[i].has_constant_height ? "true" : "false",
+            layout.pixmap_tables[i].constant_height
+        );
+        printf("  Constant Bits Per Pixel: %s(%d)\n",
+            (bool)layout.pixmap_tables[i].has_constant_bits_per_pixel ? "true" : "false",
+            layout.pixmap_tables[i].constant_bits_per_pixel
+        );
+        printf("  Color Table Indexes: %s(", (bool)layout.pixmap_tables[i].has_color_table_indexes ? "true" : "false");
+        for (int j = 0; j < layout.pixmap_tables[i].color_table_indexes_length; j++) {
+            if (j == layout.pixmap_tables[i].color_table_indexes_length - 1) {
+                printf("%d", layout.pixmap_tables[i].color_table_indexes[j]);
+            } else {
+                printf("%d, ", layout.pixmap_tables[i].color_table_indexes[j]);
+            }
+        }
+        printf(")\n");
+        printf("  Pixmaps:\n");
+        for (int j = 0; j < layout.pixmap_tables[i].pixmaps_length; j++) {
+            printf("  - Pixmap %d:\n", j);
+            printf("    custom_width: %s(%d)\n",
+                (bool)layout.pixmap_tables[i].pixmaps[j].has_custom_width ? "true" : "false",
+                layout.pixmap_tables[i].pixmaps[j].custom_width
+            );
+            printf("    custom_height: %s(%d)\n",
+                (bool)layout.pixmap_tables[i].pixmaps[j].has_custom_height ? "true" : "false",
+                layout.pixmap_tables[i].pixmaps[j].custom_height
+            );
+            printf("    custom_bits_per_pixel: %s(%d)\n",
+                (bool)layout.pixmap_tables[i].pixmaps[j].has_custom_bits_per_pixel ? "true" : "false",
+                layout.pixmap_tables[i].pixmaps[j].custom_bits_per_pixel
+            );
+            printf("    data: ");
+            for (int k = 0; k < layout.pixmap_tables[i].pixmaps[j].data_length; k++) {
+                printf("%d ", layout.pixmap_tables[i].pixmaps[j].data[k]);
+            }
+            printf("\n");
+        }
     }
 
     struct SPFData data = spf_core_layout_to_data(layout);
