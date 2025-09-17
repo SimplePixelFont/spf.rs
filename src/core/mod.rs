@@ -37,12 +37,14 @@ use crate::{String, Vec};
 #[repr(u8)]
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Version {
     #[default]
     FV0 = 0b00000000,
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Layout {
     pub version: Version,
 
@@ -54,6 +56,7 @@ pub struct Layout {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PixmapTable {
     pub constant_width: Option<u8>,
     pub constant_height: Option<u8>,
@@ -65,6 +68,7 @@ pub struct PixmapTable {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Pixmap {
     pub custom_width: Option<u8>,
     pub custom_height: Option<u8>,
@@ -73,6 +77,7 @@ pub struct Pixmap {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CharacterTable {
     pub use_advance_x: bool,
     pub use_pixmap_index: bool,
@@ -85,6 +90,7 @@ pub struct CharacterTable {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Character {
     pub advance_x: Option<u8>,
     pub pixmap_index: Option<u8>,
@@ -93,6 +99,7 @@ pub struct Character {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ColorTable {
     pub constant_alpha: Option<u8>,
 
@@ -100,6 +107,7 @@ pub struct ColorTable {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Color {
     pub custom_alpha: Option<u8>,
     pub r: u8,

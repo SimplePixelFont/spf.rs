@@ -17,15 +17,17 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["std", "log", "ergonomics", "ffi", "articles"]
+default = ["std", "log", "ergonomics", "serde", "ffi", "articles"]
 std = []
 log = ["dep:log"]
 ergonomics = []
+serde = ["dep:serde"]
 ffi = []
 articles = []
 
 [dependencies]
 log = { version = "0.4.27", optional = true }
+serde = { version = "1.0.225", features = ["derive"], optional = true }
 
 [dev-dependencies]
 env_logger = "0.11.8"
