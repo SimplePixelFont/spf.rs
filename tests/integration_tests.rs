@@ -6,12 +6,15 @@ mod common;
 
 #[cfg(test)]
 mod tests {
-    use std::io;
+    use std::{io, rc::Rc};
 
     use super::common;
     use spf::{
         core::*,
-        ergonomics::{CharacterBuilder, CharacterTableBuilder, ColorTableBuilder, LayoutBuilder},
+        ergonomics::{
+            CharacterBuilder, CharacterTableBuilder, ColorBuilder, ColorTableBuilder,
+            LayoutBuilder, PixmapBuilder, PixmapTableBuilder,
+        },
     };
 
     fn init_logger() {
@@ -154,12 +157,51 @@ mod tests {
         let mut layout = LayoutBuilder::default();
         layout.compact(true);
 
-        let palette = ColorTableBuilder::default()
+        let mut palette = ColorTableBuilder::default();
+        palette
             .constant_alpha(255)
-            .rgb(0, 0, 0)
-            .rgb(255, 255, 255);
+            .color(ColorBuilder::transparent())
+            .color(&[0, 0, 0, 255][..]);
 
-        let o = CharacterBuilder::from("o");
-        let characters = CharacterTableBuilder::default();
+        let mut pixmap = PixmapTableBuilder::default();
+        #[rustfmt::skip]
+        pixmap
+            .constant_height(4)
+            .constant_bits_per_pixel(1)
+            .color_table_indexes(&[palette.link()])
+            .pixmap(PixmapBuilder::from(&[
+                1, 1, 1, 1,
+                1, 0, 0, 1,
+                1, 0, 0, 1,
+                1, 1, 1, 1]
+            [..]))
+            .pixmap(&[
+                1, 0, 1, 0, 1,
+                1, 0, 1, 0, 1,
+                1, 0 ,1, 0, 1,
+                1, 1, 1, 1, 1]
+            [..])
+            .pixmap(&[
+                0, 1, 1, 0,
+                0, 0, 0, 0,
+                1, 0, 0, 1,
+                0, 1, 1, 0]
+            [..])
+            .pixmap(&[
+                0, 0, 0, 1,
+                1, 1, 1, 1,
+                1, 1, 1, 1,
+                1, 0, 0, 0]
+            [..]);
+
+        let letter_o = CharacterBuilder::from("o");
+        let characters = CharacterTableBuilder::default()
+            .pixmap_table_indexes(&[pixmap.link()])
+            .character(letter_o)
+            .character("w")
+            .character("😊")
+            .character("!=");
+
+        panic!()
     }
 }

@@ -15,8 +15,6 @@
  */
 
 use crate::Vec;
-// temporary
-use crate::{format, String};
 
 #[derive(Debug)]
 pub(crate) struct ByteStorage {
@@ -111,16 +109,6 @@ impl ByteStorage {
         for byte in bytes {
             self.push(*byte);
         }
-    }
-    #[allow(dead_code)]
-    pub(crate) fn bits_from_index(&self) -> String {
-        let mut string = String::new();
-        for (index, byte) in self.bytes.iter().enumerate() {
-            if index >= self.index - 1 {
-                string += &format!("{:08b} ", byte);
-            }
-        }
-        string
     }
 }
 
