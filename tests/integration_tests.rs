@@ -6,7 +6,7 @@ mod common;
 
 #[cfg(test)]
 mod tests {
-    use std::{io, rc::Rc};
+    use std::io;
 
     use super::common;
     use spf::{
@@ -192,10 +192,15 @@ mod tests {
                 1, 1, 1, 1,
                 1, 1, 1, 1,
                 1, 0, 0, 0]
-            [..]);
+            [..])
+            // .bind([
+
+            // ])
+            ;
 
         let letter_o = CharacterBuilder::from("o");
-        let characters = CharacterTableBuilder::default()
+        let mut characters = CharacterTableBuilder::default();
+        characters
             .pixmap_table_indexes(&[pixmap.link()])
             .character(letter_o)
             .character("w")

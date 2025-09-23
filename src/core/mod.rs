@@ -30,7 +30,7 @@
 pub(crate) mod byte;
 pub(crate) mod deserialize;
 pub(crate) mod serialize;
-pub(crate) mod table;
+pub(crate) mod tables;
 
 use crate::{String, Vec};
 
