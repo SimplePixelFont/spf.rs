@@ -24,18 +24,14 @@
 #[cfg(not(feature = "std"))]
 pub(crate) extern crate alloc;
 
-// #[cfg(feature = "std")]
-// pub(crate) use hashbrown::HashMap;
-// #[cfg(feature = "std")]
-// pub(crate) use std::borrow::ToOwned;
-// #[cfg(feature = "std")]
-// pub(crate) use std::format;
+#[cfg(feature = "std")]
+pub(crate) use std::borrow::ToOwned;
+#[cfg(feature = "std")]
+pub(crate) use std::format;
 #[cfg(feature = "std")]
 pub(crate) use std::string::String;
-// #[cfg(feature = "std")]
-// pub(crate) use std::string::ToString;
-// #[cfg(feature = "std")]
-// pub(crate) use std::vec;
+#[cfg(feature = "std")]
+pub(crate) use std::vec;
 #[cfg(feature = "std")]
 pub(crate) use std::vec::Vec;
 
@@ -46,32 +42,20 @@ pub(crate) use alloc::format;
 #[cfg(not(feature = "std"))]
 pub(crate) use alloc::string::String;
 #[cfg(not(feature = "std"))]
-pub(crate) use alloc::string::ToString;
-#[cfg(not(feature = "std"))]
 pub(crate) use alloc::vec::Vec;
 #[cfg(not(feature = "std"))]
 pub(crate) use alloc::vec::Vec;
-#[cfg(not(feature = "std"))]
-pub(crate) use hashbrown::HashMap;
 
 pub mod core;
-
-// #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
-// #[cfg(feature = "cache")]
-// pub mod cache;
-
-// #[cfg_attr(docsrs, doc(cfg(feature = "printer")))]
-// #[cfg(feature = "printer")]
-// pub mod printer;
 
 // #[cfg_attr(docsrs, doc(cfg(feature = "ergonomics")))]
 // #[cfg(feature = "ergonomics")]
 // pub mod ergonomics;
 
-// #[cfg_attr(docsrs, doc(cfg(feature = "ffi")))]
-// #[cfg(feature = "ffi")]
-// pub mod ffi;
+#[cfg_attr(docsrs, doc(cfg(feature = "ffi")))]
+#[cfg(feature = "ffi")]
+pub mod ffi;
 
-// #[cfg_attr(docsrs, doc(cfg(feature = "articles")))]
-// #[cfg(feature = "articles")]
-// pub mod articles;
+#[cfg_attr(docsrs, doc(cfg(feature = "articles")))]
+#[cfg(feature = "articles")]
+pub mod articles;

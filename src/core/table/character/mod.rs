@@ -18,6 +18,7 @@ use crate::core::{
     byte, Character, CharacterTable, DeserializeError, Layout, SerializeError, Table,
     TableIdentifier,
 };
+use crate::{vec, Vec};
 
 pub(crate) mod deserialize;
 pub(crate) use deserialize::*;

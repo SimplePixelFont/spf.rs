@@ -15,6 +15,8 @@
  */
 
 use crate::core::{byte, Character};
+use crate::String;
+
 #[cfg(feature = "log")]
 use log::*;
 
