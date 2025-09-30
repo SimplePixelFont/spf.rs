@@ -13,7 +13,7 @@ mod tests {
         core::*,
         ergonomics::{
             CharacterBuilder, CharacterTableBuilder, ColorBuilder, ColorTableBuilder,
-            LayoutBuilder, PixmapBuilder, PixmapTableBuilder,
+            LayoutBuilder, PixmapBuilder, PixmapIndex, PixmapTableBuilder, PixmapTableIndex,
         },
     };
 
@@ -164,41 +164,36 @@ mod tests {
             .color(&[0, 0, 0, 255][..]);
 
         let mut pixmap = PixmapTableBuilder::default();
+        let mut glyph_o = PixmapIndex::default();
         #[rustfmt::skip]
         pixmap
             .constant_height(4)
             .constant_bits_per_pixel(1)
             .color_table_indexes(&[palette.link()])
-            .pixmap(PixmapBuilder::from(&[
+            .pixmap_bind(PixmapBuilder::from(&[
                 1, 1, 1, 1,
                 1, 0, 0, 1,
                 1, 0, 0, 1,
                 1, 1, 1, 1]
-            [..]))
+            [..]), &mut glyph_o)
             .pixmap(&[
                 1, 0, 1, 0, 1,
                 1, 0, 1, 0, 1,
                 1, 0 ,1, 0, 1,
                 1, 1, 1, 1, 1]
             [..])
-            .pixmap(&[
+            .pixmap_process(&[
                 0, 1, 1, 0,
                 0, 0, 0, 0,
                 1, 0, 0, 1,
                 0, 1, 1, 0]
-            [..])
-            .pixmap(&[
-                0, 0, 0, 1,
-                1, 1, 1, 1,
-                1, 1, 1, 1,
-                1, 0, 0, 0]
-            [..])
-            // .bind([
+            [..], |pixmap| pixmap.custom_width(4));
 
-            // ])
-            ;
-
-        let letter_o = CharacterBuilder::from("o");
+        let not_equal = pixmap.bind_pixmap(&[0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0][..]);
+        println!("{:?}", glyph_o);
+        println!("{:?}", not_equal);
+        let mut letter_o = CharacterBuilder::from("o");
+        letter_o.pixmap_index(glyph_o);
         let mut characters = CharacterTableBuilder::default();
         characters
             .pixmap_table_indexes(&[pixmap.link()])

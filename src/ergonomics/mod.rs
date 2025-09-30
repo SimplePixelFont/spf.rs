@@ -48,9 +48,14 @@ trait TableBuilder {
 }
 
 #[derive(Default, Debug, Clone)]
+pub struct CharacterTableIndex(Rc<RefCell<u8>>);
+#[derive(Default, Debug, Clone)]
 pub struct ColorTableIndex(Rc<RefCell<u8>>);
 #[derive(Default, Debug, Clone)]
 pub struct PixmapTableIndex(Rc<RefCell<u8>>);
+
+#[derive(Default, Debug, Clone)]
+pub struct PixmapIndex(PixmapTableIndex, Rc<RefCell<u8>>);
 
 #[derive(Default)]
 pub struct ColorTableBuilder {
@@ -74,7 +79,7 @@ pub struct CharacterTableBuilder {
 #[derive(Default)]
 pub struct CharacterBuilder {
     pub advance_x: Option<u8>,
-    pub pixmap_index: Option<u8>,
+    pub pixmap_index: Option<PixmapIndex>,
     pub grapheme_cluster: Option<String>,
 }
 
@@ -94,6 +99,7 @@ pub struct PixmapBuilder {
     pub custom_height: Option<u8>,
     pub custom_bits_per_pixel: Option<u8>,
     pub data: Vec<u8>,
+    index: Option<PixmapIndex>,
 }
 
 #[derive(Default)]

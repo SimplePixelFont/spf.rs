@@ -30,7 +30,39 @@ impl From<&[u8]> for PixmapBuilder {
             custom_height: None,
             custom_bits_per_pixel: None,
             data: data.to_vec(),
+            index: None,
         }
+    }
+}
+
+impl From<&mut PixmapBuilder> for PixmapBuilder {
+    fn from(pixmap: &mut PixmapBuilder) -> Self {
+        PixmapBuilder {
+            custom_width: pixmap.custom_width,
+            custom_height: pixmap.custom_height,
+            custom_bits_per_pixel: pixmap.custom_bits_per_pixel,
+            data: pixmap.data.clone(),
+            index: pixmap.index.clone(),
+        }
+    }
+}
+
+impl PixmapBuilder {
+    pub fn custom_width(&mut self, custom_width: u8) -> &mut Self {
+        self.custom_width = Some(custom_width);
+        self
+    }
+    pub fn custom_height(&mut self, custom_height: u8) -> &mut Self {
+        self.custom_height = Some(custom_height);
+        self
+    }
+    pub fn custom_bits_per_pixel(&mut self, custom_bits_per_pixel: u8) -> &mut Self {
+        self.custom_bits_per_pixel = Some(custom_bits_per_pixel);
+        self
+    }
+    pub fn data(&mut self, data: &[u8]) -> &mut Self {
+        self.data = data.to_vec();
+        self
     }
 }
 
@@ -58,8 +90,34 @@ impl PixmapTableBuilder {
         self
     }
     pub fn pixmap<T: Into<PixmapBuilder>>(&mut self, pixmap: T) -> &mut Self {
-        self.pixmaps.push(pixmap.into());
+        let mut pixmap = pixmap.into();
+        pixmap.index = Some(PixmapIndex(
+            self.link(),
+            Rc::new(RefCell::new(self.pixmaps.len() as u8)),
+        ));
+        self.pixmaps.push(pixmap);
         self
+    }
+    pub fn pixmap_bind<T: Into<PixmapBuilder>>(
+        &mut self,
+        pixmap: T,
+        pixmap_index: &mut PixmapIndex,
+    ) -> &mut Self {
+        self.pixmap(pixmap);
+        *pixmap_index = self.pixmaps.last().unwrap().index.as_ref().unwrap().clone();
+        self
+    }
+    pub fn pixmap_process<T: Into<PixmapBuilder>>(
+        &mut self,
+        pixmap: T,
+        process: fn(&mut PixmapBuilder) -> &mut PixmapBuilder,
+    ) -> &mut Self {
+        self.pixmap(process(&mut pixmap.into()));
+        self
+    }
+    pub fn bind_pixmap<T: Into<PixmapBuilder>>(&mut self, pixmap: T) -> PixmapIndex {
+        self.pixmap(pixmap);
+        self.pixmaps.last().unwrap().index.as_ref().unwrap().clone()
     }
     pub fn link(&mut self) -> PixmapTableIndex {
         self.index.clone()

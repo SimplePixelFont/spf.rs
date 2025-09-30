@@ -28,7 +28,7 @@ impl CharacterBuilder {
         self.advance_x = Some(advance_x);
         self
     }
-    pub fn pixmap_index(&mut self, pixmap_index: u8) -> &mut Self {
+    pub fn pixmap_index(&mut self, pixmap_index: PixmapIndex) -> &mut Self {
         self.pixmap_index = Some(pixmap_index);
         self
     }
