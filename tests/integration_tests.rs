@@ -190,7 +190,7 @@ mod tests {
                 0, 1, 1, 0]
             [..]).custom_width(4), |pixmap| pixmap.custom_width(4));
 
-        let _not_equal = pixmap.bind_pixmap(
+        let not_equal = pixmap.bind_pixmap(
             PixmapBuilder::from(&[0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0][..])
                 .custom_width(4),
         );
@@ -200,11 +200,9 @@ mod tests {
         characters
             .pixmap_table_indexes(&[pixmap.link()])
             .character(letter_o)
-            .character_process("w", |character: &mut CharacterBuilder| {
-                character.pixmap_index(&glyph_w)
-            })
+            .character_process("w", |character| character.pixmap_index(&glyph_w))
             .character("😊")
-            .character("!=");
+            .character_process("!=", |character| character.pixmap_index(&not_equal));
 
         layout.table(palette);
         layout.table(pixmap);
