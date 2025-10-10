@@ -32,7 +32,7 @@ Usage varies depending on the programming language you choose. For a guide using
 to parallel developments within the specifictaitons. The following tables are supported:
 
 | Type | Stability | Notes |
-| --- | --- | --- | --- |
+| ---- | --------- | ----- |
 | Character Table | ✔ | `Added in v0.7.0-alpha.0` |
 | Pixmap Table | ✔ | `Added in v0.7.0-alpha.0` |
 | Color Table | ✔ | `Added in v0.7.0-alpha.0` |
