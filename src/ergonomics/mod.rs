@@ -41,12 +41,56 @@ pub const MAGIC_BYTES: [u8; 4] = [127, 102, 115, 70];
 pub struct LayoutBuilder {
     pub version: Version,
     pub compact: bool,
+    pub character_table_builders: Vec<CharacterTableBuilder>,
+    pub color_table_builders: Vec<ColorTableBuilder>,
+    pub pixmap_table_builders: Vec<PixmapTableBuilder>,
 }
 
-trait TableBuilder {
-    fn build(&mut self) -> Box<impl Table>;
+pub enum TableBuilderIdentifier {
+    Character(CharacterTableBuilder),
+    Color(ColorTableBuilder),
+    Pixmap(PixmapTableBuilder),
 }
 
+pub enum TableBuilderResult {
+    Character(CharacterTable),
+    Color(ColorTable),
+    Pixmap(PixmapTable),
+}
+
+impl From<TableBuilderResult> for CharacterTable {
+    fn from(table_builder_result: TableBuilderResult) -> Self {
+        match table_builder_result {
+            TableBuilderResult::Character(character_table) => character_table,
+            _ => panic!("Cannot convert TableBuilderResult to CharacterTable"),
+        }
+    }
+}
+
+impl From<TableBuilderResult> for ColorTable {
+    fn from(table_builder_result: TableBuilderResult) -> Self {
+        match table_builder_result {
+            TableBuilderResult::Color(color_table) => color_table,
+            _ => panic!("Cannot convert TableBuilderResult to ColorTable"),
+        }
+    }
+}
+
+impl From<TableBuilderResult> for PixmapTable {
+    fn from(table_builder_result: TableBuilderResult) -> Self {
+        match table_builder_result {
+            TableBuilderResult::Pixmap(pixmap_table) => pixmap_table,
+            _ => panic!("Cannot convert TableBuilderResult to PixmapTable"),
+        }
+    }
+}
+
+pub trait TableBuilder {
+    fn resolve(&mut self);
+    fn build(&mut self) -> TableBuilderResult;
+}
+
+#[allow(dead_code)]
 #[derive(Default, Debug, Clone)]
 pub struct CharacterTableIndex(Rc<RefCell<u8>>);
 #[derive(Default, Debug, Clone)]
@@ -54,17 +98,11 @@ pub struct ColorTableIndex(Rc<RefCell<u8>>);
 #[derive(Default, Debug, Clone)]
 pub struct PixmapTableIndex(Rc<RefCell<u8>>);
 
+#[allow(dead_code)]
 #[derive(Default, Debug, Clone)]
 pub struct PixmapIndex(PixmapTableIndex, Rc<RefCell<u8>>);
 
-#[derive(Default)]
-pub struct ColorTableBuilder {
-    pub constant_alpha: Option<u8>,
-    pub colors: Vec<ColorBuilder>,
-    index: ColorTableIndex,
-}
-
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct CharacterTableBuilder {
     pub use_advance_x: bool,
     pub use_pixmap_index: bool,
@@ -76,14 +114,14 @@ pub struct CharacterTableBuilder {
     pub characters: Vec<CharacterBuilder>,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct CharacterBuilder {
     pub advance_x: Option<u8>,
     pub pixmap_index: Option<PixmapIndex>,
-    pub grapheme_cluster: Option<String>,
+    pub grapheme_cluster: String,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct PixmapTableBuilder {
     pub constant_width: Option<u8>,
     pub constant_height: Option<u8>,
@@ -93,7 +131,7 @@ pub struct PixmapTableBuilder {
     index: PixmapTableIndex,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct PixmapBuilder {
     pub custom_width: Option<u8>,
     pub custom_height: Option<u8>,
@@ -102,7 +140,14 @@ pub struct PixmapBuilder {
     index: Option<PixmapIndex>,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
+pub struct ColorTableBuilder {
+    pub constant_alpha: Option<u8>,
+    pub colors: Vec<ColorBuilder>,
+    index: ColorTableIndex,
+}
+
+#[derive(Default, Debug, Clone)]
 pub struct ColorBuilder {
     pub custom_alpha: Option<u8>,
     pub r: u8,
@@ -123,7 +168,44 @@ impl LayoutBuilder {
         self
     }
 
-    pub fn table(&mut self, table: Box<impl TableBuilder>) -> &mut Self {
+    pub fn table<T: Into<TableBuilderIdentifier>>(&mut self, table: T) -> &mut Self {
+        let table = table.into();
+        match table {
+            TableBuilderIdentifier::Character(mut table) => {
+                table.resolve();
+                self.character_table_builders.push(table);
+            }
+            TableBuilderIdentifier::Color(mut table) => {
+                table.resolve();
+                *table.index.0.borrow_mut() = self.color_table_builders.len() as u8;
+                self.color_table_builders.push(table);
+            }
+            TableBuilderIdentifier::Pixmap(mut table) => {
+                table.resolve();
+                *table.index.0.borrow_mut() = self.pixmap_table_builders.len() as u8;
+                self.pixmap_table_builders.push(table);
+            }
+        }
         self
+    }
+
+    pub fn build(&mut self) -> Layout {
+        let mut layout = Layout::default();
+        layout.version = self.version.clone();
+        layout.compact = self.compact;
+        for character_table_builder in self.character_table_builders.iter_mut() {
+            layout
+                .character_tables
+                .push(character_table_builder.build().into());
+        }
+        for color_table_builder in self.color_table_builders.iter_mut() {
+            layout.color_tables.push(color_table_builder.build().into());
+        }
+        for pixmap_table_builder in self.pixmap_table_builders.iter_mut() {
+            layout
+                .pixmap_tables
+                .push(pixmap_table_builder.build().into());
+        }
+        layout
     }
 }

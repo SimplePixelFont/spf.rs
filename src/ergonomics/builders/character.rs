@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
-pub(crate) use crate::core::*;
 pub(crate) use crate::ergonomics::*;
 
-// remove ToString trait
 use crate::Vec;
 
 impl CharacterBuilder {
@@ -28,12 +23,12 @@ impl CharacterBuilder {
         self.advance_x = Some(advance_x);
         self
     }
-    pub fn pixmap_index(&mut self, pixmap_index: PixmapIndex) -> &mut Self {
-        self.pixmap_index = Some(pixmap_index);
+    pub fn pixmap_index(&mut self, pixmap_index: &PixmapIndex) -> &mut Self {
+        self.pixmap_index = Some(pixmap_index.clone());
         self
     }
     pub fn grapheme_cluster(&mut self, grapheme_cluster: String) -> &mut Self {
-        self.grapheme_cluster = Some(grapheme_cluster);
+        self.grapheme_cluster = grapheme_cluster;
         self
     }
 }
@@ -43,7 +38,17 @@ impl From<&str> for CharacterBuilder {
         CharacterBuilder {
             advance_x: None,
             pixmap_index: None,
-            grapheme_cluster: Some(grapheme_cluster.to_string()),
+            grapheme_cluster: grapheme_cluster.to_string(),
+        }
+    }
+}
+
+impl From<&mut CharacterBuilder> for CharacterBuilder {
+    fn from(character: &mut CharacterBuilder) -> Self {
+        CharacterBuilder {
+            advance_x: character.advance_x,
+            pixmap_index: character.pixmap_index.clone(),
+            grapheme_cluster: character.grapheme_cluster.clone(),
         }
     }
 }
@@ -74,5 +79,77 @@ impl CharacterTableBuilder {
     pub fn character<T: Into<CharacterBuilder>>(&mut self, character: T) -> &mut Self {
         self.characters.push(character.into());
         self
+    }
+    pub fn character_process<
+        T: Into<CharacterBuilder>,
+        F: Fn(&mut CharacterBuilder) -> &mut CharacterBuilder,
+    >(
+        &mut self,
+        character: T,
+        process: F,
+    ) -> &mut Self {
+        self.character(process(&mut character.into()));
+        self
+    }
+}
+
+impl From<CharacterTableBuilder> for TableBuilderIdentifier {
+    fn from(character_table_builder: CharacterTableBuilder) -> Self {
+        TableBuilderIdentifier::Character(character_table_builder)
+    }
+}
+
+impl TableBuilder for CharacterTableBuilder {
+    fn resolve(&mut self) {
+        for character_builder in self.characters.iter_mut() {
+            if !self.use_advance_x {
+                character_builder.advance_x = None;
+            }
+            if !self.use_pixmap_index {
+                character_builder.pixmap_index = None;
+            }
+            if self.use_advance_x && character_builder.advance_x.is_none() {
+                panic!("use_advance_x is set to true but no advance_x is set!");
+            }
+            if self.use_pixmap_index && character_builder.pixmap_index.is_none() {
+                panic!("use_pixmap_index is set to true but no pixmap_index is set!");
+            }
+        }
+    }
+    fn build(&mut self) -> TableBuilderResult {
+        let mut character_table = CharacterTable::default();
+        character_table.use_advance_x = self.use_advance_x;
+        character_table.use_pixmap_index = self.use_pixmap_index;
+        character_table.constant_cluster_codepoints = self.constant_cluster_codepoints;
+
+        let pixmap_table_indexes = if let Some(pixmap_table_indexes) = &self.pixmap_table_indexes {
+            Some(
+                pixmap_table_indexes
+                    .iter()
+                    .map(|pixmap_table_index| pixmap_table_index.0.borrow().clone())
+                    .collect(),
+            )
+        } else {
+            None
+        };
+        character_table.pixmap_table_indexes = pixmap_table_indexes;
+
+        let mut characters = vec![];
+        for character_builder in self.characters.iter_mut() {
+            characters.push(Character {
+                advance_x: character_builder.advance_x,
+                pixmap_index: {
+                    if let Some(pixmap_index) = &character_builder.pixmap_index {
+                        Some(pixmap_index.1.borrow().clone())
+                    } else {
+                        None
+                    }
+                },
+                grapheme_cluster: character_builder.grapheme_cluster.clone(),
+            });
+        }
+        character_table.characters = characters;
+
+        TableBuilderResult::Character(character_table)
     }
 }

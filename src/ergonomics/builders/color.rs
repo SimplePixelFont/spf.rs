@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
-pub(crate) use crate::core::*;
 pub(crate) use crate::ergonomics::*;
-
-// remove ToString trait
-use crate::Vec;
 
 impl ColorTableBuilder {
     pub fn constant_alpha(&mut self, constant_alpha: u8) -> &mut Self {
@@ -46,9 +39,14 @@ impl ColorTableBuilder {
     // }
 }
 
+impl From<ColorTableBuilder> for TableBuilderIdentifier {
+    fn from(color_table_builder: ColorTableBuilder) -> Self {
+        TableBuilderIdentifier::Color(color_table_builder)
+    }
+}
+
 impl TableBuilder for ColorTableBuilder {
-    fn build(&mut self) -> Box<impl Table> {
-        let mut colors = vec![];
+    fn resolve(&mut self) {
         for color_builder in self.colors.iter_mut() {
             if self.constant_alpha.is_some() {
                 color_builder.custom_alpha = None;
@@ -56,6 +54,11 @@ impl TableBuilder for ColorTableBuilder {
             if self.constant_alpha.is_none() && color_builder.custom_alpha.is_none() {
                 panic!("Neither constant_alpha nor custom_alpha are set!");
             }
+        }
+    }
+    fn build(&mut self) -> TableBuilderResult {
+        let mut colors = vec![];
+        for color_builder in self.colors.iter_mut() {
             colors.push(Color {
                 custom_alpha: color_builder.custom_alpha,
                 r: color_builder.r,
@@ -63,7 +66,7 @@ impl TableBuilder for ColorTableBuilder {
                 b: color_builder.b,
             });
         }
-        Box::new(ColorTable {
+        TableBuilderResult::Color(ColorTable {
             constant_alpha: self.constant_alpha,
             colors,
         })
