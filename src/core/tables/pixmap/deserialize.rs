@@ -86,7 +86,7 @@ pub(crate) fn next_pixmap(
         }
     }
 
-    if !compact && (width * height * bits_per_pixel) % 8 != 0 {
+    if !compact && !(width * height * bits_per_pixel).is_multiple_of(8) {
         storage.index += 1;
         storage.pointer = 0;
     }
