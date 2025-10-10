@@ -9,7 +9,13 @@ mod tests {
     use std::io;
 
     use super::common;
-    use spf::core::*;
+    use spf::{
+        core::*,
+        ergonomics::{
+            CharacterBuilder, CharacterTableBuilder, ColorBuilder, ColorTableBuilder,
+            LayoutBuilder, PixmapBuilder, PixmapIndex, PixmapTableBuilder,
+        },
+    };
 
     fn init_logger() {
         let _ = env_logger::builder()
@@ -142,6 +148,68 @@ mod tests {
         let mut buffer: Vec<u8> = vec![];
         common::read_from_file("./res/sampleToyFont.spf", &mut buffer)?;
         let _font = layout_from_data(buffer);
+        Ok(())
+    }
+
+    #[test]
+    fn builder_pattern() -> Result<(), ()> {
+        init_logger();
+        let mut layout = LayoutBuilder::default();
+        layout.compact(true);
+
+        let mut palette = ColorTableBuilder::default();
+        palette
+            .constant_alpha(255)
+            .color(ColorBuilder::white())
+            .color(&[0, 0, 0, 255][..]);
+
+        let mut pixmap = PixmapTableBuilder::default();
+        let mut glyph_o = PixmapIndex::default();
+        let mut glyph_w = PixmapIndex::default();
+        #[rustfmt::skip]
+        pixmap
+            .constant_height(4)
+            .constant_bits_per_pixel(1)
+            .color_table_indexes(&[palette.link()])
+            .pixmap_bind(PixmapBuilder::from(&[
+                1, 1, 1, 1,
+                1, 0, 0, 1,
+                1, 0, 0, 1,
+                1, 1, 1, 1]
+            [..]).custom_width(4), &mut glyph_o)
+            .pixmap_bind(PixmapBuilder::from(&[
+                1, 0, 1, 0, 1,
+                1, 0, 1, 0, 1,
+                1, 0 ,1, 0, 1,
+                1, 1, 1, 1, 1]
+            [..]).custom_width(5), &mut glyph_w)
+            .pixmap_process(PixmapBuilder::from(&[
+                0, 1, 1, 0,
+                0, 0, 0, 0,
+                1, 0, 0, 1,
+                0, 1, 1, 0]
+            [..]).custom_width(4), |pixmap| pixmap.custom_width(4));
+
+        let _not_equal = pixmap.bind_pixmap(
+            PixmapBuilder::from(&[0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0][..])
+                .custom_width(4),
+        );
+        let mut letter_o = CharacterBuilder::from("o");
+        letter_o.pixmap_index(&glyph_o);
+        let mut characters = CharacterTableBuilder::default();
+        characters
+            .pixmap_table_indexes(&[pixmap.link()])
+            .character(letter_o)
+            .character_process("w", |character: &mut CharacterBuilder| {
+                character.pixmap_index(&glyph_w)
+            })
+            .character("😊")
+            .character("!=");
+
+        layout.table(palette);
+        layout.table(pixmap);
+        layout.table(characters);
+        layout.build();
         Ok(())
     }
 }
