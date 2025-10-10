@@ -77,7 +77,7 @@ impl From<&[u8]> for ColorBuilder {
     fn from(rgba: &[u8]) -> Self {
         ColorBuilder {
             custom_alpha: Some(rgba.get(3).unwrap_or(&0).to_owned()),
-            r: rgba.get(0).unwrap_or(&0).to_owned(),
+            r: rgba.first().unwrap_or(&0).to_owned(),
             g: rgba.get(1).unwrap_or(&0).to_owned(),
             b: rgba.get(2).unwrap_or(&0).to_owned(),
         }

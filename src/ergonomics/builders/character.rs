@@ -117,34 +117,33 @@ impl TableBuilder for CharacterTableBuilder {
         }
     }
     fn build(&mut self) -> TableBuilderResult {
-        let mut character_table = CharacterTable::default();
-        character_table.use_advance_x = self.use_advance_x;
-        character_table.use_pixmap_index = self.use_pixmap_index;
-        character_table.constant_cluster_codepoints = self.constant_cluster_codepoints;
+        let mut character_table = CharacterTable {
+            use_advance_x: self.use_advance_x,
+            use_pixmap_index: self.use_pixmap_index,
+            constant_cluster_codepoints: self.constant_cluster_codepoints,
+            ..Default::default()
+        };
 
-        let pixmap_table_indexes = if let Some(pixmap_table_indexes) = &self.pixmap_table_indexes {
-            Some(
+        let pixmap_table_indexes = self
+            .pixmap_table_indexes
+            .as_ref()
+            .map(|pixmap_table_indexes| {
                 pixmap_table_indexes
                     .iter()
-                    .map(|pixmap_table_index| pixmap_table_index.0.borrow().clone())
-                    .collect(),
-            )
-        } else {
-            None
-        };
+                    .map(|pixmap_table_index| *pixmap_table_index.0.borrow())
+                    .collect()
+            });
+
         character_table.pixmap_table_indexes = pixmap_table_indexes;
 
         let mut characters = vec![];
         for character_builder in self.characters.iter_mut() {
             characters.push(Character {
                 advance_x: character_builder.advance_x,
-                pixmap_index: {
-                    if let Some(pixmap_index) = &character_builder.pixmap_index {
-                        Some(pixmap_index.1.borrow().clone())
-                    } else {
-                        None
-                    }
-                },
+                pixmap_index: character_builder
+                    .pixmap_index
+                    .as_ref()
+                    .map(|pixmap_index| *pixmap_index.1.borrow()),
                 grapheme_cluster: character_builder.grapheme_cluster.clone(),
             });
         }

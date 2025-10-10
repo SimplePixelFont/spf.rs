@@ -190,9 +190,12 @@ impl LayoutBuilder {
     }
 
     pub fn build(&mut self) -> Layout {
-        let mut layout = Layout::default();
-        layout.version = self.version.clone();
-        layout.compact = self.compact;
+        let mut layout = Layout {
+            version: self.version.clone(),
+            compact: self.compact,
+            ..Default::default()
+        };
+
         for character_table_builder in self.character_table_builders.iter_mut() {
             layout
                 .character_tables

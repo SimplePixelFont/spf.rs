@@ -159,21 +159,22 @@ impl TableBuilder for PixmapTableBuilder {
         }
     }
     fn build(&mut self) -> TableBuilderResult {
-        let mut pixmap_table = PixmapTable::default();
-        pixmap_table.constant_width = self.constant_width;
-        pixmap_table.constant_height = self.constant_height;
-        pixmap_table.constant_bits_per_pixel = self.constant_bits_per_pixel;
+        let mut pixmap_table = PixmapTable {
+            constant_width: self.constant_width,
+            constant_height: self.constant_height,
+            constant_bits_per_pixel: self.constant_bits_per_pixel,
+            ..Default::default()
+        };
 
-        let color_table_indexes = if let Some(color_table_indexes) = &self.color_table_indexes {
-            Some(
+        let color_table_indexes = self
+            .color_table_indexes
+            .as_ref()
+            .map(|color_table_indexes| {
                 color_table_indexes
                     .iter()
-                    .map(|color_table_index| color_table_index.0.borrow().clone())
-                    .collect(),
-            )
-        } else {
-            None
-        };
+                    .map(|color_table_index| *color_table_index.0.borrow())
+                    .collect()
+            });
         pixmap_table.color_table_indexes = color_table_indexes;
 
         let mut pixmaps = vec![];
