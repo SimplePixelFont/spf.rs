@@ -1,6 +1,6 @@
 ### Header Files Generation (used by BinaryBuilder) ###
 run(`sh -c "cargo install cbindgen"`)
-run(`sh -c "cbindgen --output target/spf.h --lang c --cpp-compat"`)
+run(`sh -c "cbindgen --output target/libspf.h --lang c --cpp-compat"`)
 
 ### BinaryBuilder Builds ###
 
@@ -65,7 +65,7 @@ mkpath("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/include
 mkpath("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/share/licenses/spf")
 
 mv("target/x86_64-pc-windows-msvc/release/spf.dll", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/lib/spf.dll")
-cp("target/spf.h", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/include/spf.h")
+cp("target/libspf.h", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/include/libspf.h")
 cp("LICENSE-APACHE", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/share/licenses/spf/LICENSE-APACHE")
 
 Tar.create("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc", "artifacts/spf.v0.5.0.x86_64-w64-msvc.tar.gz")
