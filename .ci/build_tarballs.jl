@@ -10,7 +10,7 @@ catch
 end
 
 name = "spf"
-version = v"$(Env['VERSION'])"
+version = VersionNumber(ENV["VERSION"])
 
 # Collection of sources required to complete build
 sources = [
