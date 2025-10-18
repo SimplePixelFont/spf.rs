@@ -25,7 +25,7 @@ jobs:
       - uses: julia-actions/setup-julia@v2
         with:
           version: "1.7"
-      - run: julia -- ./.ci/release.jl
+      - run: TAG_NAME='${{ inputs.tag_name }}' julia -- ./.ci/release.jl
 
       - name: List files in folder
         run: |

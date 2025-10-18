@@ -1,3 +1,10 @@
+### Version Number ###
+tag_name = ENV["TAG_NAME"]
+version = tag_name
+if startswith(tag_name, "v")
+    version = tag_name[2:end]
+end
+
 ### Header Files Generation (used by BinaryBuilder) ###
 run(`sh -c "cargo install cbindgen"`)
 run(`sh -c "cbindgen --output target/spf.h --lang c --cpp-compat"`)
@@ -27,7 +34,7 @@ jl_platforms = [
 
 # Github Actions runs out of disk space: The solution is to delete all artifacts after each platform build.
 for platform in jl_platforms
-    run(`sh -c "BINARYBUILDER_RUNNER='privileged' BINARYBUILDER_AUTOMATIC_APPLE=true julia -- ./.ci/build_tarballs.jl $platform"`)
+    run(`sh -c "VERSION='$version' BINARYBUILDER_RUNNER='privileged' BINARYBUILDER_AUTOMATIC_APPLE=true julia -- ./.ci/build_tarballs.jl $platform"`)
     run(`sh -c "sudo rm -rf '/home/runner/.julia/artifacts/'"`)
 end
 
@@ -52,23 +59,23 @@ run(`sh -c "cargo xwin build --target x86_64-pc-windows-msvc --release"`)
 mkdir("artifacts")
 for platform in jl_platforms
     platform = platform[2:end-1]
-    mv("products/spf.v0.5.0.$platform.tar.gz", "artifacts/spf.v0.5.0.$platform.tar.gz")
+    mv("products/spf.$tag_name.$platform.tar.gz", "artifacts/spf.$tag_name.$platform.tar.gz")
 end
 
 using Pkg
 Pkg.add("Tar")
 using Tar
 
-mkdir("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc")
-mkpath("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/lib")
-mkpath("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/include")
-mkpath("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/share/licenses/spf")
+mkdir("target/x86_64-pc-windows-msvc/release/spf.$tag_name.x86_64-w64-msvc")
+mkpath("target/x86_64-pc-windows-msvc/release/spf.$tag_name.x86_64-w64-msvc/lib")
+mkpath("target/x86_64-pc-windows-msvc/release/spf.$tag_name.x86_64-w64-msvc/include")
+mkpath("target/x86_64-pc-windows-msvc/release/spf.$tag_name.x86_64-w64-msvc/share/licenses/spf")
 
-mv("target/x86_64-pc-windows-msvc/release/spf.dll", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/lib/spf.dll")
-cp("target/spf.h", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/include/spf.h")
-cp("LICENSE-APACHE", "target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc/share/licenses/spf/LICENSE-APACHE")
+mv("target/x86_64-pc-windows-msvc/release/spf.dll", "target/x86_64-pc-windows-msvc/release/spf.$tag_name.x86_64-w64-msvc/lib/spf.dll")
+cp("target/spf.h", "target/x86_64-pc-windows-msvc/release/spf.$tag_name.x86_64-w64-msvc/include/spf.h")
+cp("LICENSE-APACHE", "target/x86_64-pc-windows-msvc/release/spf.$tag_name.x86_64-w64-msvc/share/licenses/spf/LICENSE-APACHE")
 
-Tar.create("target/x86_64-pc-windows-msvc/release/spf.v0.5.0.x86_64-w64-msvc", "artifacts/spf.v0.5.0.x86_64-w64-msvc.tar.gz")
+Tar.create("target/x86_64-pc-windows-msvc/release/spf.$tag_name.x86_64-w64-msvc", "artifacts/spf.$tag_name.x86_64-w64-msvc.tar.gz")
 
 # Will be figured out during 0.6.x
 # mkdir("target/wasm32-unknown-unknown/release/spf.v0.5.0.wasm32-unknown-unknown")
