@@ -24,11 +24,11 @@ impl Default for SPFLayout {
             version: u8::default(),
             compact: u8::default(),
             character_tables: core::ptr::null_mut(),
-            character_tables_length: u64::default(),
+            character_tables_length: 0,
             color_tables: core::ptr::null_mut(),
-            color_tables_length: u64::default(),
+            color_tables_length: 0,
             pixmap_tables: core::ptr::null_mut(),
-            pixmap_tables_length: u64::default(),
+            pixmap_tables_length: 0,
         }
     }
 }
@@ -42,9 +42,9 @@ impl Default for SPFCharacterTable {
             constant_cluster_codepoints: u8::default(),
             has_pixmap_table_indexes: u8::default(),
             pixmap_table_indexes: core::ptr::null_mut(),
-            pixmap_table_indexes_length: u64::default(),
+            pixmap_table_indexes_length: 0,
             characters: core::ptr::null_mut(),
-            characters_length: u64::default(),
+            characters_length: 0,
         }
     }
 }
@@ -67,7 +67,7 @@ impl Default for SPFColorTable {
             has_constant_alpha: u8::default(),
             constant_alpha: u8::default(),
             colors: core::ptr::null_mut(),
-            colors_length: u64::default(),
+            colors_length: 0,
         }
     }
 }
@@ -96,9 +96,9 @@ impl Default for SPFPixmapTable {
             constant_bits_per_pixel: u8::default(),
             has_color_table_indexes: u8::default(),
             color_table_indexes: core::ptr::null_mut(),
-            color_table_indexes_length: u64::default(),
+            color_table_indexes_length: 0,
             pixmaps: core::ptr::null_mut(),
-            pixmaps_length: u64::default(),
+            pixmaps_length: 0,
         }
     }
 }
@@ -113,7 +113,7 @@ impl Default for SPFPixmap {
             has_custom_bits_per_pixel: u8::default(),
             custom_bits_per_pixel: u8::default(),
             data: core::ptr::null_mut(),
-            data_length: u64::default(),
+            data_length: 0,
         }
     }
 }
@@ -122,7 +122,7 @@ impl Default for SPFData {
     fn default() -> Self {
         SPFData {
             data: core::ptr::null_mut(),
-            data_length: u64::default(),
+            data_length: 0,
         }
     }
 }
