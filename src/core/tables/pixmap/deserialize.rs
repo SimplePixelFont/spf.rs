@@ -86,11 +86,36 @@ pub(crate) fn next_pixmap(
         }
     }
 
+    resolve_final_byte(storage, compact, width, height, bits_per_pixel);
+
+    #[cfg(feature = "log")]
+    info!("Identified pixmap: {:?}", pixmap.data);
+}
+
+#[rustversion::since(1.87)]
+pub(crate) fn resolve_final_byte(
+    storage: &mut byte::ByteStorage,
+    compact: bool,
+    width: u8,
+    height: u8,
+    bits_per_pixel: u8,
+) {
     if !compact && !(width * height * bits_per_pixel).is_multiple_of(8) {
         storage.index += 1;
         storage.pointer = 0;
     }
+}
 
-    #[cfg(feature = "log")]
-    info!("Identified pixmap: {:?}", pixmap.data);
+#[rustversion::before(1.87)]
+pub(crate) fn resolve_final_byte(
+    storage: &mut byte::ByteStorage,
+    compact: bool,
+    width: u8,
+    height: u8,
+    bits_per_pixel: u8,
+) {
+    if !compact && (width * height * bits_per_pixel) % 8 != 0 {
+        storage.index += 1;
+        storage.pointer = 0;
+    }
 }

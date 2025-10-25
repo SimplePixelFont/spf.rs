@@ -1,4 +1,3 @@
-#![doc(hidden)]
 /*
  * Copyright 2025 SimplePixelFont
  *
@@ -14,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#![doc(hidden)]
 
 pub mod character;
 pub mod color;
