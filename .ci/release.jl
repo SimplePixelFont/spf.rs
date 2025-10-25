@@ -4,6 +4,7 @@ version = tag_name
 if startswith(tag_name, "v")
     version = tag_name[2:end]
 end
+sha = ENV["SHA"]
 
 ### Header Files Generation (used by BinaryBuilder) ###
 run(`sh -c "cargo install cbindgen"`)
@@ -34,7 +35,7 @@ jl_platforms = [
 
 # Github Actions runs out of disk space: The solution is to delete all artifacts after each platform build.
 for platform in jl_platforms
-    run(`sh -c "VERSION='$version' BINARYBUILDER_RUNNER='privileged' BINARYBUILDER_AUTOMATIC_APPLE=true julia -- ./.ci/build_tarballs.jl $platform"`)
+    run(`sh -c "VERSION='$version' SHA='$sha' BINARYBUILDER_RUNNER='privileged' BINARYBUILDER_AUTOMATIC_APPLE=true julia -- ./.ci/build_tarballs.jl $platform"`)
     run(`sh -c "sudo rm -rf '/home/runner/.julia/artifacts/'"`)
 end
 
