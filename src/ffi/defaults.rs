@@ -72,6 +72,19 @@ impl Default for SPFColorTable {
     }
 }
 
+#[allow(clippy::derivable_impls)] // For consistency & future developments in Color
+impl Default for SPFColor {
+    fn default() -> Self {
+        SPFColor {
+            has_custom_alpha: u8::default(),
+            custom_alpha: u8::default(),
+            r: u8::default(),
+            g: u8::default(),
+            b: u8::default(),
+        }
+    }
+}
+
 impl Default for SPFPixmapTable {
     fn default() -> Self {
         SPFPixmapTable {

@@ -131,7 +131,7 @@ pub struct SPFColorTable {
     pub colors_length: c_ulong,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFColor {
     pub has_custom_alpha: c_uchar,
@@ -141,7 +141,7 @@ pub struct SPFColor {
     pub b: c_uchar,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 /// Used to represent a [`Vec<u8>`] in the C ABI. This is simply a `u_char` array on the heap which can be reconstructed with the pointer `data` and length `data_length`.
 pub struct SPFData {
