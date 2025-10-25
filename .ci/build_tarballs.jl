@@ -11,10 +11,11 @@ end
 
 name = "spf"
 version = VersionNumber(ENV["VERSION"])
+sha = ENV["SHA"]
 
 # Collection of sources required to complete build
 sources = [
-    GitSource("https://github.com/SimplePixelFont/spf.rs", "e741e5f69ab13a391d0b405ae03fafc9eeffee07")
+    GitSource("https://github.com/SimplePixelFont/spf.rs", sha)
     DirectorySource("target")
 ]
 
@@ -23,7 +24,7 @@ script = raw"""
 cd $WORKSPACE/srcdir
 cd spf.rs
 mkdir target
-RUSTFLAGS="-C target-feature=-crt-static" cargo build --release
+RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --no-default-features --features "ffi,std"
 
 if [[ "${rust_target}" == "x86_64-pc-windows-gnu" ]]; then
     install -D -m 755 "target/${rust_target}/release/spf.${dlext}" "${libdir}/libspf.${dlext}"

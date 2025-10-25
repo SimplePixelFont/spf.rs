@@ -10,7 +10,7 @@ categories = ["parsing", "no-std"]
 [lib]
 name = "spf"
 path = "src/lib.rs"
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib", "staticlib", "rlib"]
 
 [package.metadata.docs.rs]
 all-features = true
@@ -26,6 +26,7 @@ ffi = []
 articles = []
 
 [dependencies]
+rustversion = "1.0.22"
 log = { version = "0.4.27", optional = true }
 serde = { version = "1.0.225", features = ["derive"], optional = true }
 

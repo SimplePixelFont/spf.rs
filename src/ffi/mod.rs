@@ -45,8 +45,9 @@ use core::ffi::*;
 use core::slice;
 
 pub mod converters;
+pub mod defaults;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFLayout {
     pub version: c_uchar,
@@ -61,7 +62,7 @@ pub struct SPFLayout {
     pub pixmap_tables_length: c_ulong,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFPixmapTable {
     pub has_constant_width: c_uchar,
@@ -79,7 +80,7 @@ pub struct SPFPixmapTable {
     pub pixmaps_length: c_ulong,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFPixmap {
     pub has_custom_width: c_uchar,
@@ -92,7 +93,7 @@ pub struct SPFPixmap {
     pub data_length: c_ulong,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFCharacterTable {
     pub use_advance_x: c_uchar,
@@ -109,7 +110,7 @@ pub struct SPFCharacterTable {
     pub characters_length: c_ulong,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFCharacter {
     pub has_advance_x: c_uchar,
@@ -120,7 +121,7 @@ pub struct SPFCharacter {
     pub grapheme_cluster: *mut c_char,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFColorTable {
     pub has_constant_alpha: c_uchar,
@@ -130,7 +131,7 @@ pub struct SPFColorTable {
     pub colors_length: c_ulong,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFColor {
     pub has_custom_alpha: c_uchar,
