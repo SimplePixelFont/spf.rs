@@ -1,10 +1,15 @@
-# Installing with Cargo and Rust
+# Install with Cargo and Rust
 
-To add `spf.rs` to your rust project you can run the following command:
+To add `spf.rs` to your rust project run the following command:
 ```sh
 cargo add spf
 ```
-`spf.rs` also has a lot of modules which are enabled by default with the corrosponding features; [`crate::log`] ("log"), [`crate::cache`] ("cache"), [`crate::printer`] ("printer"), [`crate::ergonomics`] (ergonomics),  [`crate::ffi`] ("ffi"), and [`crate::articles`] ("articles").
+Additionally, `spf.rs` includes modules which are enabled by default with the corrosponding features.
+* ergonomics: [`crate::ergonomics`]
+* [`crate::ffi`] ("ffi")
+* [`crate::articles`] ("articles").
+And a few extra features that provide functionality in Rust.
+* ""
 
 You can choose which features to use by editing the `Cargo.toml` file under the depenencies section:
 ```toml
