@@ -1,3 +1,5 @@
+**Note: This article is out of data but will be updated soon as part of the v0.7.x development.**
+
 # Getting Started in Rust
 
 ### Synopsis
