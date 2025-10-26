@@ -2,26 +2,24 @@
 
 ### Synopsis
 `spf.rs` brings the world of [`SimplePixelFont`](https://github.com/SimplePixelFont)(s) into the programming realm. Written in the Rust
-programming language, `spf.rs` aims to be effective and simple to use, providing a native crate api for
-Rust and also an FFI compatible with C-like languages and C-interopable languages. It provides a
+programming language, `spf.rs` aims to be effective and simple to use, providing a native crate for
+Rust and also an FFI compatible with C-like languages and C-interopable languages. In particular, `spf.rs` rovides a
 low-level interface to the binary representation of [`SimplePixelFont`](https://github.com/SimplePixelFont) files via the [`crate::core`]
-module. And includes helpful and powerful optional modules that allow integration to be faster for your
-projects.
+module.
 
 ### Resources
-It is important that before you begin you have a general understanding of the Rust programming
-languages and that you understand at the bare-minimum how [`SimplePixelFont`](https://github.com/SimplePixelFont) files are structured.
-This guide will explain the structural representation of [`SimplePixelFont`](https://github.com/SimplePixelFont) files in Rust which aims to
-reflect the binary structure, so you should be able to follow along eitherways.
+It's important that before beginning you have a general understanding of the Rust programming
+language. Additionally, this guide will explain the Rust representation of a [`SimplePixelFont`](https://github.com/SimplePixelFont) which aims to closely reflect the binary file representation. However, you are encouraged to learn and use the official SPF specifications as an additional reference.
 
 ### The [`crate::core`] module
-The most important module is the [`crate::core`] module, and it contains the lowest-level structures to
-represent a [`SimplePixelFont`](https://github.com/SimplePixelFont) file. The most important struct is the [`core::Layout`] struct, which is
+The [`crate::core`] module contains the lowest-level structures to
+represent a [`SimplePixelFont`](https://github.com/SimplePixelFont) file. Included is the [`core::Layout`] struct which is
 the binary representation of a [`SimplePixelFont`](https://github.com/SimplePixelFont) file as a Rust Structure. Lets take a look at an
 example of a font [`core::Layout`] struct:
 
 ```rs
 Layout {
+    version: Version::FV0
     header: Header { //Header Properties
         configuration_flags: ConfigurationFlags {
             constant_cluster_codepoints: false,
@@ -57,7 +55,7 @@ Layout {
 ```
 
 This is a lot to take in, luckily in Rust we don't need to write a [`core::Layout`] struct
-directly, instead we turn to the [`crate::ergonomics`] module which provides the
+directly. Instead we turn to the [`crate::ergonomics`] module which provides the
 [`ergonomics::LayoutBuilder`] struct. Keep in mind that the [`crate::ergonomics`] module is only
 availible in Rust. Lets use the [`ergonomics::LayoutBuilder`] to create the same
 [`core::Layout`] struct we have above:
