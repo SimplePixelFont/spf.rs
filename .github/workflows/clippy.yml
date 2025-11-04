@@ -36,7 +36,7 @@ jobs:
           label: Lint
           message: passing
           labelColor: "#2d3136"
-          color: #00bfa3"
+          color: "#00bfa3"
           logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/wrench.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
 
@@ -48,7 +48,7 @@ jobs:
           label: Lint
           message: failing
           labelColor: "#2d3136"
-          color: #d94a69"
+          color: "#d94a69"
           logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/wrench.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
           
