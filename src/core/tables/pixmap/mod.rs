@@ -18,6 +18,7 @@ pub(crate) mod deserialize;
 pub(crate) mod serialize;
 
 use crate::core::{Layout, Pixmap, PixmapTable, SerializeError, Table, TableIdentifier};
+use crate::{vec, Vec};
 pub(crate) use deserialize::*;
 pub(crate) use serialize::*;
 

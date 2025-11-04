@@ -1,6 +1,6 @@
 [package]
 name = "spf"
-version = "0.7.0-alpha.0"
+version = "0.7.2"
 description = ".spf (Simple Pixel Font) file parser"
 repository = "https://github.com/SimplePixelFont/spf.rs"
 license = "Apache-2.0"
@@ -10,22 +10,25 @@ categories = ["parsing", "no-std"]
 [lib]
 name = "spf"
 path = "src/lib.rs"
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib", "staticlib", "rlib"]
 
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["log", "std"]
+default = ["std", "log", "ergonomics", "serde", "ffi", "articles"]
 std = []
-# log = ["dep:log"]
-# ergonomics = []
-# ffi = []
-# articles = []
+log = ["dep:log"]
+ergonomics = []
+serde = ["dep:serde"]
+ffi = []
+articles = []
 
 [dependencies]
+rustversion = "1.0.22"
 log = { version = "0.4.27", optional = true }
+serde = { version = "1.0.225", features = ["derive"], optional = true }
 
 [dev-dependencies]
 env_logger = "0.11.8"

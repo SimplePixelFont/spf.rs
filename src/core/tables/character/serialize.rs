@@ -15,6 +15,8 @@
  */
 
 use crate::core::byte;
+use crate::{format, String};
+
 #[cfg(feature = "log")]
 use log::*;
 
@@ -23,7 +25,6 @@ pub(crate) fn push_grapheme_cluster(
     constant_cluster_codepoints: Option<u8>,
     string: &String,
 ) {
-    info!("hmm {:?} with {:?}", constant_cluster_codepoints, string);
     let mut string_bit_string = String::new(); // part of log
 
     string.bytes().for_each(|byte| {

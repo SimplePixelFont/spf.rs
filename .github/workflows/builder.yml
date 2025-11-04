@@ -21,11 +21,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get SHA of tag_name 
+        id: get_sha
+        run: |
+          SHA=$(git rev-list -n 1 ${{ inputs.tag_name }})
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
 
       - uses: julia-actions/setup-julia@v2
         with:
           version: "1.7"
-      - run: julia -- ./.ci/release.jl
+      - run: TAG_NAME='${{ inputs.tag_name }}' SHA='${{ steps.get_sha.outputs.sha }}' julia -- ./.ci/release.jl
 
       - name: List files in folder
         run: |

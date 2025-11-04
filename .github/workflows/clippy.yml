@@ -4,7 +4,12 @@ on:
   push:
     branches: ["main", "polish_workflows"]
   pull_request:
+<<<<<<< HEAD
     branches: ["main", "polish_workflows"]
+=======
+    branches: ["main"]
+  merge_group:
+>>>>>>> origin/main
 
 env:
   CARGO_TERM_COLOR: always

@@ -28,21 +28,23 @@
 //! can be used to convert between the structs and the binary data.
 
 pub(crate) mod byte;
-pub(crate) mod composers;
-pub(crate) mod parsers;
-pub(crate) mod table;
+pub(crate) mod deserialize;
+pub(crate) mod serialize;
+pub(crate) mod tables;
 
 use crate::{String, Vec};
 
 #[repr(u8)]
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Version {
     #[default]
-    FV0,
+    FV0 = 0b00000000,
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Layout {
     pub version: Version,
 
@@ -54,6 +56,7 @@ pub struct Layout {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PixmapTable {
     pub constant_width: Option<u8>,
     pub constant_height: Option<u8>,
@@ -65,6 +68,7 @@ pub struct PixmapTable {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Pixmap {
     pub custom_width: Option<u8>,
     pub custom_height: Option<u8>,
@@ -73,6 +77,7 @@ pub struct Pixmap {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CharacterTable {
     pub use_advance_x: bool,
     pub use_pixmap_index: bool,
@@ -85,6 +90,7 @@ pub struct CharacterTable {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Character {
     pub advance_x: Option<u8>,
     pub pixmap_index: Option<u8>,
@@ -93,6 +99,7 @@ pub struct Character {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ColorTable {
     pub constant_alpha: Option<u8>,
 
@@ -100,6 +107,7 @@ pub struct ColorTable {
 }
 
 #[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Color {
     pub custom_alpha: Option<u8>,
     pub r: u8,
@@ -124,6 +132,17 @@ impl TryFrom<u8> for TableIdentifier {
             0b00000010 => Ok(TableIdentifier::Pixmap),
             0b00000011 => Ok(TableIdentifier::Color),
             _ => Err(DeserializeError::UnsupportedTableIdentifier),
+        }
+    }
+}
+
+impl TryFrom<u8> for Version {
+    type Error = DeserializeError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0b00000000 => Ok(Version::FV0),
+            _ => Err(DeserializeError::UnsupportedVersion),
         }
     }
 }
@@ -162,9 +181,9 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, DeserializeError> {
     };
     let mut layout = Layout::default();
 
-    parsers::next_signature(&mut storage)?;
-    parsers::next_version(&mut layout, &mut storage)?;
-    parsers::next_header(&mut layout, &mut storage)?;
+    deserialize::next_signature(&mut storage)?;
+    deserialize::next_version(&mut layout, &mut storage)?;
+    deserialize::next_header(&mut layout, &mut storage)?;
 
     while storage.index < storage.bytes.len() - 1 {
         match storage.next().try_into().unwrap() {
@@ -191,9 +210,9 @@ pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, DeserializeError> {
 /// Encodes the provided font [`Layout`] into a [`Vec<u8>`].
 pub fn layout_to_data(layout: &Layout) -> Result<Vec<u8>, SerializeError> {
     let mut buffer = byte::ByteStorage::new();
-    composers::push_signature(&mut buffer);
-    composers::push_version(&mut buffer, &layout.version);
-    composers::push_header(&mut buffer, layout);
+    serialize::push_signature(&mut buffer);
+    serialize::push_version(&mut buffer, &layout.version);
+    serialize::push_header(&mut buffer, layout);
 
     for character_table in &layout.character_tables {
         character_table.serialize(&mut buffer, layout)?;
