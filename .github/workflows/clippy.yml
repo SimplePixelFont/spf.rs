@@ -4,12 +4,8 @@ on:
   push:
     branches: ["main", "polish_workflows"]
   pull_request:
-<<<<<<< HEAD
     branches: ["main", "polish_workflows"]
-=======
-    branches: ["main"]
   merge_group:
->>>>>>> origin/main
 
 env:
   CARGO_TERM_COLOR: always
@@ -34,24 +30,32 @@ jobs:
     steps:
       - name: passing
         if: needs.clippy.outputs.outcome == 'success'
-        uses: schneegans/dynamic-badges-action@v1.1.0
+        uses: SimplePixelFont/badge-spf-action@1f122f35ba22640bb97a9edf1ff9e0bd2a66c2bc
         with:
-          auth: ${{ secrets.GIST_SECRET }}
-          gistID: cfebb0fe555ac7e77ada109c469cdeb4
-          filename: lint.json
+          filename: lint.png
           label: Lint
           message: passing
-          color: light_green
-          namedLogo: searxng
+          labelColor: "#2d3136"
+          color: #00bfa3"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/wrench.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
 
       - name: failing
         if: needs.clippy.outputs.outcome == 'failure'
-        uses: schneegans/dynamic-badges-action@v1.1.0
+        uses: SimplePixelFont/badge-spf-action@1f122f35ba22640bb97a9edf1ff9e0bd2a66c2bc
         with:
-          auth: ${{ secrets.GIST_SECRET }}
-          gistID: cfebb0fe555ac7e77ada109c469cdeb4
-          filename: lint.json
+          filename: lint.png
           label: Lint
           message: failing
-          color: red
-          namedLogo: searxng
+          labelColor: "#2d3136"
+          color: #d94a69"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/wrench.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+          
+      - name: deploy 
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: cfebb0fe555ac7e77ada109c469cdeb4
+          file_path: lint.png
+          file_type: binary
