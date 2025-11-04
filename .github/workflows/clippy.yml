@@ -30,7 +30,7 @@ jobs:
     steps:
       - name: passing
         if: needs.clippy.outputs.outcome == 'success'
-        uses: SimplePixelFont/badge-spf-action@1f122f35ba22640bb97a9edf1ff9e0bd2a66c2bc
+        uses: SimplePixelFont/badge-spf-action@c03d443bdf117ba34fbfb16b8f791b8a006956fb
         with:
           filename: lint.png
           label: Lint
@@ -42,7 +42,7 @@ jobs:
 
       - name: failing
         if: needs.clippy.outputs.outcome == 'failure'
-        uses: SimplePixelFont/badge-spf-action@1f122f35ba22640bb97a9edf1ff9e0bd2a66c2bc
+        uses: SimplePixelFont/badge-spf-action@c03d443bdf117ba34fbfb16b8f791b8a006956fb
         with:
           filename: lint.png
           label: Lint
