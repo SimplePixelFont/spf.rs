@@ -2,7 +2,7 @@ name: coverage
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "polish_workflows" ]
   pull_request:
     branches: [ "main" ]
     
@@ -19,7 +19,13 @@ jobs:
 
       - name: Generate code coverage
         run: |
-          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml > report.txt
+      
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.7"
+      - run: julia .ci/get_coverage.jl >> $GITHUB_ENV
+      - run: julia .ci/interpolate_colors.jl '#d94a69' '#00bfa3' $ {{ env.COVERAGE }} >> $GITHUB_ENV
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v2
@@ -27,3 +33,14 @@ jobs:
           token: ${{secrets.CODECOV_TOKEN}}
           slug: The-Nice-One/spf.rs
           fail_ci_if_error: true
+
+      - name: Update badge
+        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        with:
+          filename: coverage.png
+          label: Coverage
+          message: ${{ env.COVERAGE }}
+          labelColor: "#2d3136"
+          color: ${{ env.COLOR }}
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/magnifying_glass.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
