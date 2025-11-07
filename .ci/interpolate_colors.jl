@@ -26,4 +26,7 @@ g = start_rgb.g * (1 - fraction) + end_rgb.g * fraction
 b = start_rgb.b * (1 - fraction) + end_rgb.b * fraction
 
 interpolated_color = hex(RGB(r, g, b))
-println("COLOR='#$interpolated_color'")
+
+open(ENV["GITHUB_ENV"], "a") do env_file
+    println(env_file, "COLOR='#$interpolated_color'")
+end

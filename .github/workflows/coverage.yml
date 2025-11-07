@@ -24,8 +24,8 @@ jobs:
       - uses: julia-actions/setup-julia@v2
         with:
           version: "1"
-      - run: julia .ci/get_coverage.jl >> $GITHUB_ENV
-      - run: julia .ci/interpolate_colors.jl '#d94a69' '#00bfa3' ${{ env.COVERAGE }} >> $GITHUB_ENV
+      - run: julia .ci/get_coverage.jl
+      - run: julia .ci/interpolate_colors.jl '#d94a69' '#00bfa3' ${{ env.COVERAGE }}
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v2
