@@ -15,7 +15,7 @@ jobs:
         uses: newrelic/wiki-sync-action@main
         with:
           branch: main
-          source: docs
+          source: res/articles
           destination: wiki
           token: ${{ secrets.TOKEN }}
     
