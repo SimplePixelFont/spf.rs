@@ -1,9 +1,9 @@
 name: vale
 on:
   push:
-    branches: ["main", "polish_workflows"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main", "polish_workflows"]
+    branches: [ "main" ]
 
 jobs:
   vale:
