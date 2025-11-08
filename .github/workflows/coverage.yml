@@ -36,7 +36,7 @@ jobs:
 
       - name: Update badge
         if: github.event_name == 'push'
-        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        uses: SimplePixelFont/badge-spf-action@main
         with:
           filename: coverage.png
           label: Coverage
