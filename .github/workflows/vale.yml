@@ -26,8 +26,8 @@ jobs:
         if: needs.vale.outputs.outcome == 'success'
         uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
         with:
-          filename: gammer.png
-          label: Gammer
+          filename: grammer.png
+          label: Grammer
           message: passing
           labelColor: "#2d3136"
           color: "#00bfa3"
