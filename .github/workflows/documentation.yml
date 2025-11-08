@@ -1,0 +1,74 @@
+name: documentation
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  documentation:
+    name: documentation
+    runs-on: ubuntu-latest
+    outputs:
+      percent: ${{ steps.coverage.outputs.documented }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+
+      - name: calculation
+        id: coverage
+        uses: bewee/rustdoc-coverage-action@v1
+        with:
+          percentage-format: 0%
+
+      - name: write
+        run: echo "${{ steps.coverage.outputs.table }}" > documentation.md
+
+      - name: update
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: cfebb0fe555ac7e77ada109c469cdeb4
+          gist_file_name: documentation.md
+          file_type: text
+          file_path: documentation.md
+
+  badge:
+    runs-on: ubuntu-latest
+    needs: documentation
+    if: always() && github.event_name == 'push'
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1"
+      - run: julia .ci/interpolate_colors.jl '#d94a69' '#00bfa3' ${{ needs.documentation.outputs.percent }}
+      
+      - name: Update badge
+        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        with:
+          filename: documentation.png
+          label: Documentation
+          message: "${{ needs.documentation.outputs.percent }}"
+          labelColor: "#2d3136"
+          color: "${{ env.COLOR }}"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/document.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+
+      - name: deploy badge
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: cfebb0fe555ac7e77ada109c469cdeb4
+          file_path: documentation.png
+          file_type: binary

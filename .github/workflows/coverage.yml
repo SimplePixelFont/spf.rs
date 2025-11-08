@@ -19,7 +19,13 @@ jobs:
 
       - name: Generate code coverage
         run: |
-          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml > report.txt
+      
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1"
+      - run: julia .ci/get_coverage.jl
+      - run: julia .ci/interpolate_colors.jl '#d94a69' '#00bfa3' ${{ env.COVERAGE }}
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v2
@@ -27,3 +33,24 @@ jobs:
           token: ${{secrets.CODECOV_TOKEN}}
           slug: The-Nice-One/spf.rs
           fail_ci_if_error: true
+
+      - name: Update badge
+        if: github.event_name == 'push'
+        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        with:
+          filename: coverage.png
+          label: Coverage
+          message: "${{ env.COVERAGE }}"
+          labelColor: "#2d3136"
+          color: "${{ env.COLOR }}"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/magnifying_glass.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+
+      - name: deploy badge
+        if: github.event_name == 'push'
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: cfebb0fe555ac7e77ada109c469cdeb4
+          file_path: coverage.png
+          file_type: binary

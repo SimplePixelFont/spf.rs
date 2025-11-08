@@ -2,9 +2,9 @@ name: clippy
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
   merge_group:
 
 env:
@@ -13,8 +13,49 @@ env:
 jobs:
   clippy:
     runs-on: ubuntu-latest
+    outputs:
+      outcome: ${{ steps.clippy.outcome }}
 
     steps:
       - uses: actions/checkout@v4
-      - name: Run clippy
+      - name: clippy
+        id: clippy
         run: cargo clippy -- --deny warnings
+
+  badge:
+    runs-on: ubuntu-latest
+    needs: clippy
+    if: always() && github.event_name == 'push'
+
+    steps:
+      - name: passing
+        if: needs.clippy.outputs.outcome == 'success'
+        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        with:
+          filename: lint.png
+          label: Lint
+          message: passing
+          labelColor: "#2d3136"
+          color: "#00bfa3"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/paperclip.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+
+      - name: failing
+        if: needs.clippy.outputs.outcome == 'failure'
+        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        with:
+          filename: lint.png
+          label: Lint
+          message: failing
+          labelColor: "#2d3136"
+          color: "#d94a69"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/paperclip.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+          
+      - name: deploy 
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: cfebb0fe555ac7e77ada109c469cdeb4
+          file_path: lint.png
+          file_type: binary
