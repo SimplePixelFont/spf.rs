@@ -35,6 +35,7 @@ jobs:
           fail_ci_if_error: true
 
       - name: Update badge
+        if: github.event_name == 'push'
         uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
         with:
           filename: coverage.png
@@ -46,6 +47,7 @@ jobs:
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
 
       - name: deploy badge
+        if: github.event_name == 'push'
         uses: exuanbo/actions-deploy-gist@v1
         with:
           token: ${{ secrets.GIST_SECRET }}

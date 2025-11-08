@@ -2,6 +2,8 @@ name: vale
 on:
   push:
     branches: ["main", "polish_workflows"]
+  pull_request:
+    branches: ["main", "polish_workflows"]
 
 jobs:
   vale:
@@ -20,7 +22,7 @@ jobs:
   badge:
     runs-on: ubuntu-latest
     needs: vale
-    if: always()
+    if: always() && github.event_name == 'push'
 
     steps:
       - name: passing
