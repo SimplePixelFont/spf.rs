@@ -71,7 +71,7 @@ jobs:
     steps:
       - name: passing
         if: needs.builder.outputs.outcome == 'success'
-        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        uses: SimplePixelFont/badge-spf-action@main
         with:
           filename: compatibility.png
           label: Compatibility
@@ -83,7 +83,7 @@ jobs:
 
       - name: failing
         if: needs.builder.outputs.outcome == 'failure' || needs.builder.outputs.outcome == 'cancelled' || needs.builder.outputs.outcome == 'skipped'
-        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        uses: SimplePixelFont/badge-spf-action@main
         with:
           filename: compatibility.png
           label: Compatibility
