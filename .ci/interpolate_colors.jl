@@ -17,6 +17,10 @@ start_color = ARGS[1]
 end_color = ARGS[2]
 percent = ARGS[3]
 
+if last(percent) == '%'
+    percent = percent[1:end-1]
+end
+
 start_rgb = parse(RGB, start_color)
 end_rgb = parse(RGB, end_color)
 

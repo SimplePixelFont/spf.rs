@@ -46,16 +46,26 @@ jobs:
     if: always()
 
     steps:
-      - run: echo ${{ needs.documentation.outputs.percent }}
-      - name: update documentation badge
-        uses: schneegans/dynamic-badges-action@v1.7.0
+      - uses: julia-actions/setup-julia@v2
         with:
-          auth: ${{ secrets.GIST_SECRET }}
-          gistID: cfebb0fe555ac7e77ada109c469cdeb4
-          filename: documentation.json
-          label: documentation
-          message: ${{ needs.documentation.outputs.percent }}
-          namedLogo: readdotcv
-          valColorRange: ${{ needs.documentation.outputs.percent }}
-          maxColorRange: 90
-          minColorRange: 50
+          version: "1"
+      - run: julia .ci/interpolate_colors.jl '#d94a69' '#00bfa3' ${{ needs.documentation.outputs.percent }}
+      
+      - name: Update badge
+        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        with:
+          filename: documentation.png
+          label: Documentation
+          message: "${{ needs.documentation.outputs.percent }}"
+          labelColor: "#2d3136"
+          color: "${{ env.COLOR }}"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/document.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+
+      - name: deploy badge
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: cfebb0fe555ac7e77ada109c469cdeb4
+          file_path: documentation.png
+          file_type: binary

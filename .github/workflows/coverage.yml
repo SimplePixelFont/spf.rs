@@ -2,7 +2,7 @@ name: coverage
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "polish_workflows" ]
   pull_request:
     branches: [ "main" ]
     
@@ -39,7 +39,7 @@ jobs:
         with:
           filename: coverage.png
           label: Coverage
-          message: "${{ env.COVERAGE }}%"
+          message: "${{ env.COVERAGE }}"
           labelColor: "#2d3136"
           color: "${{ env.COLOR }}"
           logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/magnifying_glass.png"
