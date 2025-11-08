@@ -2,7 +2,7 @@ name: rust
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "polish_workflows"]
   pull_request:
     branches: ["main"]
   merge_group:
