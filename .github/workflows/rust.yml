@@ -30,7 +30,7 @@ jobs:
     steps:
       - name: passing
         if: needs.build.outputs.outcome == 'success'
-        uses: SimplePixelFont/badge-spf-action@main
+        uses: SimplePixelFont/badge-spf-action@929a1da36b21ca8aae7badb049cf884a57f4538d
         with:
           filename: build.png
           label: Build
@@ -42,7 +42,7 @@ jobs:
 
       - name: failing
         if: needs.build.outputs.outcome == 'failure'
-        uses: SimplePixelFont/badge-spf-action@main
+        uses: SimplePixelFont/badge-spf-action@929a1da36b21ca8aae7badb049cf884a57f4538d
         with:
           filename: build.png
           label: Build
