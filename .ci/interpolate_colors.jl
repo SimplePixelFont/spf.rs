@@ -9,7 +9,7 @@ end
 
 if length(ARGS) < 3
     println("Usage: interpolate_colors.jl <start_color> <end_color> <percent>")
-    println("Example: interpolate_colors.jl '#d94a69' #00bfa3' 50.0")
+    println("Example: interpolate_colors.jl '#d94a69' #00bfa3' 50.0%")
     exit(1)
 end 
 
