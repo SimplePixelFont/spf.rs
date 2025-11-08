@@ -14,6 +14,7 @@ jobs:
       - uses: errata-ai/vale-action@v2.1.1
         id: vale
         with:
+          reporter: github-check
           fail_on_error: true
 
   badge:
