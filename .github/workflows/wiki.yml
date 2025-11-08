@@ -3,7 +3,7 @@ name: wiki
 on:
   push:
     branches: [ "main", "44-wiki-pages-workflow" ]
-    paths: [ "res/articles/res/*" ]
+    paths: [ "res/articles/*" ]
 
 jobs:
   sync-to-wiki:
@@ -14,6 +14,7 @@ jobs:
       - name: Sync docs to wiki
         uses: newrelic/wiki-sync-action@main
         with:
+          branch: main
           source: docs
           destination: wiki
           token: ${{ secrets.TOKEN }}

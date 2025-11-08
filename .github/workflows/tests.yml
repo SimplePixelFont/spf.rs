@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: passing
         if: needs.tests.outputs.outcome == 'success'
-        uses: SimplePixelFont/badge-spf-action@929a1da36b21ca8aae7badb049cf884a57f4538d
+        uses: SimplePixelFont/badge-spf-action@main
         with:
           filename: tests.png
           label: Tests
@@ -41,7 +41,7 @@ jobs:
 
       - name: failing
         if: needs.tests.outputs.outcome == 'failure'
-        uses: SimplePixelFont/badge-spf-action@929a1da36b21ca8aae7badb049cf884a57f4538d
+        uses: SimplePixelFont/badge-spf-action@main
         with:
           filename: tests.png
           label: Tests

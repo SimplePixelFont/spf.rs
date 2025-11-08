@@ -55,7 +55,7 @@ jobs:
       - run: julia .ci/interpolate_colors.jl '#d94a69' '#00bfa3' ${{ needs.documentation.outputs.percent }}
       
       - name: Update badge
-        uses: SimplePixelFont/badge-spf-action@929a1da36b21ca8aae7badb049cf884a57f4538d
+        uses: SimplePixelFont/badge-spf-action@main
         with:
           filename: documentation.png
           label: Documentation
