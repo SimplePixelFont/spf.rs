@@ -2,7 +2,7 @@ name: wiki
 
 on:
   push:
-    branches: [ "main", "44-wiki-pages-workflow" ]
+    branches: [ "main" ]
     paths: [ "res/articles/*" ]
 
 jobs:
