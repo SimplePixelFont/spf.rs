@@ -49,7 +49,7 @@ jobs:
           message: failing
           labelColor: "#2d3136"
           color: "#d94a69"
-          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/wrench.png"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/paperclip.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
           
       - name: deploy 

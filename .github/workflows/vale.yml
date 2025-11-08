@@ -7,6 +7,49 @@ jobs:
   vale:
     name: vale
     runs-on: ubuntu-latest
+    outputs:
+      outcome: ${{ steps.vale.outcome }}
     steps:
       - uses: actions/checkout@v4
       - uses: errata-ai/vale-action@v2.1.1
+        id: vale
+        with:
+          fail_on_error: true
+
+  badge:
+    runs-on: ubuntu-latest
+    needs: vale
+    if: always()
+
+    steps:
+      - name: passing
+        if: needs.vale.outputs.outcome == 'success'
+        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        with:
+          filename: gammer.png
+          label: Gammer
+          message: passing
+          labelColor: "#2d3136"
+          color: "#00bfa3"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/pencil.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+
+      - name: failing
+        if: needs.vale.outputs.outcome == 'failure'
+        uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
+        with:
+          filename: grammer.png
+          label: Grammer
+          message: failing
+          labelColor: "#2d3136"
+          color: "#d94a69"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/pencil.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+          
+      - name: deploy 
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: cfebb0fe555ac7e77ada109c469cdeb4
+          file_path: grammer.png
+          file_type: binary

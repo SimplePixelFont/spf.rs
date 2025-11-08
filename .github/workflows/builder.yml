@@ -82,7 +82,7 @@ jobs:
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
 
       - name: failing
-        if: needs.builder.outputs.outcome == 'failure'
+        if: needs.builder.outputs.outcome == 'failure' || needs.builder.outputs.outcome == 'cancelled' || needs.builder.outputs.outcome == 'skipped'
         uses: SimplePixelFont/badge-spf-action@c06336db28718ea8c013c7a5283c50393046178a
         with:
           filename: compatibility.png
