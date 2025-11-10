@@ -59,3 +59,7 @@ pub mod ffi;
 #[cfg_attr(docsrs, doc(cfg(feature = "articles")))]
 #[cfg(feature = "articles")]
 pub mod articles;
+
+#[cfg_attr(docsrs, doc(cfg(feature = "tag")))]
+#[cfg(feature = "tag")]
+pub mod tag;
