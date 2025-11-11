@@ -27,11 +27,10 @@ use std::str::Utf8Error;
 use core::str::Utf8Error;
 
 use super::*;
-use crate::{ffi_to_option, ToOwned, Vec};
-
-use crate::vec_from_raw_with_conversion;
-use crate::vec_to_raw;
-use crate::vec_to_raw_with_conversion;
+use crate::{
+    ffi_to_option, option_vec_to_raw, vec_from_raw_with_conversion, vec_to_raw,
+    vec_to_raw_with_conversion, ToOwned, Vec,
+};
 
 #[derive(Debug, Clone)]
 pub enum ConversionError {
@@ -159,24 +158,8 @@ impl TryFrom<PixmapTable> for SPFPixmapTable {
     type Error = ConversionError;
 
     fn try_from(table: PixmapTable) -> Result<Self, Self::Error> {
-        let color_table_indexes_len = if let Some(color_table_indexes) = &table.color_table_indexes
-        {
-            color_table_indexes.len()
-        } else {
-            0
-        };
-        let color_table_indexes_ptr = if color_table_indexes_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut color_table_indexes_vec = table
-                .color_table_indexes
-                .clone()
-                .unwrap()
-                .into_boxed_slice();
-            let ptr = color_table_indexes_vec.as_mut_ptr();
-            core::mem::forget(color_table_indexes_vec);
-            ptr
-        };
+        let (color_table_indexes_ptr, color_table_indexes_len) =
+            option_vec_to_raw!(table.color_table_indexes);
 
         let (pixmaps_ptr, pixmaps_len) = vec_to_raw_with_conversion!(table.pixmaps, SPFPixmap);
 
@@ -232,24 +215,8 @@ impl TryFrom<CharacterTable> for SPFCharacterTable {
     type Error = ConversionError;
 
     fn try_from(table: CharacterTable) -> Result<Self, Self::Error> {
-        let pixmap_table_indexes_len =
-            if let Some(pixmap_table_indexes) = &table.pixmap_table_indexes {
-                pixmap_table_indexes.len()
-            } else {
-                0
-            };
-        let pixmap_table_indexes_ptr = if pixmap_table_indexes_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut pixmap_table_indexes_vec = table
-                .pixmap_table_indexes
-                .clone()
-                .unwrap()
-                .into_boxed_slice();
-            let ptr = pixmap_table_indexes_vec.as_mut_ptr();
-            core::mem::forget(pixmap_table_indexes_vec);
-            ptr
-        };
+        let (pixmap_table_indexes_ptr, pixmap_table_indexes_len) =
+            option_vec_to_raw!(table.pixmap_table_indexes);
 
         let (characters_ptr, characters_len) =
             vec_to_raw_with_conversion!(table.characters, SPFCharacter);

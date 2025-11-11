@@ -1,3 +1,36 @@
+/*
+ * Copyright 2025 SimplePixelFont
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Macro to convert an Option<Vec> into a raw pointer and length
+#[macro_export]
+macro_rules! option_vec_to_raw {
+    ($vec:expr) => {{
+        let len = if let Some(vec) = &$vec { vec.len() } else { 0 };
+        let ptr = if len == 0 {
+            core::ptr::null_mut()
+        } else {
+            let mut boxed = $vec.clone().unwrap().into_boxed_slice();
+            let ptr = boxed.as_mut_ptr();
+            core::mem::forget(boxed);
+            ptr
+        };
+        (ptr, len)
+    }};
+}
+
 // Macro to convert a Vec into a raw pointer and length
 #[macro_export]
 macro_rules! vec_to_raw {
