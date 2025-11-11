@@ -47,6 +47,9 @@ use core::slice;
 pub mod converters;
 pub mod defaults;
 
+#[macro_use]
+pub(crate) mod macros;
+
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFLayout {
