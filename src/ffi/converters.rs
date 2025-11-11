@@ -27,7 +27,10 @@ use std::str::Utf8Error;
 use core::str::Utf8Error;
 
 use super::*;
-use crate::{ToOwned, Vec};
+use crate::{
+    ffi_to_option, option_vec_to_raw, vec_from_raw_with_conversion, vec_to_raw,
+    vec_to_raw_with_conversion, ToOwned, Vec,
+};
 
 #[derive(Debug, Clone)]
 pub enum ConversionError {
@@ -72,16 +75,8 @@ impl TryInto<Character> for &SPFCharacter {
             let grapheme_cluster = CString::from_raw(self.grapheme_cluster)
                 .to_str()?
                 .to_owned();
-            let advance_x = if self.has_advance_x == 0 {
-                None
-            } else {
-                Some(self.advance_x)
-            };
-            let pixmap_index = if self.has_pixmap_index == 0 {
-                None
-            } else {
-                Some(self.pixmap_index)
-            };
+            let advance_x = ffi_to_option!(self.has_advance_x, self.advance_x);
+            let pixmap_index = ffi_to_option!(self.has_pixmap_index, self.pixmap_index);
 
             Ok(Character {
                 advance_x,
@@ -96,15 +91,7 @@ impl TryFrom<Pixmap> for SPFPixmap {
     type Error = ConversionError;
 
     fn try_from(pixmap: Pixmap) -> Result<Self, Self::Error> {
-        let pixmap_len = pixmap.data.len();
-        let pixmap_ptr = if pixmap_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut pixmap_vec = pixmap.data.into_boxed_slice();
-            let ptr = pixmap_vec.as_mut_ptr();
-            core::mem::forget(pixmap_vec);
-            ptr
-        };
+        let (pixmap_ptr, pixmap_len) = vec_to_raw!(pixmap.data);
         Ok(SPFPixmap {
             has_custom_width: pixmap.custom_width.is_some() as c_uchar,
             custom_width: pixmap.custom_width.unwrap_or(0) as c_uchar,
@@ -124,21 +111,10 @@ impl TryInto<Pixmap> for &SPFPixmap {
     fn try_into(self) -> Result<Pixmap, Self::Error> {
         unsafe {
             let data = slice::from_raw_parts(self.data, self.data_length as usize).to_vec();
-            let custom_width = if self.has_custom_width == 0 {
-                None
-            } else {
-                Some(self.custom_width)
-            };
-            let custom_height = if self.has_custom_height == 0 {
-                None
-            } else {
-                Some(self.custom_height)
-            };
-            let custom_bits_per_pixel = if self.has_custom_bits_per_pixel == 0 {
-                None
-            } else {
-                Some(self.custom_bits_per_pixel)
-            };
+            let custom_width = ffi_to_option!(self.has_custom_width, self.custom_width);
+            let custom_height = ffi_to_option!(self.has_custom_height, self.custom_height);
+            let custom_bits_per_pixel =
+                ffi_to_option!(self.has_custom_bits_per_pixel, self.custom_bits_per_pixel);
 
             Ok(Pixmap {
                 custom_width,
@@ -168,12 +144,9 @@ impl TryInto<Color> for &SPFColor {
     type Error = ConversionError;
 
     fn try_into(self) -> Result<Color, Self::Error> {
+        let custom_alpha = ffi_to_option!(self.has_custom_alpha, self.custom_alpha);
         Ok(Color {
-            custom_alpha: if self.has_custom_alpha == 0 {
-                None
-            } else {
-                Some(self.custom_alpha)
-            },
+            custom_alpha,
             r: self.r,
             g: self.g,
             b: self.b,
@@ -185,40 +158,10 @@ impl TryFrom<PixmapTable> for SPFPixmapTable {
     type Error = ConversionError;
 
     fn try_from(table: PixmapTable) -> Result<Self, Self::Error> {
-        let color_table_indexes_len = if let Some(color_table_indexes) = &table.color_table_indexes
-        {
-            color_table_indexes.len()
-        } else {
-            0
-        };
-        let color_table_indexes_ptr = if color_table_indexes_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut color_table_indexes_vec = table
-                .color_table_indexes
-                .clone()
-                .unwrap()
-                .into_boxed_slice();
-            let ptr = color_table_indexes_vec.as_mut_ptr();
-            core::mem::forget(color_table_indexes_vec);
-            ptr
-        };
+        let (color_table_indexes_ptr, color_table_indexes_len) =
+            option_vec_to_raw!(table.color_table_indexes);
 
-        let pixmaps_len: usize = table.pixmaps.len();
-        let mut pixmaps: Vec<SPFPixmap> = Vec::with_capacity(pixmaps_len);
-
-        for pixmap in table.pixmaps {
-            pixmaps.push(pixmap.try_into()?);
-        }
-
-        let pixmaps_ptr = if pixmaps_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut pixmaps_raw = pixmaps.into_boxed_slice();
-            let ptr = pixmaps_raw.as_mut_ptr();
-            core::mem::forget(pixmaps_raw);
-            ptr
-        };
+        let (pixmaps_ptr, pixmaps_len) = vec_to_raw_with_conversion!(table.pixmaps, SPFPixmap);
 
         Ok(SPFPixmapTable {
             has_constant_width: table.constant_width.is_some() as c_uchar,
@@ -247,34 +190,21 @@ impl TryInto<PixmapTable> for &SPFPixmapTable {
             )
             .to_vec();
 
-            let pixmaps_len = self.pixmaps_length as usize;
-            let mut pixmaps = Vec::with_capacity(pixmaps_len);
-            for index in 0..pixmaps_len {
-                let pixmap = &*self.pixmaps.add(index);
-                pixmaps.push(pixmap.try_into()?);
-            }
+            let pixmaps = vec_from_raw_with_conversion!(self.pixmaps, self.pixmaps_length);
+            let constant_width = ffi_to_option!(self.has_constant_width, self.constant_width);
+            let constant_height = ffi_to_option!(self.has_constant_height, self.constant_height);
+            let constant_bits_per_pixel = ffi_to_option!(
+                self.has_constant_bits_per_pixel,
+                self.constant_bits_per_pixel
+            );
+            let color_table_indexes =
+                ffi_to_option!(self.has_color_table_indexes, color_table_indexes);
 
             Ok(PixmapTable {
-                constant_width: if self.has_constant_width == 0 {
-                    None
-                } else {
-                    Some(self.constant_width)
-                },
-                constant_height: if self.has_constant_height == 0 {
-                    None
-                } else {
-                    Some(self.constant_height)
-                },
-                constant_bits_per_pixel: if self.has_constant_bits_per_pixel == 0 {
-                    None
-                } else {
-                    Some(self.constant_bits_per_pixel)
-                },
-                color_table_indexes: if self.has_color_table_indexes == 0 {
-                    None
-                } else {
-                    Some(color_table_indexes)
-                },
+                constant_width,
+                constant_height,
+                constant_bits_per_pixel,
+                color_table_indexes,
                 pixmaps,
             })
         }
@@ -285,40 +215,11 @@ impl TryFrom<CharacterTable> for SPFCharacterTable {
     type Error = ConversionError;
 
     fn try_from(table: CharacterTable) -> Result<Self, Self::Error> {
-        let pixmap_table_indexes_len =
-            if let Some(pixmap_table_indexes) = &table.pixmap_table_indexes {
-                pixmap_table_indexes.len()
-            } else {
-                0
-            };
-        let pixmap_table_indexes_ptr = if pixmap_table_indexes_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut pixmap_table_indexes_vec = table
-                .pixmap_table_indexes
-                .clone()
-                .unwrap()
-                .into_boxed_slice();
-            let ptr = pixmap_table_indexes_vec.as_mut_ptr();
-            core::mem::forget(pixmap_table_indexes_vec);
-            ptr
-        };
+        let (pixmap_table_indexes_ptr, pixmap_table_indexes_len) =
+            option_vec_to_raw!(table.pixmap_table_indexes);
 
-        let characters_len: usize = table.characters.len();
-        let mut characters: Vec<SPFCharacter> = Vec::with_capacity(characters_len);
-
-        for character in table.characters {
-            characters.push(character.try_into()?);
-        }
-
-        let characters_ptr = if characters_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut characters_raw = characters.into_boxed_slice();
-            let ptr = characters_raw.as_mut_ptr();
-            core::mem::forget(characters_raw);
-            ptr
-        };
+        let (characters_ptr, characters_len) =
+            vec_to_raw_with_conversion!(table.characters, SPFCharacter);
 
         Ok(SPFCharacterTable {
             use_advance_x: table.use_advance_x as c_uchar,
@@ -345,26 +246,20 @@ impl TryInto<CharacterTable> for &SPFCharacterTable {
             )
             .to_vec();
 
-            let characters_len = self.characters_length as usize;
-            let mut characters = Vec::with_capacity(characters_len);
-            for index in 0..characters_len {
-                let character = &*self.characters.add(index);
-                characters.push(character.try_into()?);
-            }
+            let characters = vec_from_raw_with_conversion!(self.characters, self.characters_length);
+
+            let constant_cluster_codepoints = ffi_to_option!(
+                self.has_constant_cluster_codepoints,
+                self.constant_cluster_codepoints
+            );
+            let pixmap_table_indexes =
+                ffi_to_option!(self.has_pixmap_table_indexes, pixmap_table_indexes);
 
             Ok(CharacterTable {
                 use_advance_x: self.use_advance_x != 0,
                 use_pixmap_index: self.use_pixmap_index != 0,
-                constant_cluster_codepoints: if self.has_constant_cluster_codepoints == 0 {
-                    None
-                } else {
-                    Some(self.constant_cluster_codepoints)
-                },
-                pixmap_table_indexes: if self.has_pixmap_table_indexes == 0 {
-                    None
-                } else {
-                    Some(pixmap_table_indexes)
-                },
+                constant_cluster_codepoints,
+                pixmap_table_indexes,
                 characters,
             })
         }
@@ -375,21 +270,7 @@ impl TryFrom<ColorTable> for SPFColorTable {
     type Error = ConversionError;
 
     fn try_from(table: ColorTable) -> Result<Self, Self::Error> {
-        let colors_len: usize = table.colors.len();
-        let mut colors: Vec<SPFColor> = Vec::with_capacity(colors_len);
-
-        for color in table.colors {
-            colors.push(color.try_into()?);
-        }
-
-        let colors_ptr = if colors_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut colors_raw = colors.into_boxed_slice();
-            let ptr = colors_raw.as_mut_ptr();
-            core::mem::forget(colors_raw);
-            ptr
-        };
+        let (colors_ptr, colors_len) = vec_to_raw_with_conversion!(table.colors, SPFColor);
 
         Ok(SPFColorTable {
             has_constant_alpha: table.constant_alpha.is_some() as c_uchar,
@@ -405,19 +286,11 @@ impl TryInto<ColorTable> for &SPFColorTable {
 
     fn try_into(self) -> Result<ColorTable, Self::Error> {
         unsafe {
-            let colors_len = self.colors_length as usize;
-            let mut colors = Vec::with_capacity(colors_len);
-            for index in 0..colors_len {
-                let color = &*self.colors.add(index);
-                colors.push(color.try_into()?);
-            }
+            let colors = vec_from_raw_with_conversion!(self.colors, self.colors_length);
+            let constant_alpha = ffi_to_option!(self.has_constant_alpha, self.constant_alpha);
 
             Ok(ColorTable {
-                constant_alpha: if self.has_constant_alpha == 0 {
-                    None
-                } else {
-                    Some(self.constant_alpha)
-                },
+                constant_alpha,
                 colors,
             })
         }
@@ -428,53 +301,12 @@ impl TryFrom<Layout> for SPFLayout {
     type Error = ConversionError;
 
     fn try_from(layout: Layout) -> Result<Self, Self::Error> {
-        let character_tables_len: usize = layout.character_tables.len();
-        let mut character_tables: Vec<SPFCharacterTable> = Vec::with_capacity(character_tables_len);
-
-        for character_table in layout.character_tables {
-            character_tables.push(character_table.try_into()?);
-        }
-
-        let character_tables_ptr = if character_tables_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut character_tables_raw = character_tables.into_boxed_slice();
-            let ptr = character_tables_raw.as_mut_ptr();
-            core::mem::forget(character_tables_raw);
-            ptr
-        };
-
-        let color_tables_len: usize = layout.color_tables.len();
-        let mut color_tables: Vec<SPFColorTable> = Vec::with_capacity(color_tables_len);
-
-        for color_table in layout.color_tables {
-            color_tables.push(color_table.try_into()?);
-        }
-
-        let color_tables_ptr = if color_tables_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut color_tables_raw = color_tables.into_boxed_slice();
-            let ptr = color_tables_raw.as_mut_ptr();
-            core::mem::forget(color_tables_raw);
-            ptr
-        };
-
-        let pixmap_tables_len: usize = layout.pixmap_tables.len();
-        let mut pixmap_tables: Vec<SPFPixmapTable> = Vec::with_capacity(pixmap_tables_len);
-
-        for pixmap_table in layout.pixmap_tables {
-            pixmap_tables.push(pixmap_table.try_into()?);
-        }
-
-        let pixmap_tables_ptr = if pixmap_tables_len == 0 {
-            core::ptr::null_mut()
-        } else {
-            let mut pixmap_tables_raw = pixmap_tables.into_boxed_slice();
-            let ptr = pixmap_tables_raw.as_mut_ptr();
-            core::mem::forget(pixmap_tables_raw);
-            ptr
-        };
+        let (character_tables_ptr, character_tables_len) =
+            vec_to_raw_with_conversion!(layout.character_tables, SPFCharacterTable);
+        let (color_tables_ptr, color_tables_len) =
+            vec_to_raw_with_conversion!(layout.color_tables, SPFColorTable);
+        let (pixmap_tables_ptr, pixmap_tables_len) =
+            vec_to_raw_with_conversion!(layout.pixmap_tables, SPFPixmapTable);
 
         Ok(SPFLayout {
             version: layout.version as c_uchar,
@@ -494,26 +326,12 @@ impl TryInto<Layout> for SPFLayout {
 
     fn try_into(self) -> Result<Layout, Self::Error> {
         unsafe {
-            let character_tables_len = self.character_tables_length as usize;
-            let mut character_tables = Vec::with_capacity(character_tables_len);
-            for index in 0..character_tables_len {
-                let character_table = &*self.character_tables.add(index);
-                character_tables.push(character_table.try_into()?);
-            }
-
-            let color_tables_len = self.color_tables_length as usize;
-            let mut color_tables = Vec::with_capacity(color_tables_len);
-            for index in 0..color_tables_len {
-                let color_table = &*self.color_tables.add(index);
-                color_tables.push(color_table.try_into()?);
-            }
-
-            let pixmap_tables_len = self.pixmap_tables_length as usize;
-            let mut pixmap_tables = Vec::with_capacity(pixmap_tables_len);
-            for index in 0..pixmap_tables_len {
-                let pixmap_table = &*self.pixmap_tables.add(index);
-                pixmap_tables.push(pixmap_table.try_into()?);
-            }
+            let character_tables =
+                vec_from_raw_with_conversion!(self.character_tables, self.character_tables_length);
+            let color_tables =
+                vec_from_raw_with_conversion!(self.color_tables, self.color_tables_length);
+            let pixmap_tables =
+                vec_from_raw_with_conversion!(self.pixmap_tables, self.pixmap_tables_length);
 
             Ok(Layout {
                 version: Version::try_from(self.version).unwrap(),
