@@ -44,7 +44,7 @@ pub(crate) use alloc::string::String;
 #[cfg(not(feature = "std"))]
 pub(crate) use alloc::vec::Vec;
 #[cfg(not(feature = "std"))]
-pub(crate) use alloc::vec::Vec;
+pub(crate) use alloc::vec;
 
 pub mod core;
 
@@ -59,3 +59,4 @@ pub mod ffi;
 #[cfg_attr(docsrs, doc(cfg(feature = "articles")))]
 #[cfg(feature = "articles")]
 pub mod articles;
+
