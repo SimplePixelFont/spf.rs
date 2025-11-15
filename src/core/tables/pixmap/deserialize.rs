@@ -84,10 +84,10 @@ pub(crate) fn next_pixmap(
 
     let remainder_bits = ((width as u16 * height as u16 * bits_per_pixel as u16) % 8) as u8;
     if !compact && remainder_bits > 0 {
-        pixmap.push(storage.next());
-    } else if remainder_bits > 0 {
+        pixmap.data.push(storage.next());
+    } else if compact && remainder_bits > 0 {
         let byte = storage.incomplete_get(remainder_bits);
-        pixmap.push(byte);
+        pixmap.data.push(byte);
         storage.pointer += remainder_bits;
         if storage.pointer >= 8 {
             storage.index += 1;
@@ -96,5 +96,12 @@ pub(crate) fn next_pixmap(
     }
     
     #[cfg(feature = "log")]
-    info!("Identified pixmap: {:?}", pixmap.data);
+    {
+        let pixmap_bit_string: String = pixmap
+            .data
+            .iter()
+            .map(|byte| format!("{:08b} ", byte))
+            .collect();
+        info!("Identified pixmap: {:?}", pixmap_bit_string);
+    }
 }

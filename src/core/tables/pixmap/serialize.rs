@@ -96,7 +96,8 @@ pub(crate) fn push_pixmap(
     let width = constant_width.or(pixmap.custom_width).unwrap();
     let height = constant_height.or(pixmap.custom_height).unwrap();
 
-    let bytes_used = (width as f32 * height as f32 * bits_per_pixel as f32 / 8.0).ceil() as usize;
+    let pixels_used = width as usize * height as usize;
+    let bytes_used = (pixels_used as f32 * bits_per_pixel as f32 / 8.0).ceil() as usize;
     let complete_bytes_used = (pixels_used as f32 * bits_per_pixel as f32 / 8.0).floor() as usize;
 
     if pixmap.data.len() > bytes_used {
@@ -118,7 +119,10 @@ pub(crate) fn push_pixmap(
             "{:08b} ",
             pixmap.data[complete_bytes_used],
         ));
-    } else if remainder_bits > 0 {
+    } else if compact && remainder_bits > 0 {
+        if pixmap.data[complete_bytes_used] > 2u8.pow(remainder_bits as u32) - 1 {
+            return Err(SerializeError::InvalidPixmapData);
+        }
         buffer.incomplete_push(pixmap.data[complete_bytes_used], remainder_bits);
         pixmap_bit_string.push_str(&format!(
             "{:08b} ",
