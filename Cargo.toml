@@ -10,7 +10,7 @@ categories = ["parsing", "no-std"]
 [lib]
 name = "spf"
 path = "src/lib.rs"
-crate-type = ["cdylib", "staticlib", "rlib"]
+crate-type = ["rlib"]
 
 [package.metadata.docs.rs]
 all-features = true

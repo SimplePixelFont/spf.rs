@@ -76,46 +76,25 @@ pub(crate) fn next_pixmap(
     let height = constant_height.or(pixmap.custom_height).unwrap();
 
     let pixels_used = width as u16 * height as u16;
-    for _ in 0..pixels_used {
-        let pixel = storage.incomplete_get(bits_per_pixel);
-        pixmap.data.push(pixel);
-        storage.pointer += bits_per_pixel;
+    let complete_bytes_used = (pixels_used as f32 * bits_per_pixel as f32 / 8.0).floor() as usize;
+    
+    for _ in 0..complete_bytes_used {
+        pixmap.data.push(storage.next());
+    }
+
+    let remainder_bits = ((width as u16 * height as u16 * bits_per_pixel as u16) % 8) as u8;
+    if !compact && remainder_bits > 0 {
+        pixmap.push(storage.next());
+    } else if remainder_bits > 0 {
+        let byte = storage.incomplete_get(remainder_bits);
+        pixmap.push(byte);
+        storage.pointer += remainder_bits;
         if storage.pointer >= 8 {
             storage.index += 1;
             storage.pointer -= 8;
         }
     }
-
-    resolve_final_byte(storage, compact, width, height, bits_per_pixel);
-
+    
     #[cfg(feature = "log")]
     info!("Identified pixmap: {:?}", pixmap.data);
-}
-
-#[rustversion::since(1.87)]
-pub(crate) fn resolve_final_byte(
-    storage: &mut byte::ByteStorage,
-    compact: bool,
-    width: u8,
-    height: u8,
-    bits_per_pixel: u8,
-) {
-    if !compact && !(width * height * bits_per_pixel).is_multiple_of(8) {
-        storage.index += 1;
-        storage.pointer = 0;
-    }
-}
-
-#[rustversion::before(1.87)]
-pub(crate) fn resolve_final_byte(
-    storage: &mut byte::ByteStorage,
-    compact: bool,
-    width: u8,
-    height: u8,
-    bits_per_pixel: u8,
-) {
-    if !compact && (width * height * bits_per_pixel) % 8 != 0 {
-        storage.index += 1;
-        storage.pointer = 0;
-    }
 }

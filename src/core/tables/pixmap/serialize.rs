@@ -89,7 +89,6 @@ pub(crate) fn push_pixmap(
     pixmap: &Pixmap,
 ) -> Result<(), SerializeError> {
     let mut pixmap_bit_string = String::new();
-    let mut bits_used: u64 = 0;
 
     let bits_per_pixel = constant_bits_per_pixel
         .or(pixmap.custom_bits_per_pixel)
@@ -97,22 +96,34 @@ pub(crate) fn push_pixmap(
     let width = constant_width.or(pixmap.custom_width).unwrap();
     let height = constant_height.or(pixmap.custom_height).unwrap();
 
-    if pixmap.data.len() > width as usize * height as usize {
+    let bytes_used = (width as f32 * height as f32 * bits_per_pixel as f32 / 8.0).ceil() as usize;
+    let complete_bytes_used = (pixels_used as f32 * bits_per_pixel as f32 / 8.0).floor() as usize;
+
+    if pixmap.data.len() > bytes_used {
         return Err(SerializeError::StaticVectorTooLarge);
     }
 
-    for pixel in pixmap.data.iter() {
+    for index in 0..complete_bytes_used {
+        buffer.push(pixmap.data[index]);
         pixmap_bit_string.push_str(&format!(
-            "{:0bits_per_pixel$b} ",
-            pixel,
-            bits_per_pixel = bits_per_pixel as usize
+            "{:08b} ",
+            pixmap.data[index],
         ));
-        buffer.incomplete_push(*pixel, bits_per_pixel);
-        bits_used += bits_per_pixel as u64;
     }
 
-    if !compact && buffer.pointer != 0 {
-        buffer.incomplete_push(0, 8 - (bits_used % 8) as u8);
+    let remainder_bits = ((width as u16 * height as u16 * bits_per_pixel as u16) % 8) as u8;
+    if !compact && remainder_bits > 0 {
+        buffer.push(pixmap.data[complete_bytes_used]);
+        pixmap_bit_string.push_str(&format!(
+            "{:08b} ",
+            pixmap.data[complete_bytes_used],
+        ));
+    } else if remainder_bits > 0 {
+        buffer.incomplete_push(pixmap.data[complete_bytes_used], remainder_bits);
+        pixmap_bit_string.push_str(&format!(
+            "{:08b} ",
+            pixmap.data[complete_bytes_used],
+        ));
     }
 
     #[cfg(feature = "log")]
