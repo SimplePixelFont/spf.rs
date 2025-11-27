@@ -45,6 +45,7 @@ impl ByteWriter {
             let new_byte = byte >> (8 - self.pointer);
             self.bytes.push(new_byte);
         }
+        self.index += 1;
     }
     pub(crate) fn incomplete_push(&mut self, byte: u8, number_of_bits: u8) {
         if number_of_bits == 8 {
@@ -74,6 +75,7 @@ impl ByteWriter {
                 let new_byte = byte >> (number_of_bits - self.pointer);
                 self.bytes.push(new_byte);
             }
+            self.index += 1;
         }
     }
     pub(crate) fn append(&mut self, bytes: &[u8]) {
