@@ -18,14 +18,17 @@ pub(crate) mod deserialize;
 pub(crate) mod serialize;
 
 use crate::core::{
-    DeserializeEngine, Pixmap, PixmapTable, SerializeEngine, SerializeError, Table, TableIdentifier,
+    DeserializeEngine, Pixmap, PixmapTable, SerializeEngine, SerializeError, Table,
+    TableIdentifier, TagWriter,
 };
 use crate::{vec, Vec};
 pub(crate) use deserialize::*;
 pub(crate) use serialize::*;
 
 impl Table for PixmapTable {
-    fn deserialize(engine: &mut DeserializeEngine) -> Result<Self, crate::core::DeserializeError> {
+    fn deserialize<T: TagWriter>(
+        engine: &mut DeserializeEngine<T>,
+    ) -> Result<Self, crate::core::DeserializeError> {
         let mut pixmap_table = PixmapTable::default();
 
         engine.bytes.next(); // Skip modifieres
@@ -68,7 +71,10 @@ impl Table for PixmapTable {
 
         Ok(pixmap_table)
     }
-    fn serialize(&self, engine: &mut SerializeEngine) -> Result<(), crate::core::SerializeError> {
+    fn serialize<T: TagWriter>(
+        &self,
+        engine: &mut SerializeEngine<T>,
+    ) -> Result<(), crate::core::SerializeError> {
         engine.bytes.push(TableIdentifier::Pixmap as u8);
 
         engine.bytes.push(0b00000000); // Modifiers Byte

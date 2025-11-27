@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-use crate::core::{DeserializeEngine, Pixmap};
+use crate::core::{DeserializeEngine, Pixmap, TagWriter};
 
 #[cfg(feature = "log")]
 use log::*;
 
-pub(crate) fn next_width(
-    engine: &mut DeserializeEngine,
+pub(crate) fn next_width<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
     pixmap: &mut Pixmap,
     constant_width: Option<u8>,
 ) {
@@ -32,8 +32,8 @@ pub(crate) fn next_width(
     }
 }
 
-pub(crate) fn next_height(
-    engine: &mut DeserializeEngine,
+pub(crate) fn next_height<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
     pixmap: &mut Pixmap,
     constant_height: Option<u8>,
 ) {
@@ -45,8 +45,8 @@ pub(crate) fn next_height(
     }
 }
 
-pub(crate) fn next_bits_per_pixel(
-    engine: &mut DeserializeEngine,
+pub(crate) fn next_bits_per_pixel<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
     pixmap: &mut Pixmap,
     constant_bits_per_pixel: Option<u8>,
 ) {
@@ -61,8 +61,8 @@ pub(crate) fn next_bits_per_pixel(
     }
 }
 
-pub(crate) fn next_pixmap(
-    engine: &mut DeserializeEngine,
+pub(crate) fn next_pixmap<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
     pixmap: &mut Pixmap,
     constant_width: Option<u8>,
     constant_height: Option<u8>,
@@ -92,8 +92,8 @@ pub(crate) fn next_pixmap(
 }
 
 #[rustversion::since(1.87)]
-pub(crate) fn resolve_final_byte(
-    engine: &mut DeserializeEngine,
+pub(crate) fn resolve_final_byte<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
     width: u8,
     height: u8,
     bits_per_pixel: u8,
@@ -105,8 +105,8 @@ pub(crate) fn resolve_final_byte(
 }
 
 #[rustversion::before(1.87)]
-pub(crate) fn resolve_final_byte(
-    engine: &mut DeserializeEngine,
+pub(crate) fn resolve_final_byte<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
     width: u8,
     height: u8,
     bits_per_pixel: u8,

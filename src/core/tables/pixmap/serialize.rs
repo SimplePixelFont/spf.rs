@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-use crate::core::{Pixmap, SerializeEngine, SerializeError};
+use crate::core::{Pixmap, SerializeEngine, SerializeError, TagWriter};
 use crate::{format, String};
 
 #[cfg(feature = "log")]
 pub(crate) use log::*;
 
-pub(crate) fn push_width(
-    engine: &mut SerializeEngine,
+pub(crate) fn push_width<T: TagWriter>(
+    engine: &mut SerializeEngine<T>,
     constant_width: Option<u8>,
     custom_width: Option<u8>,
 ) {
@@ -40,8 +40,8 @@ pub(crate) fn push_width(
     }
 }
 
-pub(crate) fn push_height(
-    engine: &mut SerializeEngine,
+pub(crate) fn push_height<T: TagWriter>(
+    engine: &mut SerializeEngine<T>,
     constant_height: Option<u8>,
     custom_height: Option<u8>,
 ) {
@@ -60,8 +60,8 @@ pub(crate) fn push_height(
     }
 }
 
-pub(crate) fn push_bits_per_pixel(
-    engine: &mut SerializeEngine,
+pub(crate) fn push_bits_per_pixel<T: TagWriter>(
+    engine: &mut SerializeEngine<T>,
     constant_bits_per_pixel: Option<u8>,
     custom_bits_per_pixel: Option<u8>,
 ) {
@@ -80,8 +80,8 @@ pub(crate) fn push_bits_per_pixel(
     }
 }
 
-pub(crate) fn push_pixmap(
-    engine: &mut SerializeEngine,
+pub(crate) fn push_pixmap<T: TagWriter>(
+    engine: &mut SerializeEngine<T>,
     constant_width: Option<u8>,
     constant_height: Option<u8>,
     constant_bits_per_pixel: Option<u8>,

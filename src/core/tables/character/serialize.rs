@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-use crate::core::SerializeEngine;
+use crate::core::{SerializeEngine, TagWriter};
 use crate::{format, String};
 
 #[cfg(feature = "log")]
 use log::*;
 
-pub(crate) fn push_grapheme_cluster(
-    engine: &mut SerializeEngine,
+pub(crate) fn push_grapheme_cluster<T: TagWriter>(
+    engine: &mut SerializeEngine<T>,
     constant_cluster_codepoints: Option<u8>,
     string: &String,
 ) {

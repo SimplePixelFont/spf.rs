@@ -34,6 +34,8 @@ pub(crate) mod tables;
 
 #[cfg(not(feature = "tagging"))]
 mod tagging_stub;
+use core::marker::PhantomData;
+
 #[cfg(not(feature = "tagging"))]
 pub(crate) use tagging_stub::*;
 
@@ -169,22 +171,29 @@ pub enum SerializeError {
 }
 
 pub(crate) trait Table: Sized {
-    fn deserialize(engine: &mut DeserializeEngine) -> Result<Self, DeserializeError>;
-    fn serialize(&self, engine: &mut SerializeEngine) -> Result<(), SerializeError>;
+    fn deserialize<T: TagWriter>(
+        engine: &mut DeserializeEngine<T>,
+    ) -> Result<Self, DeserializeError>;
+    fn serialize<T: TagWriter>(
+        &self,
+        engine: &mut SerializeEngine<T>,
+    ) -> Result<(), SerializeError>;
 }
 
-pub(crate) struct DeserializeEngine<'a> {
+pub(crate) struct DeserializeEngine<'a, T: TagWriter = TagWriterNoOp> {
     bytes: byte::ByteReader<'a>,
     layout: Layout,
     #[cfg(feature = "tagging")]
-    tags: Option<TagStorage>,
+    tags: T,
+    _phantom: PhantomData<T>,
 }
 
-pub(crate) struct SerializeEngine<'a> {
+pub(crate) struct SerializeEngine<'a, T: TagWriter = TagWriterNoOp> {
     bytes: byte::ByteWriter,
     layout: &'a Layout,
     #[cfg(feature = "tagging")]
-    tags: Option<TagStorage>,
+    tags: T,
+    _phantom: PhantomData<T>,
 }
 
 /// Parses a [`&[u8]`] into a font [`Layout`].
@@ -195,11 +204,12 @@ pub fn layout_from_data(buffer: &[u8]) -> Result<Layout, DeserializeError> {
         index: 0,
     };
     let layout = Layout::default();
-    let mut engine = DeserializeEngine {
+    let mut engine = DeserializeEngine::<TagWriterNoOp> {
         bytes: storage,
         layout,
         #[cfg(feature = "tagging")]
-        tags: None,
+        tags: TagWriterNoOp,
+        _phantom: PhantomData,
     };
 
     deserialize::next_signature(&mut engine)?;
@@ -228,11 +238,12 @@ pub fn layout_from_data(buffer: &[u8]) -> Result<Layout, DeserializeError> {
 /// Encodes the provided font [`Layout`] into a [`Vec<u8>`].
 pub fn layout_to_data(layout: Layout) -> Result<Vec<u8>, SerializeError> {
     let buffer = byte::ByteWriter::new();
-    let mut engine = SerializeEngine {
+    let mut engine = SerializeEngine::<TagWriterNoOp> {
         bytes: buffer,
         layout: &layout,
         #[cfg(feature = "tagging")]
-        tags: None,
+        tags: TagWriterNoOp,
+        _phantom: PhantomData,
     };
 
     serialize::push_signature(&mut engine);

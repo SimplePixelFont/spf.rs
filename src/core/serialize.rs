@@ -19,7 +19,7 @@ pub(crate) use super::*;
 #[cfg(feature = "log")]
 pub(crate) use log::*;
 
-pub(crate) fn push_signature(engine: &mut SerializeEngine) {
+pub(crate) fn push_signature<T: TagWriter>(engine: &mut SerializeEngine<T>) {
     engine.bytes.push(127);
     engine.bytes.push(102);
     engine.bytes.push(115);
@@ -29,13 +29,13 @@ pub(crate) fn push_signature(engine: &mut SerializeEngine) {
     info!("Signed font data.");
 }
 
-pub(crate) fn push_version(engine: &mut SerializeEngine) {
+pub(crate) fn push_version<T: TagWriter>(engine: &mut SerializeEngine<T>) {
     engine.bytes.push(match engine.layout.version {
         Version::FV0 => 0,
     });
 }
 
-pub(crate) fn push_header(engine: &mut SerializeEngine) {
+pub(crate) fn push_header<T: TagWriter>(engine: &mut SerializeEngine<T>) {
     let mut font_properties = 0b00000000;
     if engine.layout.compact {
         font_properties |= 0b00000001;

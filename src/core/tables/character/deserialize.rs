@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-use crate::core::{Character, DeserializeEngine};
+use crate::core::{Character, DeserializeEngine, TagWriter};
 use crate::String;
 
 #[cfg(feature = "log")]
 use log::*;
 
-pub(crate) fn next_grapheme_cluster(
-    engine: &mut DeserializeEngine,
+pub(crate) fn next_grapheme_cluster<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
     character: &mut Character,
     constant_cluster_codepoints: Option<u8>,
 ) {

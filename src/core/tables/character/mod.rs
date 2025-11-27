@@ -16,7 +16,7 @@
 
 use crate::core::{
     byte, Character, CharacterTable, DeserializeEngine, DeserializeError, SerializeEngine,
-    SerializeError, Table, TableIdentifier,
+    SerializeError, Table, TableIdentifier, TagWriter,
 };
 use crate::{vec, Vec};
 
@@ -26,7 +26,9 @@ pub(crate) mod serialize;
 pub(crate) use serialize::*;
 
 impl Table for CharacterTable {
-    fn deserialize(engine: &mut DeserializeEngine) -> Result<Self, DeserializeError> {
+    fn deserialize<T: TagWriter>(
+        engine: &mut DeserializeEngine<T>,
+    ) -> Result<Self, DeserializeError> {
         let mut character_table = CharacterTable::default();
 
         let modifier_flags = engine.bytes.next();
@@ -72,7 +74,10 @@ impl Table for CharacterTable {
         Ok(character_table)
     }
 
-    fn serialize(&self, engine: &mut SerializeEngine) -> Result<(), crate::core::SerializeError> {
+    fn serialize<T: TagWriter>(
+        &self,
+        engine: &mut SerializeEngine<T>,
+    ) -> Result<(), crate::core::SerializeError> {
         engine.bytes.push(TableIdentifier::Character as u8);
 
         let mut modifier_flags = 0b00000000;

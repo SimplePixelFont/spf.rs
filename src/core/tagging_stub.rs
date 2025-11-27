@@ -1,8 +1,4 @@
-pub(crate) struct TagStorage {}
+pub(crate) trait TagWriter {}
 
-impl TagStorage {
-    pub fn new() -> Self {
-        Self {}
-    }
-    pub fn add_tag(&mut self, kind: TagKind, span: Span) {}
-}
+pub(crate) struct TagWriterNoOp;
+impl TagWriter for TagWriterNoOp {}

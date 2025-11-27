@@ -16,7 +16,9 @@
 
 pub(crate) use super::*;
 
-pub(crate) fn next_signature(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+pub(crate) fn next_signature<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
+) -> Result<(), DeserializeError> {
     if engine.bytes.index + 4 > engine.bytes.len() {
         return Err(DeserializeError::UnexpectedEndOfFile);
     }
@@ -28,14 +30,18 @@ pub(crate) fn next_signature(engine: &mut DeserializeEngine) -> Result<(), Deser
     Ok(())
 }
 
-pub(crate) fn next_version(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+pub(crate) fn next_version<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
+) -> Result<(), DeserializeError> {
     let version = engine.bytes.next();
     let version = Version::try_from(version)?;
     engine.layout.version = version;
     Ok(())
 }
 
-pub(crate) fn next_header(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+pub(crate) fn next_header<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
+) -> Result<(), DeserializeError> {
     let file_properties = engine.bytes.next();
 
     engine.layout.compact = byte::get_bit(file_properties, 0);

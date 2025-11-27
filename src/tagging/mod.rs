@@ -61,161 +61,161 @@ pub enum TagKind {
     },
 
     CharacterTable {
-        index: usize,
+        index: u8,
     },
     CharacterTableModifierFlags {
-        table_index: usize,
+        table_index: u8,
         use_advance_x: bool,
         use_pixmap_index: bool,
     },
     CharacterTableConfigurationFlags {
-        table_index: usize,
+        table_index: u8,
     },
     CharacterTableConstantClusterCodepoints {
-        table_index: usize,
+        table_index: u8,
         value: u8,
     },
     CharacterTableLinkFlags {
-        table_index: usize,
+        table_index: u8,
     },
     CharacterTablePixmapTableIndexesLength {
-        table_index: usize,
-        count: usize,
+        table_index: u8,
+        count: u8,
     },
     CharacterTablePixmapTableIndexes {
-        table_index: usize,
+        table_index: u8,
         indexes: Vec<u8>,
     },
     CharacterTableCharacterCount {
-        table_index: usize,
-        count: usize,
+        table_index: u8,
+        count: u8,
     },
 
     CharacterRecord {
-        table_index: usize,
-        char_index: usize,
+        table_index: u8,
+        char_index: u8,
     },
     CharacterAdvanceX {
-        table_index: usize,
-        char_index: usize,
+        table_index: u8,
+        char_index: u8,
         value: u8,
     },
     CharacterPixmapIndex {
-        table_index: usize,
-        char_index: usize,
+        table_index: u8,
+        char_index: u8,
         value: u8,
     },
     CharacterGraphemeCluster {
-        table_index: usize,
-        char_index: usize,
+        table_index: u8,
+        char_index: u8,
         value: String,
     },
 
     PixmapTable {
-        index: usize,
+        index: u8,
     },
     PixmapTableModifierFlags {
-        table_index: usize,
+        table_index: u8,
     },
     PixmapTableConfigurationFlags {
-        table_index: usize,
+        table_index: u8,
     },
     PixmapTableConstantWidth {
-        table_index: usize,
+        table_index: u8,
         value: u8,
     },
     PixmapTableConstantHeight {
-        table_index: usize,
+        table_index: u8,
         value: u8,
     },
     PixmapTableConstantBitsPerPixel {
-        table_index: usize,
+        table_index: u8,
         value: u8,
     },
     PixmapTableLinkFlags {
-        table_index: usize,
+        table_index: u8,
     },
     PixmapTableColorTableIndexesLength {
-        table_index: usize,
-        count: usize,
+        table_index: u8,
+        count: u8,
     },
     PixmapTableColorTableIndexes {
-        table_index: usize,
+        table_index: u8,
         indexes: Vec<u8>,
     },
     PixmapTablePixmapCount {
-        table_index: usize,
-        count: usize,
+        table_index: u8,
+        count: u8,
     },
 
     PixmapRecord {
-        table_index: usize,
-        pixmap_index: usize,
+        table_index: u8,
+        pixmap_index: u8,
     },
     PixmapCustomWidth {
-        table_index: usize,
-        pixmap_index: usize,
+        table_index: u8,
+        pixmap_index: u8,
         value: u8,
     },
     PixmapCustomHeight {
-        table_index: usize,
-        pixmap_index: usize,
+        table_index: u8,
+        pixmap_index: u8,
         value: u8,
     },
     PixmapCustomBitsPerPixel {
-        table_index: usize,
-        pixmap_index: usize,
+        table_index: u8,
+        pixmap_index: u8,
         value: u8,
     },
     PixmapData {
-        table_index: usize,
-        pixmap_index: usize,
-        byte_length: usize,
+        table_index: u8,
+        pixmap_index: u8,
+        byte_length: u8,
     },
 
     ColorTable {
-        index: usize,
+        index: u8,
     },
     ColorTableModifierFlags {
-        table_index: usize,
+        table_index: u8,
     },
     ColorTableConfigurationFlags {
-        table_index: usize,
+        table_index: u8,
     },
     ColorTableConstantAlpha {
-        table_index: usize,
+        table_index: u8,
         value: u8,
     },
     ColorTableLinkFlags {
-        table_index: usize,
+        table_index: u8,
     },
     ColorTableColorCount {
-        table_index: usize,
-        count: usize,
+        table_index: u8,
+        count: u8,
     },
 
     ColorRecord {
-        table_index: usize,
-        color_index: usize,
+        table_index: u8,
+        color_index: u8,
     },
     ColorCustomAlpha {
-        table_index: usize,
-        color_index: usize,
+        table_index: u8,
+        color_index: u8,
         value: u8,
     },
     ColorR {
-        table_index: usize,
-        color_index: usize,
+        table_index: u8,
+        color_index: u8,
         value: u8,
     },
     ColorG {
-        table_index: usize,
-        color_index: usize,
+        table_index: u8,
+        color_index: u8,
         value: u8,
     },
     ColorB {
-        table_index: usize,
-        color_index: usize,
+        table_index: u8,
+        color_index: u8,
         value: u8,
     },
 }
@@ -239,16 +239,28 @@ impl Tag {
     }
 }
 
-pub struct TagStorage {
+pub trait TagWriter {
+    fn add_tag(&mut self, kind: TagKind, span: Span);
+}
+
+pub struct TagWriterImpl {
     pub tags: Vec<Tag>,
 }
 
-impl TagStorage {
+impl TagWriterImpl {
     pub fn new() -> Self {
         Self { tags: Vec::new() }
     }
+}
 
-    pub fn add_tag(&mut self, kind: TagKind, span: Span) {
+impl TagWriter for TagWriterImpl {
+    fn add_tag(&mut self, kind: TagKind, span: Span) {
         self.tags.push(Tag::new(kind, span));
     }
+}
+
+pub struct TagWriterNoOp;
+
+impl TagWriter for TagWriterNoOp {
+    fn add_tag(&mut self, _kind: TagKind, _span: Span) {}
 }
