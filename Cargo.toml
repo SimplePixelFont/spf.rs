@@ -17,14 +17,14 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["std", "log", "ergonomics", "serde", "ffi", "articles", "tag"]
+default = ["std", "log", "ergonomics", "serde", "ffi", "articles", "tagging"]
 std = []
 log = ["dep:log"]
 ergonomics = []
 serde = ["dep:serde"]
 ffi = []
 articles = []
-tag = []
+tagging = []
 
 [dependencies]
 rustversion = "1.0.22"

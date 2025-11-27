@@ -137,7 +137,7 @@ mod tests {
 
         let font = sample_layout();
 
-        common::write_to_file("./res/sampleToyFont.spf", &layout_to_data(&font).unwrap())?;
+        common::write_to_file("./res/sampleToyFont.spf", &layout_to_data(font).unwrap())?;
         Ok(())
     }
 
@@ -147,7 +147,7 @@ mod tests {
 
         let mut buffer: Vec<u8> = vec![];
         common::read_from_file("./res/sampleToyFont.spf", &mut buffer)?;
-        let _font = layout_from_data(buffer);
+        let _font = layout_from_data(&buffer);
         Ok(())
     }
 

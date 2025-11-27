@@ -39,7 +39,6 @@
 //! All functions that return a [`Vec<u8>`] return a [`SPFData`] struct instead.
 
 use crate::core::*;
-use crate::ToOwned;
 
 use core::ffi::*;
 use core::slice;
@@ -156,7 +155,7 @@ pub struct SPFData {
 /// The [`Layout`] struct is then parsed into a [`Vec<u8>`] with the [`layout_to_data`] function.
 /// The [`Vec<u8>`] is then converted into a [`SPFData`] struct and returned.
 pub extern "C" fn spf_core_layout_to_data(layout: SPFLayout) -> SPFData {
-    let mut data = layout_to_data(&layout.try_into().unwrap())
+    let mut data = layout_to_data(layout.try_into().unwrap())
         .unwrap()
         .into_boxed_slice();
     let data_length = data.len() as c_ulong;
@@ -180,6 +179,6 @@ pub unsafe extern "C" fn spf_core_layout_from_data(
     length: c_ulong,
 ) -> SPFLayout {
     let data = unsafe { slice::from_raw_parts(pointer, length as usize) };
-    let layout = layout_from_data(data.to_owned()).unwrap();
+    let layout = layout_from_data(data).unwrap();
     layout.try_into().unwrap()
 }

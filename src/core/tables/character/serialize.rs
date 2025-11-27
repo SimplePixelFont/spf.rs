@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-use crate::core::byte;
+use crate::core::SerializeEngine;
 use crate::{format, String};
 
 #[cfg(feature = "log")]
 use log::*;
 
 pub(crate) fn push_grapheme_cluster(
-    buffer: &mut byte::ByteStorage,
+    engine: &mut SerializeEngine,
     constant_cluster_codepoints: Option<u8>,
     string: &String,
 ) {
     let mut string_bit_string = String::new(); // part of log
 
     string.bytes().for_each(|byte| {
-        buffer.push(byte);
+        engine.bytes.push(byte);
         string_bit_string.push_str(&format!("{:08b} ", byte)); // part of log
     });
 
     if constant_cluster_codepoints.is_none() {
-        buffer.push(0);
+        engine.bytes.push(0);
         string_bit_string.push_str(&format!("{:08b} ", 0)); // part of log
     }
 

@@ -17,13 +17,13 @@
 use crate::Vec;
 
 #[derive(Debug)]
-pub(crate) struct ByteStorage {
+pub(crate) struct ByteWriter {
     pub(crate) bytes: Vec<u8>,
     pub(crate) pointer: u8,
     pub(crate) index: usize,
 }
 
-impl ByteStorage {
+impl ByteWriter {
     pub(crate) fn new() -> Self {
         Self {
             bytes: Vec::new(),
@@ -76,7 +76,21 @@ impl ByteStorage {
             }
         }
     }
+    pub(crate) fn append(&mut self, bytes: &[u8]) {
+        for byte in bytes {
+            self.push(*byte);
+        }
+    }
+}
 
+#[derive(Debug)]
+pub(crate) struct ByteReader<'a> {
+    pub(crate) bytes: &'a [u8],
+    pub(crate) pointer: u8,
+    pub(crate) index: usize,
+}
+
+impl ByteReader<'_> {
     pub(crate) fn get(&self) -> u8 {
         if self.pointer == 0 {
             self.bytes[self.index]
@@ -105,10 +119,8 @@ impl ByteStorage {
     pub(crate) fn peek(&self) -> u8 {
         self.bytes[self.index]
     }
-    pub(crate) fn append(&mut self, bytes: &[u8]) {
-        for byte in bytes {
-            self.push(*byte);
-        }
+    pub(crate) fn len(&self) -> usize {
+        self.bytes.len()
     }
 }
 

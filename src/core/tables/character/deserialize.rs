@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-use crate::core::{byte, Character};
+use crate::core::{Character, DeserializeEngine};
 use crate::String;
 
 #[cfg(feature = "log")]
 use log::*;
 
 pub(crate) fn next_grapheme_cluster(
-    storage: &mut byte::ByteStorage,
+    engine: &mut DeserializeEngine,
     character: &mut Character,
     constant_cluster_codepoints: Option<u8>,
 ) {
@@ -30,23 +30,23 @@ pub(crate) fn next_grapheme_cluster(
     let mut codepoint_count = 0;
 
     while !end_cluster {
-        let utf81 = storage.next();
+        let utf81 = engine.bytes.next();
         let mut utf8_bytes: [u8; 4] = [0, 0, 0, 0];
 
         if utf81 >> 7 == 0b00000000 {
             utf8_bytes[0] = utf81;
         } else if utf81 >> 5 == 0b00000110 {
             utf8_bytes[0] = utf81;
-            utf8_bytes[1] = storage.next();
+            utf8_bytes[1] = engine.bytes.next();
         } else if utf81 >> 4 == 0b00001110 {
             utf8_bytes[0] = utf81;
-            utf8_bytes[1] = storage.next();
-            utf8_bytes[2] = storage.next();
+            utf8_bytes[1] = engine.bytes.next();
+            utf8_bytes[2] = engine.bytes.next();
         } else if utf81 >> 3 == 0b00011110 {
             utf8_bytes[0] = utf81;
-            utf8_bytes[1] = storage.next();
-            utf8_bytes[2] = storage.next();
-            utf8_bytes[3] = storage.next();
+            utf8_bytes[1] = engine.bytes.next();
+            utf8_bytes[2] = engine.bytes.next();
+            utf8_bytes[3] = engine.bytes.next();
         }
 
         grapheme_cluster.push(
@@ -62,9 +62,9 @@ pub(crate) fn next_grapheme_cluster(
             if codepoint_count == constant_cluster_codepoints {
                 end_cluster = true;
             }
-        } else if storage.peek() == 0 {
+        } else if engine.bytes.peek() == 0 {
             end_cluster = true;
-            storage.index += 1;
+            engine.bytes.index += 1;
         }
     }
 

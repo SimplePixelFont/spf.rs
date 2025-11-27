@@ -15,47 +15,41 @@
  */
 
 use crate::core::{
-    Color, ColorTable, DeserializeError, Layout, SerializeError, Table, TableIdentifier,
+    Color, ColorTable, DeserializeEngine, DeserializeError, SerializeEngine, SerializeError, Table,
+    TableIdentifier,
 };
 use crate::Vec;
 
 impl Table for ColorTable {
-    fn deserialize(
-        storage: &mut crate::core::byte::ByteStorage,
-        _layout: &Layout,
-    ) -> Result<Self, DeserializeError> {
+    fn deserialize(engine: &mut DeserializeEngine) -> Result<Self, DeserializeError> {
         let mut color_table = ColorTable::default();
 
-        storage.next(); // Skip modifires byte
-        let configuration_flags = storage.next();
+        engine.bytes.next(); // Skip modifires byte
+        let configuration_flags = engine.bytes.next();
         if crate::core::byte::get_bit(configuration_flags, 0) {
-            color_table.constant_alpha = Some(storage.next());
+            color_table.constant_alpha = Some(engine.bytes.next());
         }
-        storage.next(); // Skip table links
+        engine.bytes.next(); // Skip table links
 
-        let color_count = storage.next();
+        let color_count = engine.bytes.next();
         for _ in 0..color_count {
             let mut color = Color::default();
             if color_table.constant_alpha.is_none() {
-                color.custom_alpha = Some(storage.next());
+                color.custom_alpha = Some(engine.bytes.next());
             }
-            color.r = storage.next();
-            color.g = storage.next();
-            color.b = storage.next();
+            color.r = engine.bytes.next();
+            color.g = engine.bytes.next();
+            color.b = engine.bytes.next();
             color_table.colors.push(color);
         }
 
         Ok(color_table)
     }
 
-    fn serialize(
-        &self,
-        buffer: &mut crate::core::byte::ByteStorage,
-        _layout: &Layout,
-    ) -> Result<(), crate::core::SerializeError> {
-        buffer.push(TableIdentifier::Color as u8);
+    fn serialize(&self, engine: &mut SerializeEngine) -> Result<(), crate::core::SerializeError> {
+        engine.bytes.push(TableIdentifier::Color as u8);
 
-        buffer.push(0b00000000); // Modifiers byte
+        engine.bytes.push(0b00000000); // Modifiers byte
 
         let mut configuration_flags = 0b00000000;
         let mut configuration_values = Vec::new();
@@ -64,21 +58,21 @@ impl Table for ColorTable {
             configuration_flags |= 0b00000001;
             configuration_values.push(self.constant_alpha.unwrap());
         }
-        buffer.push(configuration_flags); // Configuration flags byte
-        buffer.append(&configuration_values); // Configuration values
-        buffer.push(0b00000000); // Table relations byte
+        engine.bytes.push(configuration_flags); // Configuration flags byte
+        engine.bytes.append(&configuration_values); // Configuration values
+        engine.bytes.push(0b00000000); // Table relations byte
 
         if self.colors.len() > 255 {
             return Err(SerializeError::StaticVectorTooLarge);
         }
-        buffer.push(self.colors.len() as u8);
+        engine.bytes.push(self.colors.len() as u8);
         for color in &self.colors {
             if self.constant_alpha.is_none() {
-                buffer.push(color.custom_alpha.unwrap());
+                engine.bytes.push(color.custom_alpha.unwrap());
             }
-            buffer.push(color.r);
-            buffer.push(color.g);
-            buffer.push(color.b);
+            engine.bytes.push(color.r);
+            engine.bytes.push(color.g);
+            engine.bytes.push(color.b);
         }
 
         Ok(())

@@ -16,34 +16,28 @@
 
 pub(crate) use super::*;
 
-pub(crate) fn next_signature(storage: &mut byte::ByteStorage) -> Result<(), DeserializeError> {
-    if storage.index + 4 > storage.bytes.len() {
+pub(crate) fn next_signature(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+    if engine.bytes.index + 4 > engine.bytes.len() {
         return Err(DeserializeError::UnexpectedEndOfFile);
     }
     for byte in [127, 102, 115, 70].iter() {
-        if storage.next() != *byte {
+        if engine.bytes.next() != *byte {
             return Err(DeserializeError::InvalidSignature);
         }
     }
     Ok(())
 }
 
-pub(crate) fn next_version(
-    layout: &mut Layout,
-    storage: &mut byte::ByteStorage,
-) -> Result<(), DeserializeError> {
-    let version = storage.next();
+pub(crate) fn next_version(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+    let version = engine.bytes.next();
     let version = Version::try_from(version)?;
-    layout.version = version;
+    engine.layout.version = version;
     Ok(())
 }
 
-pub(crate) fn next_header(
-    layout: &mut Layout,
-    storage: &mut byte::ByteStorage,
-) -> Result<(), DeserializeError> {
-    let file_properties = storage.next();
+pub(crate) fn next_header(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+    let file_properties = engine.bytes.next();
 
-    layout.compact = byte::get_bit(file_properties, 0);
+    engine.layout.compact = byte::get_bit(file_properties, 0);
     Ok(())
 }

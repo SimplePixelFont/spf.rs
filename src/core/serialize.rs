@@ -19,28 +19,26 @@ pub(crate) use super::*;
 #[cfg(feature = "log")]
 pub(crate) use log::*;
 
-pub(crate) fn push_signature(buffer: &mut byte::ByteStorage) -> &mut byte::ByteStorage {
-    buffer.push(127);
-    buffer.push(102);
-    buffer.push(115);
-    buffer.push(70);
+pub(crate) fn push_signature(engine: &mut SerializeEngine) {
+    engine.bytes.push(127);
+    engine.bytes.push(102);
+    engine.bytes.push(115);
+    engine.bytes.push(70);
 
     #[cfg(feature = "log")]
     info!("Signed font data.");
-
-    buffer
 }
 
-pub(crate) fn push_version(buffer: &mut byte::ByteStorage, version: &Version) {
-    buffer.push(match version {
+pub(crate) fn push_version(engine: &mut SerializeEngine) {
+    engine.bytes.push(match engine.layout.version {
         Version::FV0 => 0,
     });
 }
 
-pub(crate) fn push_header(buffer: &mut byte::ByteStorage, layout: &Layout) {
+pub(crate) fn push_header(engine: &mut SerializeEngine) {
     let mut font_properties = 0b00000000;
-    if layout.compact {
+    if engine.layout.compact {
         font_properties |= 0b00000001;
     }
-    buffer.push(font_properties);
+    engine.bytes.push(font_properties);
 }

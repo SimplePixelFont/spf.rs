@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-use crate::core::{byte, Pixmap, SerializeError};
+use crate::core::{Pixmap, SerializeEngine, SerializeError};
 use crate::{format, String};
 
 #[cfg(feature = "log")]
 pub(crate) use log::*;
 
 pub(crate) fn push_width(
-    buffer: &mut byte::ByteStorage,
+    engine: &mut SerializeEngine,
     constant_width: Option<u8>,
     custom_width: Option<u8>,
 ) {
     if constant_width.is_none() {
         let width = custom_width.unwrap();
-        buffer.push(width);
+        engine.bytes.push(width);
 
         #[cfg(feature = "log")]
         {
@@ -41,13 +41,13 @@ pub(crate) fn push_width(
 }
 
 pub(crate) fn push_height(
-    buffer: &mut byte::ByteStorage,
+    engine: &mut SerializeEngine,
     constant_height: Option<u8>,
     custom_height: Option<u8>,
 ) {
     if constant_height.is_none() {
         let height = custom_height.unwrap();
-        buffer.push(height);
+        engine.bytes.push(height);
 
         #[cfg(feature = "log")]
         {
@@ -61,13 +61,13 @@ pub(crate) fn push_height(
 }
 
 pub(crate) fn push_bits_per_pixel(
-    buffer: &mut byte::ByteStorage,
+    engine: &mut SerializeEngine,
     constant_bits_per_pixel: Option<u8>,
     custom_bits_per_pixel: Option<u8>,
 ) {
     if constant_bits_per_pixel.is_none() {
         let bits_per_pixel = custom_bits_per_pixel.unwrap();
-        buffer.push(bits_per_pixel);
+        engine.bytes.push(bits_per_pixel);
 
         #[cfg(feature = "log")]
         {
@@ -81,8 +81,7 @@ pub(crate) fn push_bits_per_pixel(
 }
 
 pub(crate) fn push_pixmap(
-    buffer: &mut byte::ByteStorage,
-    compact: bool,
+    engine: &mut SerializeEngine,
     constant_width: Option<u8>,
     constant_height: Option<u8>,
     constant_bits_per_pixel: Option<u8>,
@@ -107,12 +106,12 @@ pub(crate) fn push_pixmap(
             pixel,
             bits_per_pixel = bits_per_pixel as usize
         ));
-        buffer.incomplete_push(*pixel, bits_per_pixel);
+        engine.bytes.incomplete_push(*pixel, bits_per_pixel);
         bits_used += bits_per_pixel as u64;
     }
 
-    if !compact && buffer.pointer != 0 {
-        buffer.incomplete_push(0, 8 - (bits_used % 8) as u8);
+    if !engine.layout.compact && engine.bytes.pointer != 0 {
+        engine.bytes.incomplete_push(0, 8 - (bits_used % 8) as u8);
     }
 
     #[cfg(feature = "log")]

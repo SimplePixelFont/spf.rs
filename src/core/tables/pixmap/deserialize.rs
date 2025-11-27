@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-use crate::core::{byte, Pixmap};
+use crate::core::{DeserializeEngine, Pixmap};
 
 #[cfg(feature = "log")]
 use log::*;
 
 pub(crate) fn next_width(
-    storage: &mut byte::ByteStorage,
+    engine: &mut DeserializeEngine,
     pixmap: &mut Pixmap,
     constant_width: Option<u8>,
 ) {
     if constant_width.is_none() {
-        pixmap.custom_width = Some(storage.next());
+        pixmap.custom_width = Some(engine.bytes.next());
 
         #[cfg(feature = "log")]
         info!("Identified custom width: {:?}", pixmap.custom_width);
@@ -33,12 +33,12 @@ pub(crate) fn next_width(
 }
 
 pub(crate) fn next_height(
-    storage: &mut byte::ByteStorage,
+    engine: &mut DeserializeEngine,
     pixmap: &mut Pixmap,
     constant_height: Option<u8>,
 ) {
     if constant_height.is_none() {
-        pixmap.custom_height = Some(storage.next());
+        pixmap.custom_height = Some(engine.bytes.next());
 
         #[cfg(feature = "log")]
         info!("Identified custom height: {:?}", pixmap.custom_height);
@@ -46,12 +46,12 @@ pub(crate) fn next_height(
 }
 
 pub(crate) fn next_bits_per_pixel(
-    storage: &mut byte::ByteStorage,
+    engine: &mut DeserializeEngine,
     pixmap: &mut Pixmap,
     constant_bits_per_pixel: Option<u8>,
 ) {
     if constant_bits_per_pixel.is_none() {
-        pixmap.custom_bits_per_pixel = Some(storage.next());
+        pixmap.custom_bits_per_pixel = Some(engine.bytes.next());
 
         #[cfg(feature = "log")]
         info!(
@@ -62,9 +62,8 @@ pub(crate) fn next_bits_per_pixel(
 }
 
 pub(crate) fn next_pixmap(
-    storage: &mut byte::ByteStorage,
+    engine: &mut DeserializeEngine,
     pixmap: &mut Pixmap,
-    compact: bool,
     constant_width: Option<u8>,
     constant_height: Option<u8>,
     constant_bits_per_pixel: Option<u8>,
@@ -77,16 +76,16 @@ pub(crate) fn next_pixmap(
 
     let pixels_used = width as u16 * height as u16;
     for _ in 0..pixels_used {
-        let pixel = storage.incomplete_get(bits_per_pixel);
+        let pixel = engine.bytes.incomplete_get(bits_per_pixel);
         pixmap.data.push(pixel);
-        storage.pointer += bits_per_pixel;
-        if storage.pointer >= 8 {
-            storage.index += 1;
-            storage.pointer -= 8;
+        engine.bytes.pointer += bits_per_pixel;
+        if engine.bytes.pointer >= 8 {
+            engine.bytes.index += 1;
+            engine.bytes.pointer -= 8;
         }
     }
 
-    resolve_final_byte(storage, compact, width, height, bits_per_pixel);
+    resolve_final_byte(engine, width, height, bits_per_pixel);
 
     #[cfg(feature = "log")]
     info!("Identified pixmap: {:?}", pixmap.data);
@@ -94,28 +93,26 @@ pub(crate) fn next_pixmap(
 
 #[rustversion::since(1.87)]
 pub(crate) fn resolve_final_byte(
-    storage: &mut byte::ByteStorage,
-    compact: bool,
+    engine: &mut DeserializeEngine,
     width: u8,
     height: u8,
     bits_per_pixel: u8,
 ) {
-    if !compact && !(width * height * bits_per_pixel).is_multiple_of(8) {
-        storage.index += 1;
-        storage.pointer = 0;
+    if !engine.layout.compact && !(width * height * bits_per_pixel).is_multiple_of(8) {
+        engine.bytes.index += 1;
+        engine.bytes.pointer = 0;
     }
 }
 
 #[rustversion::before(1.87)]
 pub(crate) fn resolve_final_byte(
-    storage: &mut byte::ByteStorage,
-    compact: bool,
+    engine: &mut DeserializeEngine,
     width: u8,
     height: u8,
     bits_per_pixel: u8,
 ) {
-    if !compact && (width * height * bits_per_pixel) % 8 != 0 {
-        storage.index += 1;
-        storage.pointer = 0;
+    if !engine.layout.compact && (width * height * bits_per_pixel) % 8 != 0 {
+        engine.bytes.index += 1;
+        engine.bytes.pointer = 0;
     }
 }
