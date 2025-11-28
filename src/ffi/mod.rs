@@ -155,7 +155,7 @@ pub struct SPFData {
 /// The [`Layout`] struct is then parsed into a [`Vec<u8>`] with the [`layout_to_data`] function.
 /// The [`Vec<u8>`] is then converted into a [`SPFData`] struct and returned.
 pub extern "C" fn spf_core_layout_to_data(layout: SPFLayout) -> SPFData {
-    let mut data = layout_to_data(layout.try_into().unwrap())
+    let mut data = layout_to_data(&layout.try_into().unwrap())
         .unwrap()
         .into_boxed_slice();
     let data_length = data.len() as c_ulong;

@@ -17,6 +17,39 @@
 pub(crate) use super::*;
 use crate::vec;
 
+impl<'a, T: TagWriter> DeserializeEngine<'a, T> {
+    #[cfg(feature = "tagging")]
+    pub fn from_data_and_tags(data: &'a [u8], tags: T) -> Self {
+        Self {
+            bytes: byte::ByteReader::from(data),
+            layout: Layout::default(),
+            #[cfg(feature = "tagging")]
+            tags,
+            #[cfg(feature = "tagging")]
+            tagging_data: TaggingData::default(),
+            _phantom: PhantomData,
+        }
+    }
+    #[cfg(feature = "tagging")]
+    pub fn tagging_engine(&mut self, tags: T) {
+        self.tags = tags;
+    }
+}
+
+impl<'a> DeserializeEngine<'a> {
+    pub fn from_data(data: &'a [u8]) -> Self {
+        Self {
+            bytes: byte::ByteReader::from(data),
+            layout: Layout::default(),
+            #[cfg(feature = "tagging")]
+            tags: TagWriterNoOp,
+            #[cfg(feature = "tagging")]
+            tagging_data: TaggingData::default(),
+            _phantom: PhantomData,
+        }
+    }
+}
+
 pub(crate) fn next_signature<T: TagWriter>(
     engine: &mut DeserializeEngine<T>,
 ) -> Result<(), DeserializeError> {

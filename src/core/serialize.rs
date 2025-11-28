@@ -20,6 +20,45 @@ use crate::vec;
 #[cfg(feature = "log")]
 pub(crate) use log::*;
 
+impl<'a, T: TagWriter> SerializeEngine<'a, T> {
+    #[cfg(feature = "tagging")]
+    pub fn from_layout_and_tags(layout: &'a Layout, tags: T) -> Self {
+        Self {
+            bytes: byte::ByteWriter::new(),
+            layout,
+            #[cfg(feature = "tagging")]
+            tags,
+            #[cfg(feature = "tagging")]
+            tagging_data: TaggingData::default(),
+            _phantom: PhantomData,
+        }
+    }
+    #[cfg(feature = "tagging")]
+    pub fn tagging_engine(&mut self, tags: T) {
+        self.tags = tags;
+    }
+    pub fn data(&self) -> &[u8] {
+        &self.bytes.bytes
+    }
+    pub fn data_owned(self) -> Vec<u8> {
+        self.bytes.bytes
+    }
+}
+
+impl<'a> SerializeEngine<'a> {
+    pub fn from_layout(layout: &'a Layout) -> Self {
+        Self {
+            bytes: byte::ByteWriter::new(),
+            layout,
+            #[cfg(feature = "tagging")]
+            tags: TagWriterNoOp,
+            #[cfg(feature = "tagging")]
+            tagging_data: TaggingData::default(),
+            _phantom: PhantomData,
+        }
+    }
+}
+
 pub(crate) fn push_signature<T: TagWriter>(engine: &mut SerializeEngine<T>) {
     #[cfg(feature = "tagging")]
     let start = engine.bytes.byte_index();

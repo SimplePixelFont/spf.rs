@@ -87,7 +87,15 @@ pub(crate) struct ByteReader<'a> {
     pub(crate) index: usize,
 }
 
-impl ByteReader<'_> {
+impl<'a> ByteReader<'a> {
+    pub(crate) fn from(bytes: &'a [u8]) -> Self {
+        Self {
+            bytes,
+            pointer: 0,
+            index: 0,
+        }
+    }
+
     pub(crate) fn get(&self) -> u8 {
         if self.pointer == 0 {
             self.bytes[self.index]
