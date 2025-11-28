@@ -14,17 +14,186 @@
  * limitations under the License.
  */
 
-use crate::core::{Character, DeserializeEngine, TagWriter};
-use crate::String;
+use crate::core::{
+    byte, Character, CharacterTable, DeserializeEngine, DeserializeError, TagWriter,
+};
+use crate::{vec, String, Vec};
+
+#[cfg(feature = "tagging")]
+use crate::tagging::{Span, TagKind};
 
 #[cfg(feature = "log")]
 use log::*;
+
+impl CharacterTable {
+    pub(crate) fn next_modifer_flags<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+        let modifier_flags = engine.bytes.next();
+        if byte::get_bit(modifier_flags, 0) {
+            self.use_advance_x = true;
+        }
+        if byte::get_bit(modifier_flags, 1) {
+            self.use_pixmap_index = true;
+        }
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_bitflag(
+            TagKind::CharacterTableModifierFlags {
+                table_index: engine.tagging_data.current_table_index,
+            },
+            #[cfg(feature = "tagging")]
+            vec![
+                TagKind::CharacterTableUseAdvanceX {
+                    table_index: engine.tagging_data.current_table_index,
+                    value: self.use_advance_x,
+                },
+                TagKind::CharacterTableUsePixmapIndex {
+                    table_index: engine.tagging_data.current_table_index,
+                    value: self.use_pixmap_index,
+                },
+            ],
+            engine.bytes.byte_index(),
+        );
+    }
+    pub(crate) fn next_configurations<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+        #[cfg(feature = "tagging")]
+        let configurations_start = engine.bytes.byte_index();
+
+        let configuration_flags = engine.bytes.next();
+        let use_constant_cluster_codepoints = byte::get_bit(configuration_flags, 0);
+
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_bitflag(
+            TagKind::CharacterTableConfigurationFlags {
+                table_index: engine.tagging_data.current_table_index,
+            },
+            vec![TagKind::CharacterTableUseConstantClusterCodepoints {
+                table_index: engine.tagging_data.current_table_index,
+                value: use_constant_cluster_codepoints,
+            }],
+            engine.bytes.byte_index(),
+        );
+
+        #[cfg(feature = "tagging")]
+        let configuration_values_start = engine.bytes.byte_index();
+        if use_constant_cluster_codepoints {
+            self.constant_cluster_codepoints = Some(engine.bytes.next());
+            #[cfg(feature = "tagging")]
+            engine.tags.tag_byte(
+                TagKind::CharacterTableConstantClusterCodepoints {
+                    table_index: engine.tagging_data.current_table_index,
+                    value: self.constant_cluster_codepoints.unwrap(),
+                },
+                engine.bytes.byte_index(),
+            );
+        }
+
+        #[cfg(feature = "tagging")]
+        {
+            engine.tags.tag_span(
+                TagKind::CharacterTableConfigurationValues {
+                    table_index: engine.tagging_data.current_table_index,
+                },
+                Span::new(configuration_values_start, engine.bytes.byte_index()),
+            );
+            engine.tags.tag_span(
+                TagKind::CharacterTableConfigurations {
+                    table_index: engine.tagging_data.current_table_index,
+                },
+                Span::new(configurations_start, engine.bytes.byte_index()),
+            );
+        }
+    }
+    pub(crate) fn next_table_links<T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<T>,
+    ) -> Result<(), DeserializeError> {
+        #[cfg(feature = "tagging")]
+        let links_start = engine.bytes.byte_index();
+
+        let link_flags = engine.bytes.next();
+        let link_pixmap_tables = byte::get_bit(link_flags, 0);
+
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_bitflag(
+            TagKind::CharacterTableLinkFlags {
+                table_index: engine.tagging_data.current_table_index,
+            },
+            vec![TagKind::CharacterTableLinkPixmapTables {
+                table_index: engine.tagging_data.current_table_index,
+                value: link_pixmap_tables,
+            }],
+            engine.bytes.byte_index(),
+        );
+
+        if link_pixmap_tables {
+            #[cfg(feature = "tagging")]
+            let pixmap_tables_start = engine.bytes.byte_index();
+
+            let pixmap_tables_length = engine.bytes.next();
+            #[cfg(feature = "tagging")]
+            engine.tags.tag_byte(
+                TagKind::CharacterTablePixmapTableIndexesLength {
+                    table_index: engine.tagging_data.current_table_index,
+                    count: pixmap_tables_length as u8,
+                },
+                engine.bytes.byte_index(),
+            );
+
+            #[cfg(feature = "tagging")]
+            let pixmap_table_indexes_start = engine.bytes.byte_index();
+
+            let mut pixmap_table_indexes = Vec::new();
+            for _ in 0..pixmap_tables_length {
+                let link_index = engine.bytes.next();
+                pixmap_table_indexes.push(link_index);
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::CharacterTablePixmapTableIndex {
+                        table_index: engine.tagging_data.current_table_index,
+                        index: link_index,
+                    },
+                    engine.bytes.byte_index(),
+                );
+            }
+
+            self.pixmap_table_indexes = Some(pixmap_table_indexes);
+
+            #[cfg(feature = "tagging")]
+            engine.tags.tag_span(
+                TagKind::CharacterTablePixmapTableIndexes {
+                    table_index: engine.tagging_data.current_table_index,
+                    indexes: self.pixmap_table_indexes.as_ref().unwrap().clone(),
+                },
+                Span::new(pixmap_table_indexes_start, engine.bytes.byte_index()),
+            );
+
+            #[cfg(feature = "tagging")]
+            engine.tags.tag_span(
+                TagKind::CharacterTablePixmapTableLinks {
+                    table_index: engine.tagging_data.current_table_index,
+                },
+                Span::new(pixmap_tables_start, engine.bytes.byte_index()),
+            );
+        }
+
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_span(
+            TagKind::CharacterTableLinks {
+                table_index: engine.tagging_data.current_table_index,
+            },
+            Span::new(links_start, engine.bytes.byte_index()),
+        );
+        Ok(())
+    }
+}
 
 pub(crate) fn next_grapheme_cluster<T: TagWriter>(
     engine: &mut DeserializeEngine<T>,
     character: &mut Character,
     constant_cluster_codepoints: Option<u8>,
 ) {
+    #[cfg(feature = "tagging")]
+    let start = engine.bytes.byte_index();
+
     let mut grapheme_cluster = String::new();
     let mut end_cluster = false;
     let mut codepoint_count = 0;
@@ -67,6 +236,16 @@ pub(crate) fn next_grapheme_cluster<T: TagWriter>(
             engine.bytes.index += 1;
         }
     }
+
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_span(
+        TagKind::CharacterGraphemeCluster {
+            table_index: engine.tagging_data.current_table_index,
+            char_index: engine.tagging_data.current_record_index,
+            value: grapheme_cluster.clone(),
+        },
+        Span::new(start, engine.bytes.byte_index()),
+    );
 
     #[cfg(feature = "log")]
     info!("Identified grapheme cluster: {:?}", grapheme_cluster);

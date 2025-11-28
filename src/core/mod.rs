@@ -34,23 +34,29 @@ pub(crate) mod tables;
 
 #[cfg(not(feature = "tagging"))]
 mod tagging_stub;
-use core::marker::PhantomData;
-
-#[cfg(not(feature = "tagging"))]
-pub(crate) use tagging_stub::*;
 
 #[cfg(feature = "tagging")]
 pub use crate::tagging::*;
+#[cfg(not(feature = "tagging"))]
+pub(crate) use tagging_stub::*;
 
 use crate::{String, Vec};
+use core::marker::PhantomData;
 
 #[repr(u8)]
 #[non_exhaustive]
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Version {
     #[default]
     FV0 = 0b00000000,
+}
+
+impl core::fmt::Display for Version {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let version = *self as u8;
+        write!(f, "FV{:b}", version)
+    }
 }
 
 #[derive(Default, Debug, Clone)]
@@ -185,7 +191,15 @@ pub(crate) struct DeserializeEngine<'a, T: TagWriter = TagWriterNoOp> {
     layout: Layout,
     #[cfg(feature = "tagging")]
     tags: T,
+    #[cfg(feature = "tagging")]
+    tagging_data: TaggingData,
     _phantom: PhantomData<T>,
+}
+
+#[derive(Default)]
+pub(crate) struct TaggingData {
+    current_table_index: u8,
+    current_record_index: u8,
 }
 
 pub(crate) struct SerializeEngine<'a, T: TagWriter = TagWriterNoOp> {
@@ -193,6 +207,8 @@ pub(crate) struct SerializeEngine<'a, T: TagWriter = TagWriterNoOp> {
     layout: &'a Layout,
     #[cfg(feature = "tagging")]
     tags: T,
+    #[cfg(feature = "tagging")]
+    tagging_data: TaggingData,
     _phantom: PhantomData<T>,
 }
 
@@ -204,11 +220,13 @@ pub fn layout_from_data(buffer: &[u8]) -> Result<Layout, DeserializeError> {
         index: 0,
     };
     let layout = Layout::default();
-    let mut engine = DeserializeEngine::<TagWriterNoOp> {
+    let mut engine = DeserializeEngine::<TagWriterImpl> {
         bytes: storage,
         layout,
         #[cfg(feature = "tagging")]
-        tags: TagWriterNoOp,
+        tags: TagWriterImpl::new(),
+        #[cfg(feature = "tagging")]
+        tagging_data: TaggingData::default(),
         _phantom: PhantomData,
     };
 
@@ -219,30 +237,52 @@ pub fn layout_from_data(buffer: &[u8]) -> Result<Layout, DeserializeError> {
     while engine.bytes.index < engine.bytes.len() - 1 {
         match engine.bytes.next().try_into().unwrap() {
             TableIdentifier::Character => {
+                #[cfg(feature = "tagging")]
+                {
+                    engine.tagging_data.current_table_index =
+                        engine.layout.character_tables.len() as u8;
+                }
+
                 let table = CharacterTable::deserialize(&mut engine)?;
                 engine.layout.character_tables.push(table);
             }
             TableIdentifier::Pixmap => {
+                #[cfg(feature = "tagging")]
+                {
+                    engine.tagging_data.current_table_index =
+                        engine.layout.pixmap_tables.len() as u8;
+                }
+
                 let table = PixmapTable::deserialize(&mut engine)?;
                 engine.layout.pixmap_tables.push(table);
             }
             TableIdentifier::Color => {
+                #[cfg(feature = "tagging")]
+                {
+                    engine.tagging_data.current_table_index =
+                        engine.layout.color_tables.len() as u8;
+                }
+
                 let table = ColorTable::deserialize(&mut engine)?;
                 engine.layout.color_tables.push(table);
             }
         };
     }
+
+    //info!("Tags:\n{}", engine.tags);
     Ok(engine.layout)
 }
 
 /// Encodes the provided font [`Layout`] into a [`Vec<u8>`].
 pub fn layout_to_data(layout: Layout) -> Result<Vec<u8>, SerializeError> {
     let buffer = byte::ByteWriter::new();
-    let mut engine = SerializeEngine::<TagWriterNoOp> {
+    let mut engine = SerializeEngine::<TagWriterImpl> {
         bytes: buffer,
         layout: &layout,
         #[cfg(feature = "tagging")]
-        tags: TagWriterNoOp,
+        tags: TagWriterImpl::new(),
+        #[cfg(feature = "tagging")]
+        tagging_data: TaggingData::default(),
         _phantom: PhantomData,
     };
 
@@ -250,15 +290,28 @@ pub fn layout_to_data(layout: Layout) -> Result<Vec<u8>, SerializeError> {
     serialize::push_version(&mut engine);
     serialize::push_header(&mut engine);
 
-    for character_table in &engine.layout.character_tables {
+    for (index, character_table) in engine.layout.character_tables.iter().enumerate() {
+        #[cfg(feature = "tagging")]
+        {
+            engine.tagging_data.current_table_index = index as u8;
+        }
         character_table.serialize(&mut engine)?;
     }
-    for pixmap_table in &engine.layout.pixmap_tables {
+    for (index, pixmap_table) in engine.layout.pixmap_tables.iter().enumerate() {
+        #[cfg(feature = "tagging")]
+        {
+            engine.tagging_data.current_table_index = index as u8;
+        }
         pixmap_table.serialize(&mut engine)?;
     }
-    for color_table in &engine.layout.color_tables {
+    for (index, color_table) in engine.layout.color_tables.iter().enumerate() {
+        #[cfg(feature = "tagging")]
+        {
+            engine.tagging_data.current_table_index = index as u8;
+        }
         color_table.serialize(&mut engine)?;
     }
 
+    //info!("Tags:\n{}", engine.tags);
     Ok(engine.bytes.bytes)
 }

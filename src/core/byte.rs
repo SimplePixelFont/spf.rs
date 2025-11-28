@@ -78,11 +78,6 @@ impl ByteWriter {
             self.index += 1;
         }
     }
-    pub(crate) fn append(&mut self, bytes: &[u8]) {
-        for byte in bytes {
-            self.push(*byte);
-        }
-    }
 }
 
 #[derive(Debug)]

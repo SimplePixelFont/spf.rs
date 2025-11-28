@@ -15,24 +15,44 @@
  */
 
 pub(crate) use super::*;
+use crate::vec;
 
 #[cfg(feature = "log")]
 pub(crate) use log::*;
 
 pub(crate) fn push_signature<T: TagWriter>(engine: &mut SerializeEngine<T>) {
+    #[cfg(feature = "tagging")]
+    let start = engine.bytes.byte_index();
+
     engine.bytes.push(127);
     engine.bytes.push(102);
     engine.bytes.push(115);
     engine.bytes.push(70);
 
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_span(
+        TagKind::Signature,
+        Span::new(start, engine.bytes.byte_index()),
+    );
+
     #[cfg(feature = "log")]
-    info!("Signed font data.");
+    info!("Signed font data");
 }
 
 pub(crate) fn push_version<T: TagWriter>(engine: &mut SerializeEngine<T>) {
-    engine.bytes.push(match engine.layout.version {
-        Version::FV0 => 0,
-    });
+    let version = engine.layout.version as u8;
+
+    engine.bytes.push(version);
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_byte(
+        TagKind::Version {
+            value: engine.layout.version,
+        },
+        engine.bytes.byte_index(),
+    );
+
+    #[cfg(feature = "log")]
+    info!("Pushed version {}", engine.layout.version);
 }
 
 pub(crate) fn push_header<T: TagWriter>(engine: &mut SerializeEngine<T>) {
@@ -40,5 +60,17 @@ pub(crate) fn push_header<T: TagWriter>(engine: &mut SerializeEngine<T>) {
     if engine.layout.compact {
         font_properties |= 0b00000001;
     }
+
     engine.bytes.push(font_properties);
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_bitflag(
+        TagKind::Header,
+        vec![TagKind::CompactFlag {
+            enabled: engine.layout.compact,
+        }],
+        engine.bytes.byte_index(),
+    );
+
+    #[cfg(feature = "log")]
+    info!("Pushed header");
 }

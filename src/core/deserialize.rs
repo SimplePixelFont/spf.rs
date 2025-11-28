@@ -15,6 +15,7 @@
  */
 
 pub(crate) use super::*;
+use crate::vec;
 
 pub(crate) fn next_signature<T: TagWriter>(
     engine: &mut DeserializeEngine<T>,
@@ -22,11 +23,21 @@ pub(crate) fn next_signature<T: TagWriter>(
     if engine.bytes.index + 4 > engine.bytes.len() {
         return Err(DeserializeError::UnexpectedEndOfFile);
     }
+    #[cfg(feature = "tagging")]
+    let start = engine.bytes.byte_index();
+
     for byte in [127, 102, 115, 70].iter() {
         if engine.bytes.next() != *byte {
             return Err(DeserializeError::InvalidSignature);
         }
     }
+
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_span(
+        TagKind::Signature,
+        Span::new(start, engine.bytes.byte_index()),
+    );
+
     Ok(())
 }
 
@@ -35,6 +46,12 @@ pub(crate) fn next_version<T: TagWriter>(
 ) -> Result<(), DeserializeError> {
     let version = engine.bytes.next();
     let version = Version::try_from(version)?;
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_byte(
+        TagKind::Version { value: version },
+        engine.bytes.byte_index(),
+    );
+
     engine.layout.version = version;
     Ok(())
 }
@@ -45,5 +62,15 @@ pub(crate) fn next_header<T: TagWriter>(
     let file_properties = engine.bytes.next();
 
     engine.layout.compact = byte::get_bit(file_properties, 0);
+
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_bitflag(
+        TagKind::Header,
+        vec![TagKind::CompactFlag {
+            enabled: engine.layout.compact,
+        }],
+        engine.bytes.byte_index(),
+    );
+
     Ok(())
 }
