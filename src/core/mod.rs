@@ -224,7 +224,7 @@ pub fn layout_from_data(buffer: &[u8]) -> Result<Layout, DeserializeError> {
         bytes: storage,
         layout,
         #[cfg(feature = "tagging")]
-        tags: TagWriterImpl::new(),
+        tags: TagWriterImpl::default(),
         #[cfg(feature = "tagging")]
         tagging_data: TaggingData::default(),
         _phantom: PhantomData,
@@ -280,7 +280,7 @@ pub fn layout_to_data(layout: Layout) -> Result<Vec<u8>, SerializeError> {
         bytes: buffer,
         layout: &layout,
         #[cfg(feature = "tagging")]
-        tags: TagWriterImpl::new(),
+        tags: TagWriterImpl::default(),
         #[cfg(feature = "tagging")]
         tagging_data: TaggingData::default(),
         _phantom: PhantomData,

@@ -136,7 +136,7 @@ impl Table for ColorTable {
         engine.tags.tag_byte(
             TagKind::ColorTableColorCount {
                 table_index: engine.tagging_data.current_table_index,
-                count: color_count as u8,
+                count: color_count,
             },
             engine.bytes.byte_index(),
         );

@@ -53,7 +53,7 @@ impl Table for PixmapTable {
         engine.tags.tag_byte(
             TagKind::PixmapTablePixmapCount {
                 table_index: engine.tagging_data.current_table_index,
-                count: pixmap_count as u8,
+                count: pixmap_count,
             },
             engine.bytes.byte_index(),
         );

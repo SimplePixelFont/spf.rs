@@ -147,7 +147,7 @@ impl PixmapTable {
             engine.tags.tag_byte(
                 TagKind::PixmapTableColorTableIndexesLength {
                     table_index: engine.tagging_data.current_table_index,
-                    count: color_tables_length as u8,
+                    count: color_tables_length,
                 },
                 engine.bytes.byte_index(),
             );

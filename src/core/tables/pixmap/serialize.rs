@@ -164,7 +164,7 @@ impl PixmapTable {
             engine.bytes.byte_index(),
         );
 
-        if let Some(color_table_indexes) = self.color_table_indexes.as_ref() {
+        if let Some(color_table_indexes) = &self.color_table_indexes {
             #[cfg(feature = "tagging")]
             let color_tables_start = engine.bytes.byte_index();
 
@@ -186,7 +186,7 @@ impl PixmapTable {
             #[cfg(feature = "tagging")]
             let color_table_indexes_start = engine.bytes.byte_index();
 
-            for color_table_index in self.color_table_indexes.as_ref().unwrap() {
+            for color_table_index in color_table_indexes {
                 engine.bytes.push(*color_table_index);
                 #[cfg(feature = "tagging")]
                 engine.tags.tag_byte(

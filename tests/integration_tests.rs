@@ -6,6 +6,7 @@ mod common;
 
 #[cfg(test)]
 mod tests {
+    use log::*;
     use std::io;
 
     use super::common;
@@ -147,7 +148,9 @@ mod tests {
 
         let mut buffer: Vec<u8> = vec![];
         common::read_from_file("./res/sampleToyFont.spf", &mut buffer)?;
-        let _font = layout_from_data(&buffer);
+        let font = layout_from_data(&buffer);
+        info!("{:#?}", font);
+        panic!();
         Ok(())
     }
 

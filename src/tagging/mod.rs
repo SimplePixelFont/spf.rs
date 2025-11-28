@@ -349,7 +349,7 @@ pub trait TagWriter {
     fn tag_bitflag(&mut self, kind: TagKind, kinds: Vec<TagKind>, end_byte: ByteIndex);
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct TagWriterImpl {
     pub tags: Vec<Tag>,
 }
@@ -359,7 +359,7 @@ impl core::fmt::Display for TagWriterImpl {
         for tag in &self.tags {
             let debug_string = format!("{:?}", tag.kind);
             let varient_name = debug_string
-                .split(|c| c == '(' || c == '{')
+                .split(['(', '{'])
                 .next()
                 .unwrap_or(&debug_string);
 
@@ -374,12 +374,6 @@ impl core::fmt::Display for TagWriterImpl {
             )?;
         }
         Ok(())
-    }
-}
-
-impl TagWriterImpl {
-    pub fn new() -> Self {
-        Self { tags: Vec::new() }
     }
 }
 

@@ -133,7 +133,7 @@ impl CharacterTable {
             engine.tags.tag_byte(
                 TagKind::CharacterTablePixmapTableIndexesLength {
                     table_index: engine.tagging_data.current_table_index,
-                    count: pixmap_tables_length as u8,
+                    count: pixmap_tables_length,
                 },
                 engine.bytes.byte_index(),
             );

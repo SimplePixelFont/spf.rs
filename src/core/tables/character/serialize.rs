@@ -147,7 +147,7 @@ impl CharacterTable {
             engine.bytes.byte_index(),
         );
 
-        if let Some(pixmap_table_indexes) = self.pixmap_table_indexes.as_ref() {
+        if let Some(pixmap_table_indexes) = &self.pixmap_table_indexes {
             #[cfg(feature = "tagging")]
             let pixmap_tables_start = engine.bytes.byte_index();
 
@@ -169,7 +169,7 @@ impl CharacterTable {
             #[cfg(feature = "tagging")]
             let pixmap_table_indexes_start = engine.bytes.byte_index();
 
-            for pixmap_table_index in self.pixmap_table_indexes.as_ref().unwrap() {
+            for pixmap_table_index in pixmap_table_indexes {
                 engine.bytes.push(*pixmap_table_index);
                 #[cfg(feature = "tagging")]
                 engine.tags.tag_byte(
