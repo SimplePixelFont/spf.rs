@@ -15,35 +15,95 @@
  */
 
 pub(crate) use super::*;
+use crate::vec;
 
-pub(crate) fn next_signature(storage: &mut byte::ByteStorage) -> Result<(), DeserializeError> {
-    if storage.index + 4 > storage.bytes.len() {
+impl<'a, T: TagWriter> DeserializeEngine<'a, T> {
+    #[cfg(feature = "tagging")]
+    pub fn from_data_and_tags(data: &'a [u8], tags: T) -> Self {
+        Self {
+            bytes: byte::ByteReader::from(data),
+            layout: Layout::default(),
+            #[cfg(feature = "tagging")]
+            tags,
+            #[cfg(feature = "tagging")]
+            tagging_data: TaggingData::default(),
+            _phantom: PhantomData,
+        }
+    }
+    #[cfg(feature = "tagging")]
+    pub fn tagging_engine(&mut self, tags: T) {
+        self.tags = tags;
+    }
+}
+
+impl<'a> DeserializeEngine<'a> {
+    pub fn from_data(data: &'a [u8]) -> Self {
+        Self {
+            bytes: byte::ByteReader::from(data),
+            layout: Layout::default(),
+            #[cfg(feature = "tagging")]
+            tags: TagWriterNoOp,
+            #[cfg(feature = "tagging")]
+            tagging_data: TaggingData::default(),
+            _phantom: PhantomData,
+        }
+    }
+}
+
+pub(crate) fn next_signature<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
+) -> Result<(), DeserializeError> {
+    if engine.bytes.index + 4 > engine.bytes.len() {
         return Err(DeserializeError::UnexpectedEndOfFile);
     }
+    #[cfg(feature = "tagging")]
+    let start = engine.bytes.byte_index();
+
     for byte in [127, 102, 115, 70].iter() {
-        if storage.next() != *byte {
+        if engine.bytes.next() != *byte {
             return Err(DeserializeError::InvalidSignature);
         }
     }
+
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_span(
+        TagKind::Signature,
+        Span::new(start, engine.bytes.byte_index()),
+    );
+
     Ok(())
 }
 
-pub(crate) fn next_version(
-    layout: &mut Layout,
-    storage: &mut byte::ByteStorage,
+pub(crate) fn next_version<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
 ) -> Result<(), DeserializeError> {
-    let version = storage.next();
+    let version = engine.bytes.next();
     let version = Version::try_from(version)?;
-    layout.version = version;
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_byte(
+        TagKind::Version { value: version },
+        engine.bytes.byte_index(),
+    );
+
+    engine.layout.version = version;
     Ok(())
 }
 
-pub(crate) fn next_header(
-    layout: &mut Layout,
-    storage: &mut byte::ByteStorage,
+pub(crate) fn next_header<T: TagWriter>(
+    engine: &mut DeserializeEngine<T>,
 ) -> Result<(), DeserializeError> {
-    let file_properties = storage.next();
+    let file_properties = engine.bytes.next();
 
-    layout.compact = byte::get_bit(file_properties, 0);
+    engine.layout.compact = byte::get_bit(file_properties, 0);
+
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_bitflag(
+        TagKind::Header,
+        vec![TagKind::CompactFlag {
+            enabled: engine.layout.compact,
+        }],
+        engine.bytes.byte_index(),
+    );
+
     Ok(())
 }

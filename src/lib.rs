@@ -36,15 +36,13 @@ pub(crate) use std::vec;
 pub(crate) use std::vec::Vec;
 
 #[cfg(not(feature = "std"))]
-pub(crate) use alloc::borrow::ToOwned;
-#[cfg(not(feature = "std"))]
 pub(crate) use alloc::format;
 #[cfg(not(feature = "std"))]
 pub(crate) use alloc::string::String;
 #[cfg(not(feature = "std"))]
-pub(crate) use alloc::vec::Vec;
-#[cfg(not(feature = "std"))]
 pub(crate) use alloc::vec;
+#[cfg(not(feature = "std"))]
+pub(crate) use alloc::vec::Vec;
 
 pub mod core;
 
@@ -60,3 +58,6 @@ pub mod ffi;
 #[cfg(feature = "articles")]
 pub mod articles;
 
+#[cfg_attr(docsrs, doc(cfg(feature = "tagging")))]
+#[cfg(feature = "tagging")]
+pub mod tagging;

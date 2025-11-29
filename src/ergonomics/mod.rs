@@ -191,7 +191,7 @@ impl LayoutBuilder {
 
     pub fn build(&mut self) -> Layout {
         let mut layout = Layout {
-            version: self.version.clone(),
+            version: self.version,
             compact: self.compact,
             ..Default::default()
         };
