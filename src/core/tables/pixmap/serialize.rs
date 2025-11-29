@@ -326,6 +326,7 @@ pub(crate) fn push_pixmap<T: TagWriter>(
     #[cfg(feature = "tagging")]
     let pixmap_start = engine.bytes.byte_index();
 
+    #[cfg(feature = "log")]
     let mut pixmap_bit_string = String::new();
 
     let bits_per_pixel = constant_bits_per_pixel
@@ -335,8 +336,11 @@ pub(crate) fn push_pixmap<T: TagWriter>(
     let height = constant_height.or(pixmap.custom_height).unwrap();
 
     let pixels_used = width as usize * height as usize;
-    let bytes_used = (pixels_used as f32 * bits_per_pixel as f32 / 8.0).ceil() as usize;
-    let complete_bytes_used = (pixels_used as f32 * bits_per_pixel as f32 / 8.0).floor() as usize;
+    let total_bits = pixels_used * bits_per_pixel as usize;
+
+    let complete_bytes_used = total_bits / 8;
+    let remainder_bits = total_bits % 8;
+    let bytes_used = complete_bytes_used + (remainder_bits > 0) as usize;
 
     if pixmap.data.len() > bytes_used {
         return Err(SerializeError::StaticVectorTooLarge);
@@ -344,21 +348,26 @@ pub(crate) fn push_pixmap<T: TagWriter>(
 
     for index in 0..complete_bytes_used {
         engine.bytes.push(pixmap.data[index]);
+        #[cfg(feature = "log")]
         pixmap_bit_string.push_str(&format!("{:08b} ", pixmap.data[index],));
     }
 
-    let remainder_bits = ((width as u16 * height as u16 * bits_per_pixel as u16) % 8) as u8;
-    if !engine.layout.compact && remainder_bits > 0 {
-        engine.bytes.push(pixmap.data[complete_bytes_used]);
-        pixmap_bit_string.push_str(&format!("{:08b} ", pixmap.data[complete_bytes_used],));
-    } else if engine.layout.compact && remainder_bits > 0 {
-        if pixmap.data[complete_bytes_used] > 2u8.pow(remainder_bits as u32) - 1 {
-            return Err(SerializeError::InvalidPixmapData);
+    if remainder_bits > 0 {
+        let remainder_byte = pixmap.data[complete_bytes_used];
+        if engine.layout.compact {
+            let max_value = (1u8 << remainder_bits) - 1;
+            if remainder_byte > max_value {
+                return Err(SerializeError::InvalidPixmapData);
+            }
+            engine
+                .bytes
+                .incomplete_push(remainder_byte, remainder_bits as u8);
+        } else {
+            engine.bytes.push(remainder_byte);
         }
-        engine
-            .bytes
-            .incomplete_push(pixmap.data[complete_bytes_used], remainder_bits);
-        pixmap_bit_string.push_str(&format!("{:08b} ", pixmap.data[complete_bytes_used],));
+
+        #[cfg(feature = "log")]
+        pixmap_bit_string.push_str(&format!("{:08b} ", remainder_byte));
     }
 
     #[cfg(feature = "tagging")]

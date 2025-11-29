@@ -284,13 +284,14 @@ pub(crate) fn next_pixmap<T: TagWriter>(
     let height = constant_height.or(pixmap.custom_height).unwrap();
 
     let pixels_used = width as u16 * height as u16;
-    let complete_bytes_used = (pixels_used as f32 * bits_per_pixel as f32 / 8.0).floor() as usize;
+    let total_bits = pixels_used * bits_per_pixel as u16;
+    let complete_bytes_used = (total_bits / 8) as usize;
 
     for _ in 0..complete_bytes_used {
         pixmap.data.push(engine.bytes.next());
     }
 
-    let remainder_bits = ((width as u16 * height as u16 * bits_per_pixel as u16) % 8) as u8;
+    let remainder_bits = (total_bits % 8) as u8;
     if !engine.layout.compact && remainder_bits > 0 {
         pixmap.data.push(engine.bytes.next());
     } else if engine.layout.compact && remainder_bits > 0 {
