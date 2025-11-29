@@ -27,7 +27,6 @@ articles = []
 tagging = []
 
 [dependencies]
-rustversion = "1.0.22"
 log = { version = "0.4.27", optional = true }
 serde = { version = "1.0.225", features = ["derive"], optional = true }
 
