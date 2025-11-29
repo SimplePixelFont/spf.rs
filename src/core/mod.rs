@@ -174,6 +174,7 @@ pub enum DeserializeError {
 #[derive(Debug)]
 pub enum SerializeError {
     StaticVectorTooLarge,
+    InvalidPixmapData,
 }
 
 pub(crate) trait Table: Sized {

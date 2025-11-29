@@ -33,7 +33,7 @@ mod tests {
                 custom_width: Some(1),
                 custom_height: None,
                 custom_bits_per_pixel: None,
-                data: vec![0b1000010, 0b1000010, 0b1000010, 0b1000010],
+                data: vec![0b01000010, 0b01000010, 0b01000010, 0b00001111],
             }],
         }
     }
@@ -49,25 +49,25 @@ mod tests {
                     custom_width: Some(4),
                     custom_height: None,
                     custom_bits_per_pixel: None,
-                    data: vec![1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+                    data: vec![0b10011111, 0b11111001],
                 },
                 Pixmap {
                     custom_width: Some(5),
                     custom_height: None,
                     custom_bits_per_pixel: None,
-                    data: vec![1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
+                    data: vec![0b10110101, 0b11010110, 0b00001111],
                 },
                 Pixmap {
                     custom_width: Some(4),
                     custom_height: None,
                     custom_bits_per_pixel: None,
-                    data: vec![0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0],
+                    data: vec![0b00000110, 0b01101001],
                 },
                 Pixmap {
                     custom_width: Some(4),
                     custom_height: None,
                     custom_bits_per_pixel: None,
-                    data: vec![0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                    data: vec![0b11110001, 0b10001111],
                 },
             ],
         }
