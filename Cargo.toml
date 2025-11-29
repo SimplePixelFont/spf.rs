@@ -6,6 +6,7 @@ repository = "https://github.com/SimplePixelFont/spf.rs"
 license = "Apache-2.0"
 edition = "2021"
 categories = ["parsing", "no-std"]
+rust-version = "1.78.0"
 
 [lib]
 name = "spf"
