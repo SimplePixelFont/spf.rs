@@ -4,6 +4,7 @@ pub fn write_to_file(path: &'static str, data: &[u8]) -> std::io::Result<()> {
     let mut file = std::fs::OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(path)?;
     file.write_all(data)?;
     Ok(())

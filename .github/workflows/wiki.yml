@@ -1,0 +1,21 @@
+name: wiki
+
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "res/articles/*" ]
+
+jobs:
+  sync-to-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Sync docs to wiki
+        uses: newrelic/wiki-sync-action@main
+        with:
+          branch: main
+          source: res/articles
+          destination: wiki
+          token: ${{ secrets.TOKEN }}
+    

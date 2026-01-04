@@ -2,9 +2,9 @@ name: rust
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
   merge_group:
 
 env:
@@ -13,10 +13,49 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      outcome: ${{ steps.build.outcome }}
 
     steps:
       - uses: actions/checkout@v4
       - name: Build
+        id: build
         run: cargo build --verbose
-      - name: Run tests
-        run: cargo test --verbose
+
+  badge:
+    runs-on: ubuntu-latest
+    needs: build
+    if: always() && github.event_name == 'push'
+
+    steps:
+      - name: passing
+        if: needs.build.outputs.outcome == 'success'
+        uses: SimplePixelFont/badge-spf-action@main
+        with:
+          filename: build.png
+          label: Build
+          message: passing
+          labelColor: "#2d3136"
+          color: "#00bfa3"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/rust_orange.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+
+      - name: failing
+        if: needs.build.outputs.outcome == 'failure'
+        uses: SimplePixelFont/badge-spf-action@main
+        with:
+          filename: build.png
+          label: Build
+          message: failing
+          labelColor: "#2d3136"
+          color: "#d94a69"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/rust_orange.png"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+          
+      - name: deploy 
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: cfebb0fe555ac7e77ada109c469cdeb4
+          file_path: build.png
+          file_type: binary

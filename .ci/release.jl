@@ -44,7 +44,7 @@ end
 # Windows MSVC build
 run(`sh -c "cargo install --locked cargo-xwin"`)
 run(`sh -c "rustup target add x86_64-pc-windows-msvc"`)
-run(`sh -c "cargo xwin build --target x86_64-pc-windows-msvc --release"`)
+run(`sh -c "cargo xwin rustc --release --target x86_64-pc-windows-msvc --no-default-features --features 'ffi,std' --crate-type cdylib --crate-type staticlib"`)
 
 # Will be figured out during 0.6.x
 # WASM build
