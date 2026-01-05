@@ -1,37 +1,49 @@
-# Install with Cargo and Rust
+# Install `spf` crate with Cargo and Rust
 
-To add `spf.rs` to your rust project run the following command:
-```sh
+To add `spf.rs` to your rust project, run the following command:
+```bash
 cargo add spf
 ```
+
 Additionally, `spf.rs` includes modules which are enabled by default with the corrosponding features.
+
 * ergonomics: [`crate::ergonomics`]
-* [`crate::ffi`] ("ffi")
-* [`crate::articles`] ("articles").
-And a few extra features that provide functionality in Rust.
-* ""
+* ffi: [`crate::ffi`]
+* tagging: [`crate::tagging`]
+* afticles: [`crate::articles`]
 
-You can choose which features to use by editing the `Cargo.toml` file under the depenencies section:
+And a few extra features for convienience and integration, also enabled by default.
+
+* log: Integrate with Rust's log ecosysten.
+* serde: Integrate with Rust's serde (serialization and deserialization) ecosystem.
+* std: Add dependency on Rust's std crate which handles heap allocations automatically. You can disable this feature to allow a custom heap allocator, and use spf.rs on low-level and embeded hardware.
+
+You can choose which features to use by editing the `Cargo.toml` file under the depenencies section, such as.
 ```toml
-# Example
 [dependencies]
-spf = { version = "0.4", default-features = false, features = ["cache"]}
+spf = { version = "0.7.2", default-features = false, features = ["ffi", "std"]}
 ```
 
-# Compiling `spf.rs` from source
+# Compile `spf.rs` library from source
 
-Sometimes you may wish to compile the `spf.rs` library by hand. This may be useful especially if you wish to create a custom version of the library, using only modules your projects need and thus decreasing the resulting binary size. For this you will need the following:
-    - Rust Programming Language
-    - Git (Optional)
+Compiling the `spf.rs` library by hand is useful if you want to create a custom version of the library, and enable only modules your projects need. This can decrease the resulting binary size, and allow you to target platforms which don't have pre-built artifacts in the releases section. To compile `spf.rs` from source you will need the following prerequisites.
 
-To begin we will first clone the repository with the following command:
-```sh
+* [Rust Programming Language](https://rust-lang.org/tools/install/)
+* [Git](https://git-scm.com/install/) (Optional)
+
+Begin by cloning the repository with the following command:
+```bash
 git clone
-# If you chose to not use Git, you can also download the spf.rs repo and cd into the downloaded directory, ex.
-cd downloads/spf.rs
+# Alternavtivly, download the spf.rs repository and "cd" into the downloaded directory.
+# cd downloads/spf.rs
 ```
-Now you can run:
-```sh
-cargo build --release
+Now run the following command.
+```bash
+# "--no-default-features" removes all default spf features from the current build as currently spf only compiles with features that do not require crate dependencies.
+# "--features" specifies a list of features to compile the library with, currently the following work: "std", "ergonomics", "ffi", "tagging", and "articles".
+# "--crate-type cdylib" produces a dynamic library which can be loaded at runtime.
+# "--crate-type staticlib" produces a static library which can be linked at compile time.
+# "target-feature=-crt-static" is used to fix static linking errors occuring in builds on some architectures. "cargo rustc" is also used in order to pass this Compiler flag
+cargo rustc --release --no-default-features --features "ffi,std" -- --crate-type cdylib --crate-type staticlib -C target-feature=-crt-static
 ```
-And if you check `./target/release/` you should find a `spf.dll`, `libspf.so`, etc. (depending on your OS). Now you can use this library in your programming language of choice.
+In `./target/release/` you should find a `spf.dll`, `libspf.so`, etc. (depending on your OS). This library can now be used in your programming language of choice.
