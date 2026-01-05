@@ -22,21 +22,12 @@ impl ColorTableBuilder {
         self
     }
     pub fn color<T: Into<ColorBuilder>>(&mut self, color: T) -> &mut Self {
-        // if self.constant_alpha.is_some() {
-        //     color.custom_alpha = None;
-        // }
-        // if self.constant_alpha.is_none() && color.custom_alpha.is_none() {
-        //     panic!("Neither constant_alpha nor custom_alpha are set!");
-        // }
         self.colors.push(color.into());
         self
     }
     pub fn link(&mut self) -> ColorTableIndex {
         self.index.clone()
     }
-    // pub fn set_index(&mut self, index: u8) {
-    //     *self.index.0.borrow_mut() = index;
-    // }
 }
 
 impl From<ColorTableBuilder> for TableBuilderIdentifier {
@@ -46,15 +37,18 @@ impl From<ColorTableBuilder> for TableBuilderIdentifier {
 }
 
 impl TableBuilder for ColorTableBuilder {
-    fn resolve(&mut self) {
+    fn resolve(&mut self) -> Result<(), ResolverError> {
         for color_builder in self.colors.iter_mut() {
             if self.constant_alpha.is_some() {
+                #[cfg(feature = "log")]
+                log::warn!("Set custom_alpha to None due to a constant_alpha value defined at the parent table.");
                 color_builder.custom_alpha = None;
             }
             if self.constant_alpha.is_none() && color_builder.custom_alpha.is_none() {
-                panic!("Neither constant_alpha nor custom_alpha are set!");
+                return Err(ResolverError::UndefinedConstant(String::from("Neither custom_alpha for this record is defined nor constant_alpha for the parent table is defined.")));
             }
         }
+        Ok(())
     }
     fn build(&mut self) -> TableBuilderResult {
         let mut colors = vec![];

@@ -58,6 +58,11 @@ pub enum TableBuilderResult {
     Pixmap(PixmapTable),
 }
 
+#[derive(Debug)]
+pub enum ResolverError {
+    UndefinedConstant(String),
+}
+
 impl From<TableBuilderResult> for CharacterTable {
     fn from(table_builder_result: TableBuilderResult) -> Self {
         match table_builder_result {
@@ -86,7 +91,7 @@ impl From<TableBuilderResult> for PixmapTable {
 }
 
 pub trait TableBuilder {
-    fn resolve(&mut self);
+    fn resolve(&mut self) -> Result<(), ResolverError>;
     fn build(&mut self) -> TableBuilderResult;
 }
 
@@ -168,25 +173,28 @@ impl LayoutBuilder {
         self
     }
 
-    pub fn table<T: Into<TableBuilderIdentifier>>(&mut self, table: T) -> &mut Self {
+    pub fn table<T: Into<TableBuilderIdentifier>>(
+        &mut self,
+        table: T,
+    ) -> Result<&mut Self, ResolverError> {
         let table = table.into();
         match table {
             TableBuilderIdentifier::Character(mut table) => {
-                table.resolve();
+                table.resolve()?;
                 self.character_table_builders.push(table);
             }
             TableBuilderIdentifier::Color(mut table) => {
-                table.resolve();
+                table.resolve()?;
                 *table.index.0.borrow_mut() = self.color_table_builders.len() as u8;
                 self.color_table_builders.push(table);
             }
             TableBuilderIdentifier::Pixmap(mut table) => {
-                table.resolve();
+                table.resolve()?;
                 *table.index.0.borrow_mut() = self.pixmap_table_builders.len() as u8;
                 self.pixmap_table_builders.push(table);
             }
         }
-        self
+        Ok(self)
     }
 
     pub fn build(&mut self) -> Layout {

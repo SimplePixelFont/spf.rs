@@ -133,7 +133,7 @@ impl From<PixmapTableBuilder> for TableBuilderIdentifier {
 }
 
 impl TableBuilder for PixmapTableBuilder {
-    fn resolve(&mut self) {
+    fn resolve(&mut self) -> Result<(), ResolverError> {
         for (index, pixmap_builder) in self.pixmaps.iter_mut().enumerate() {
             if self.constant_width.is_some() {
                 pixmap_builder.custom_width = None;
@@ -145,18 +145,19 @@ impl TableBuilder for PixmapTableBuilder {
                 pixmap_builder.custom_bits_per_pixel = None;
             }
             if self.constant_width.is_none() && pixmap_builder.custom_width.is_none() {
-                panic!("Neither constant_width nor custom_width are set!");
+                return Err(ResolverError::UndefinedConstant(String::from("Neither custom_width for this record is defined nor constant_width for the parent table is defined.")));
             }
             if self.constant_height.is_none() && pixmap_builder.custom_height.is_none() {
-                panic!("Neither constant_height nor custom_height are set!");
+                return Err(ResolverError::UndefinedConstant(String::from("Neither custom_height for this record is defined nor constant_height for the parent table is defined.")));
             }
             if self.constant_bits_per_pixel.is_none()
                 && pixmap_builder.custom_bits_per_pixel.is_none()
             {
-                panic!("Neither constant_bits_per_pixel nor custom_bits_per_pixel are set!");
+                return Err(ResolverError::UndefinedConstant(String::from("Neither custom_bits_per_pixel for this record is defined nor constant_bits_per_pixel for the parent table is defined.")));
             }
             *pixmap_builder.index.take().unwrap().1.borrow_mut() = index as u8;
         }
+        Ok(())
     }
     fn build(&mut self) -> TableBuilderResult {
         let mut pixmap_table = PixmapTable {

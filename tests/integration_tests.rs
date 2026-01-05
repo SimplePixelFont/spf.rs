@@ -13,7 +13,7 @@ mod tests {
         core::*,
         ergonomics::{
             CharacterBuilder, CharacterTableBuilder, ColorBuilder, ColorTableBuilder,
-            LayoutBuilder, PixmapBuilder, PixmapIndex, PixmapTableBuilder,
+            LayoutBuilder, PixmapBuilder, PixmapIndex, PixmapTableBuilder, ResolverError,
         },
     };
 
@@ -152,7 +152,7 @@ mod tests {
     }
 
     #[test]
-    fn builder_pattern() -> Result<(), ()> {
+    fn builder_pattern() -> Result<(), ResolverError> {
         init_logger();
         let mut layout = LayoutBuilder::default();
         layout.compact(true);
@@ -204,9 +204,9 @@ mod tests {
             .character("😊")
             .character_process("!=", |character| character.pixmap_index(&not_equal));
 
-        layout.table(palette);
-        layout.table(pixmap);
-        layout.table(characters);
+        layout.table(palette)?;
+        layout.table(pixmap)?;
+        layout.table(characters)?;
         layout.build();
         Ok(())
     }

@@ -100,7 +100,7 @@ impl From<CharacterTableBuilder> for TableBuilderIdentifier {
 }
 
 impl TableBuilder for CharacterTableBuilder {
-    fn resolve(&mut self) {
+    fn resolve(&mut self) -> Result<(), ResolverError> {
         for character_builder in self.characters.iter_mut() {
             if !self.use_advance_x {
                 character_builder.advance_x = None;
@@ -109,12 +109,17 @@ impl TableBuilder for CharacterTableBuilder {
                 character_builder.pixmap_index = None;
             }
             if self.use_advance_x && character_builder.advance_x.is_none() {
-                panic!("use_advance_x is set to true but no advance_x is set!");
+                return Err(ResolverError::UndefinedConstant(String::from(
+                    "use_advance_x is enabled but no advance_x value is defined.",
+                )));
             }
             if self.use_pixmap_index && character_builder.pixmap_index.is_none() {
-                panic!("use_pixmap_index is set to true but no pixmap_index is set!");
+                return Err(ResolverError::UndefinedConstant(String::from(
+                    "use_pixmap_index is enabled but no pixmap_index value is defined.",
+                )));
             }
         }
+        Ok(())
     }
     fn build(&mut self) -> TableBuilderResult {
         let mut character_table = CharacterTable {
