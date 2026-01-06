@@ -32,15 +32,31 @@ pub(crate) mod deserialize;
 pub(crate) mod serialize;
 pub(crate) mod tables;
 
+#[cfg(not(feature = "tagging"))]
+mod tagging_stub;
+
+#[cfg(feature = "tagging")]
+pub(crate) use crate::tagging::*;
+#[cfg(not(feature = "tagging"))]
+pub(crate) use tagging_stub::*;
+
 use crate::{String, Vec};
+use core::marker::PhantomData;
 
 #[repr(u8)]
 #[non_exhaustive]
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Version {
     #[default]
     FV0 = 0b00000000,
+}
+
+impl core::fmt::Display for Version {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let version = *self as u8;
+        write!(f, "FV{:b}", version)
+    }
 }
 
 #[derive(Default, Debug, Clone)]
@@ -158,71 +174,136 @@ pub enum DeserializeError {
 #[derive(Debug)]
 pub enum SerializeError {
     StaticVectorTooLarge,
+    InvalidPixmapData,
 }
 
 pub(crate) trait Table: Sized {
-    fn deserialize(
-        storage: &mut byte::ByteStorage,
-        layout: &Layout,
+    fn deserialize<T: TagWriter>(
+        engine: &mut DeserializeEngine<T>,
     ) -> Result<Self, DeserializeError>;
-    fn serialize(
+    fn serialize<T: TagWriter>(
         &self,
-        buffer: &mut byte::ByteStorage,
-        layout: &Layout,
+        engine: &mut SerializeEngine<T>,
     ) -> Result<(), SerializeError>;
 }
 
-/// Parses a [`Vec<u8>`] into a font [`Layout`].
-pub fn layout_from_data(buffer: Vec<u8>) -> Result<Layout, DeserializeError> {
-    let mut storage = byte::ByteStorage {
-        bytes: buffer,
-        pointer: 0,
-        index: 0,
-    };
-    let mut layout = Layout::default();
+pub struct DeserializeEngine<'a, T: TagWriter = TagWriterNoOp> {
+    bytes: byte::ByteReader<'a>,
+    pub layout: Layout,
+    #[cfg(feature = "tagging")]
+    pub tags: T,
+    #[cfg(feature = "tagging")]
+    tagging_data: TaggingData,
+    _phantom: PhantomData<T>,
+}
 
-    deserialize::next_signature(&mut storage)?;
-    deserialize::next_version(&mut layout, &mut storage)?;
-    deserialize::next_header(&mut layout, &mut storage)?;
+#[derive(Default)]
+pub(crate) struct TaggingData {
+    current_table_index: u8,
+    current_record_index: u8,
+}
 
-    while storage.index < storage.bytes.len() - 1 {
-        match storage.next().try_into().unwrap() {
+pub struct SerializeEngine<'a, T: TagWriter = TagWriterNoOp> {
+    bytes: byte::ByteWriter,
+    pub layout: &'a Layout,
+    #[cfg(feature = "tagging")]
+    pub tags: T,
+    #[cfg(feature = "tagging")]
+    tagging_data: TaggingData,
+    _phantom: PhantomData<T>,
+}
+
+pub(crate) fn deserialize_layout(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+    deserialize::next_signature(engine)?;
+    deserialize::next_version(engine)?;
+    deserialize::next_header(engine)?;
+
+    while engine.bytes.index < engine.bytes.len() - 1 {
+        match engine.bytes.next().try_into().unwrap() {
             TableIdentifier::Character => {
-                layout
-                    .character_tables
-                    .push(CharacterTable::deserialize(&mut storage, &layout)?);
+                #[cfg(feature = "tagging")]
+                {
+                    engine.tagging_data.current_table_index =
+                        engine.layout.character_tables.len() as u8;
+                }
+                let table = CharacterTable::deserialize(engine)?;
+                engine.layout.character_tables.push(table);
             }
             TableIdentifier::Pixmap => {
-                layout
-                    .pixmap_tables
-                    .push(PixmapTable::deserialize(&mut storage, &layout)?);
+                #[cfg(feature = "tagging")]
+                {
+                    engine.tagging_data.current_table_index =
+                        engine.layout.pixmap_tables.len() as u8;
+                }
+                let table = PixmapTable::deserialize(engine)?;
+                engine.layout.pixmap_tables.push(table);
             }
             TableIdentifier::Color => {
-                layout
-                    .color_tables
-                    .push(ColorTable::deserialize(&mut storage, &layout)?);
+                #[cfg(feature = "tagging")]
+                {
+                    engine.tagging_data.current_table_index =
+                        engine.layout.color_tables.len() as u8;
+                }
+                let table = ColorTable::deserialize(engine)?;
+                engine.layout.color_tables.push(table);
             }
         };
     }
-    Ok(layout)
+    Ok(())
 }
 
-/// Encodes the provided font [`Layout`] into a [`Vec<u8>`].
+pub fn deserialize_with_engine(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+    deserialize_layout(engine)?;
+    Ok(())
+}
+
+/// Parses a [`&[u8]`] into a font [`Layout`]. This function interally creates a [`DeserializeEngine`]
+/// and calls [`deserialize_with_engine`].
+pub fn layout_from_data(buffer: &[u8]) -> Result<Layout, DeserializeError> {
+    let mut engine = DeserializeEngine::from_data(buffer);
+    deserialize_with_engine(&mut engine)?;
+    Ok(engine.layout)
+}
+
+pub(crate) fn serialize_layout(engine: &mut SerializeEngine) -> Result<(), SerializeError> {
+    serialize::push_signature(engine);
+    serialize::push_version(engine);
+    serialize::push_header(engine);
+
+    for (index, character_table) in engine.layout.character_tables.iter().enumerate() {
+        #[cfg(feature = "tagging")]
+        {
+            engine.tagging_data.current_table_index = index as u8;
+        }
+        character_table.serialize(engine)?;
+    }
+    for (index, pixmap_table) in engine.layout.pixmap_tables.iter().enumerate() {
+        #[cfg(feature = "tagging")]
+        {
+            engine.tagging_data.current_table_index = index as u8;
+        }
+        pixmap_table.serialize(engine)?;
+    }
+    for (index, color_table) in engine.layout.color_tables.iter().enumerate() {
+        #[cfg(feature = "tagging")]
+        {
+            engine.tagging_data.current_table_index = index as u8;
+        }
+        color_table.serialize(engine)?;
+    }
+
+    Ok(())
+}
+
+pub fn serialize_with_engine(engine: &mut SerializeEngine) -> Result<(), SerializeError> {
+    serialize_layout(engine)?;
+    Ok(())
+}
+
+/// Encodes the provided font [`Layout`] into a [`Vec<u8>`]. This function interally creates a
+/// [`SerializeEngine`] and calls [`serialize_with_engine`].
 pub fn layout_to_data(layout: &Layout) -> Result<Vec<u8>, SerializeError> {
-    let mut buffer = byte::ByteStorage::new();
-    serialize::push_signature(&mut buffer);
-    serialize::push_version(&mut buffer, &layout.version);
-    serialize::push_header(&mut buffer, layout);
-
-    for character_table in &layout.character_tables {
-        character_table.serialize(&mut buffer, layout)?;
-    }
-    for pixmap_table in &layout.pixmap_tables {
-        pixmap_table.serialize(&mut buffer, layout)?;
-    }
-    for color_table in &layout.color_tables {
-        color_table.serialize(&mut buffer, layout)?;
-    }
-
-    Ok(buffer.bytes)
+    let mut engine = SerializeEngine::from_layout(layout);
+    serialize_with_engine(&mut engine)?;
+    Ok(engine.data_owned())
 }

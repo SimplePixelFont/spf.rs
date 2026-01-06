@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+#[cfg(feature = "tagging")]
+use crate::core::{ByteIndex, Span, TableType, TagKind};
 use crate::core::{
-    byte, Character, CharacterTable, DeserializeError, Layout, SerializeError, Table,
-    TableIdentifier,
+    Character, CharacterTable, DeserializeEngine, DeserializeError, SerializeEngine,
+    SerializeError, Table, TagWriter,
 };
-use crate::{vec, Vec};
 
 pub(crate) mod deserialize;
 pub(crate) use deserialize::*;
@@ -26,118 +27,181 @@ pub(crate) mod serialize;
 pub(crate) use serialize::*;
 
 impl Table for CharacterTable {
-    fn deserialize(
-        storage: &mut byte::ByteStorage,
-        _layout: &Layout,
+    fn deserialize<T: TagWriter>(
+        engine: &mut DeserializeEngine<T>,
     ) -> Result<Self, DeserializeError> {
+        #[cfg(feature = "tagging")]
+        let table_start = engine.bytes.byte_index();
+        #[cfg(feature = "tagging")]
+        let table_start = ByteIndex::new(table_start.byte - 1, table_start.bit);
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_byte(
+            TagKind::TableIdentifier {
+                table_type: TableType::Character,
+            },
+            engine.bytes.byte_index(),
+        );
+
         let mut character_table = CharacterTable::default();
+        character_table.next_modifer_flags(engine);
+        character_table.next_configurations(engine);
+        character_table.next_table_links(engine)?;
 
-        let modifier_flags = storage.next();
-        if byte::get_bit(modifier_flags, 0) {
-            character_table.use_advance_x = true;
-        }
-        if byte::get_bit(modifier_flags, 1) {
-            character_table.use_pixmap_index = true;
-        }
+        let character_count = engine.bytes.next();
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_byte(
+            TagKind::CharacterTableCharacterCount {
+                table_index: engine.tagging_data.current_table_index,
+                count: character_count,
+            },
+            engine.bytes.byte_index(),
+        );
 
-        let configuration_flags = storage.next();
-        if byte::get_bit(configuration_flags, 0) {
-            character_table.constant_cluster_codepoints = Some(storage.next());
-        }
-
-        let links_flags = storage.next();
-        if byte::get_bit(links_flags, 0) {
-            let pixmap_table_indexes_length = storage.next();
-            let mut pixmap_table_indexes = vec![];
-            for _ in 0..pixmap_table_indexes_length {
-                pixmap_table_indexes.push(storage.next());
+        for index in 0..character_count {
+            #[cfg(feature = "tagging")]
+            {
+                engine.tagging_data.current_record_index = index;
             }
-            character_table.pixmap_table_indexes = Some(pixmap_table_indexes);
-        }
+            #[cfg(feature = "tagging")]
+            let character_start = engine.bytes.byte_index();
 
-        let character_count = storage.next();
-        for _ in 0..character_count {
             let mut character = Character::default();
             if character_table.use_advance_x {
-                character.advance_x = Some(storage.next());
+                character.advance_x = Some(engine.bytes.next());
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::CharacterAdvanceX {
+                        table_index: engine.tagging_data.current_table_index,
+                        char_index: engine.tagging_data.current_record_index,
+                        value: character.advance_x.unwrap(),
+                    },
+                    engine.bytes.byte_index(),
+                );
             }
             if character_table.use_pixmap_index {
-                character.pixmap_index = Some(storage.next());
+                character.pixmap_index = Some(engine.bytes.next());
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::CharacterPixmapIndex {
+                        table_index: engine.tagging_data.current_table_index,
+                        char_index: engine.tagging_data.current_record_index,
+                        value: character.pixmap_index.unwrap(),
+                    },
+                    engine.bytes.byte_index(),
+                );
             }
+
             next_grapheme_cluster(
-                storage,
+                engine,
                 &mut character,
                 character_table.constant_cluster_codepoints,
             );
             character_table.characters.push(character);
+
+            #[cfg(feature = "tagging")]
+            engine.tags.tag_span(
+                TagKind::CharacterRecord {
+                    table_index: engine.tagging_data.current_table_index,
+                    char_index: engine.tagging_data.current_record_index,
+                },
+                Span::new(character_start, engine.bytes.byte_index()),
+            );
         }
+
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_span(
+            TagKind::CharacterTable {
+                index: engine.tagging_data.current_table_index,
+            },
+            Span::new(table_start, engine.bytes.byte_index()),
+        );
 
         Ok(character_table)
     }
 
-    fn serialize(
+    fn serialize<T: TagWriter>(
         &self,
-        buffer: &mut crate::core::byte::ByteStorage,
-        _layout: &Layout,
+        engine: &mut SerializeEngine<T>,
     ) -> Result<(), crate::core::SerializeError> {
-        buffer.push(TableIdentifier::Character as u8);
+        #[cfg(feature = "tagging")]
+        let table_start = engine.bytes.byte_index();
 
-        let mut modifier_flags = 0b00000000;
-        if self.use_advance_x {
-            modifier_flags |= 0b00000001;
-        }
-        if self.use_pixmap_index {
-            modifier_flags |= 0b00000010;
-        }
-        buffer.push(modifier_flags);
+        self.push_table_identifier(engine);
+        self.push_modifier_flags(engine);
+        self.push_configurations(engine);
+        self.push_table_links(engine)?;
 
-        let mut configuration_flags = 0b00000000;
-        let mut configuration_values = Vec::new();
-
-        if self.constant_cluster_codepoints.is_some() {
-            configuration_flags |= 0b00000001;
-            configuration_values.push(self.constant_cluster_codepoints.unwrap());
-        }
-        buffer.push(configuration_flags); // Configuration flags byte
-        buffer.append(&configuration_values); // Configuration values
-
-        // Table Links
-        let mut link_flags = 0b00000000;
-        let mut link_bytes = Vec::new();
-        if self.pixmap_table_indexes.is_some() {
-            link_flags |= 0b00000001;
-            let pixmap_tables_length = self.pixmap_table_indexes.as_ref().unwrap().len();
-            if pixmap_tables_length > 255 {
-                return Err(SerializeError::StaticVectorTooLarge);
-            }
-            buffer.push(pixmap_tables_length as u8);
-            for pixmap_table_index in self.pixmap_table_indexes.as_ref().unwrap() {
-                link_bytes.push(*pixmap_table_index);
-            }
-        }
-
-        // Table relations
-        buffer.push(link_flags);
-        buffer.append(&link_bytes);
-
-        if self.characters.len() > 255 {
+        // record length
+        let character_count = self.characters.len();
+        if character_count > 255 {
             return Err(SerializeError::StaticVectorTooLarge);
         }
-        buffer.push(self.characters.len() as u8);
-        for character in &self.characters {
+        engine.bytes.push(character_count as u8);
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_byte(
+            TagKind::CharacterTableCharacterCount {
+                table_index: engine.tagging_data.current_table_index,
+                count: character_count as u8,
+            },
+            engine.bytes.byte_index(),
+        );
+
+        // records
+        for (index, character) in self.characters.iter().enumerate() {
+            #[cfg(feature = "tagging")]
+            {
+                engine.tagging_data.current_record_index = index as u8;
+            }
+            #[cfg(feature = "tagging")]
+            let character_start = engine.bytes.byte_index();
+
             if self.use_advance_x {
-                buffer.push(character.advance_x.unwrap());
+                engine.bytes.push(character.advance_x.unwrap());
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::CharacterAdvanceX {
+                        table_index: engine.tagging_data.current_table_index,
+                        char_index: engine.tagging_data.current_record_index,
+                        value: character.advance_x.unwrap(),
+                    },
+                    engine.bytes.byte_index(),
+                );
             }
             if self.use_pixmap_index {
-                buffer.push(character.pixmap_index.unwrap());
+                engine.bytes.push(character.pixmap_index.unwrap());
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::CharacterPixmapIndex {
+                        table_index: engine.tagging_data.current_table_index,
+                        char_index: engine.tagging_data.current_record_index,
+                        value: character.pixmap_index.unwrap(),
+                    },
+                    engine.bytes.byte_index(),
+                );
             }
             push_grapheme_cluster(
-                buffer,
+                engine,
                 self.constant_cluster_codepoints,
                 &character.grapheme_cluster,
             );
+
+            #[cfg(feature = "tagging")]
+            engine.tags.tag_span(
+                TagKind::CharacterRecord {
+                    table_index: engine.tagging_data.current_table_index,
+                    char_index: engine.tagging_data.current_record_index,
+                },
+                Span::new(character_start, engine.bytes.byte_index()),
+            );
         }
 
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_span(
+            TagKind::CharacterTable {
+                index: engine.tagging_data.current_table_index,
+            },
+            Span::new(table_start, engine.bytes.byte_index()),
+        );
         Ok(())
     }
 }

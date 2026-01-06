@@ -17,13 +17,13 @@
 use crate::Vec;
 
 #[derive(Debug)]
-pub(crate) struct ByteStorage {
+pub(crate) struct ByteWriter {
     pub(crate) bytes: Vec<u8>,
     pub(crate) pointer: u8,
     pub(crate) index: usize,
 }
 
-impl ByteStorage {
+impl ByteWriter {
     pub(crate) fn new() -> Self {
         Self {
             bytes: Vec::new(),
@@ -45,6 +45,7 @@ impl ByteStorage {
             let new_byte = byte >> (8 - self.pointer);
             self.bytes.push(new_byte);
         }
+        self.index += 1;
     }
     pub(crate) fn incomplete_push(&mut self, byte: u8, number_of_bits: u8) {
         if number_of_bits == 8 {
@@ -74,6 +75,24 @@ impl ByteStorage {
                 let new_byte = byte >> (number_of_bits - self.pointer);
                 self.bytes.push(new_byte);
             }
+            self.index += 1;
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct ByteReader<'a> {
+    pub(crate) bytes: &'a [u8],
+    pub(crate) pointer: u8,
+    pub(crate) index: usize,
+}
+
+impl<'a> ByteReader<'a> {
+    pub(crate) fn from(bytes: &'a [u8]) -> Self {
+        Self {
+            bytes,
+            pointer: 0,
+            index: 0,
         }
     }
 
@@ -105,10 +124,8 @@ impl ByteStorage {
     pub(crate) fn peek(&self) -> u8 {
         self.bytes[self.index]
     }
-    pub(crate) fn append(&mut self, bytes: &[u8]) {
-        for byte in bytes {
-            self.push(*byte);
-        }
+    pub(crate) fn len(&self) -> usize {
+        self.bytes.len()
     }
 }
 
