@@ -17,17 +17,18 @@
 pub(crate) use super::*;
 use crate::vec;
 
-impl<'a, T: TagWriter> DeserializeEngine<'a, T> {
+impl<'a, T: TagWriter> DeserializeEngine<'a, ByteReaderImpl<'a>, T> {
     #[cfg(feature = "tagging")]
     pub fn from_data_and_tags(data: &'a [u8], tags: T) -> Self {
         Self {
-            bytes: byte::ByteReader::from(data),
+            bytes: byte::ByteReaderImpl::from(data),
             layout: Layout::default(),
             #[cfg(feature = "tagging")]
             tags,
             #[cfg(feature = "tagging")]
             tagging_data: TaggingData::default(),
             _phantom: PhantomData,
+            _phantom2: &PhantomData,
         }
     }
     #[cfg(feature = "tagging")]
@@ -36,24 +37,25 @@ impl<'a, T: TagWriter> DeserializeEngine<'a, T> {
     }
 }
 
-impl<'a> DeserializeEngine<'a> {
+impl<'a> DeserializeEngine<'a, ByteReaderImpl<'a>> {
     pub fn from_data(data: &'a [u8]) -> Self {
         Self {
-            bytes: byte::ByteReader::from(data),
+            bytes: byte::ByteReaderImpl::from(data),
             layout: Layout::default(),
             #[cfg(feature = "tagging")]
             tags: TagWriterNoOp,
             #[cfg(feature = "tagging")]
             tagging_data: TaggingData::default(),
             _phantom: PhantomData,
+            _phantom2: &PhantomData,
         }
     }
 }
 
-pub(crate) fn next_signature<T: TagWriter>(
-    engine: &mut DeserializeEngine<T>,
+pub(crate) fn next_signature<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
 ) -> Result<(), DeserializeError> {
-    if engine.bytes.index + 4 > engine.bytes.len() {
+    if engine.bytes.index() + 4 > engine.bytes.len() {
         return Err(DeserializeError::UnexpectedEndOfFile);
     }
     #[cfg(feature = "tagging")]
@@ -74,8 +76,8 @@ pub(crate) fn next_signature<T: TagWriter>(
     Ok(())
 }
 
-pub(crate) fn next_version<T: TagWriter>(
-    engine: &mut DeserializeEngine<T>,
+pub(crate) fn next_version<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
 ) -> Result<(), DeserializeError> {
     let version = engine.bytes.next();
     let version = Version::try_from(version)?;
@@ -89,8 +91,8 @@ pub(crate) fn next_version<T: TagWriter>(
     Ok(())
 }
 
-pub(crate) fn next_header<T: TagWriter>(
-    engine: &mut DeserializeEngine<T>,
+pub(crate) fn next_header<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
 ) -> Result<(), DeserializeError> {
     let file_properties = engine.bytes.next();
 
