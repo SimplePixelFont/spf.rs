@@ -80,14 +80,27 @@ impl ByteWriter {
     }
 }
 
-#[derive(Debug)]
-pub(crate) struct ByteReader<'a> {
-    pub(crate) bytes: &'a [u8],
-    pub(crate) pointer: u8,
-    pub(crate) index: usize,
+pub trait ByteReader {
+    fn get(&self) -> u8;
+    fn incomplete_get(&self, number_of_bits: u8) -> u8;
+    fn next(&mut self) -> u8; // maybe Option<u8>
+    fn incomplete_next(&mut self, number_of_bits: u8) -> u8;
+    fn len(&self) -> usize;
+    fn is_empty(&self) -> bool;
+    fn index(&self) -> usize;
+
+    #[cfg(feature = "tagging")]
+    fn byte_index(&self) -> super::ByteIndex;
 }
 
-impl<'a> ByteReader<'a> {
+#[derive(Debug)]
+pub struct ByteReaderImpl<'a> {
+    bytes: &'a [u8],
+    pointer: u8,
+    index: usize,
+}
+
+impl<'a> ByteReaderImpl<'a> {
     pub(crate) fn from(bytes: &'a [u8]) -> Self {
         Self {
             bytes,
@@ -95,14 +108,16 @@ impl<'a> ByteReader<'a> {
             index: 0,
         }
     }
+}
 
-    pub(crate) fn get(&self) -> u8 {
+impl<'a> ByteReader for ByteReaderImpl<'a> {
+    fn get(&self) -> u8 {
         if self.pointer == 0 {
             self.bytes[self.index]
         } else {
             let mut byte = self.bytes[self.index] >> self.pointer;
 
-            if self.index < self.bytes.len() - 1 {
+            if self.index < self.len() - 1 {
                 let mask = self.bytes[self.index + 1] << (8 - self.pointer);
                 byte |= mask;
             }
@@ -110,22 +125,130 @@ impl<'a> ByteReader<'a> {
             byte
         }
     }
-    pub(crate) fn incomplete_get(&self, number_of_bits: u8) -> u8 {
+    fn incomplete_get(&self, number_of_bits: u8) -> u8 {
         if number_of_bits == 8 {
             return self.get();
         }
         self.get() << (8 - number_of_bits) >> (8 - number_of_bits)
     }
-    pub(crate) fn next(&mut self) -> u8 {
+    fn next(&mut self) -> u8 {
         let byte = self.get();
         self.index += 1;
         byte
     }
-    pub(crate) fn peek(&self) -> u8 {
-        self.bytes[self.index]
+    fn incomplete_next(&mut self, number_of_bits: u8) -> u8 {
+        let byte = self.incomplete_get(number_of_bits);
+        self.pointer += number_of_bits;
+        if self.pointer >= 8 {
+            self.index += 1;
+            self.pointer -= 8;
+        }
+        byte
     }
-    pub(crate) fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.bytes.len()
+    }
+    fn is_empty(&self) -> bool {
+        self.bytes.is_empty()
+    }
+    fn index(&self) -> usize {
+        self.index
+    }
+
+    #[cfg(feature = "tagging")]
+    fn byte_index(&self) -> super::ByteIndex {
+        super::ByteIndex::new(self.index, self.pointer)
+    }
+}
+
+#[derive(Debug)]
+pub struct ByteReaderIter<'a, I: Iterator<Item = u8>> {
+    iterator: &'a mut I,
+    buffered_bytes: [u8; 2],
+    pointer: u8,
+    index: usize,
+    length: usize,
+}
+
+impl<'a, I: Iterator<Item = u8>> ByteReaderIter<'a, I> {
+    pub fn from(iterator: &'a mut I, length: usize) -> Self {
+        let mut reader = Self {
+            iterator,
+            buffered_bytes: [0, 0],
+            pointer: 0,
+            index: 0,
+            length,
+        };
+        reader.init_buffer();
+        reader
+    }
+    fn init_buffer(&mut self) {
+        if let Some(item) = self.iterator.next() {
+            self.buffered_bytes[0] = item;
+        }
+        if let Some(item) = self.iterator.next() {
+            self.buffered_bytes[1] = item;
+        }
+    }
+    fn proceed_iter(&mut self) {
+        self.buffered_bytes[0] = self.buffered_bytes[1];
+        if let Some(item) = self.iterator.next() {
+            self.buffered_bytes[1] = item;
+        } else {
+            self.buffered_bytes[1] = 0;
+        }
+    }
+}
+
+impl<'a, I: Iterator<Item = u8>> ByteReader for ByteReaderIter<'a, I> {
+    fn get(&self) -> u8 {
+        if self.pointer == 0 {
+            self.buffered_bytes[0]
+        } else {
+            let mut byte = self.buffered_bytes[0] >> self.pointer;
+            if self.index < self.len() - 1 {
+                let mask = self.buffered_bytes[1] << (8 - self.pointer);
+                byte |= mask;
+            }
+
+            byte
+        }
+    }
+    fn incomplete_get(&self, number_of_bits: u8) -> u8 {
+        if number_of_bits == 8 {
+            return self.get();
+        }
+        self.get() << (8 - number_of_bits) >> (8 - number_of_bits)
+    }
+    fn next(&mut self) -> u8 {
+        let byte = self.get();
+        self.index += 1;
+        self.proceed_iter();
+        byte
+    }
+    fn incomplete_next(&mut self, number_of_bits: u8) -> u8 {
+        let byte = self.incomplete_get(number_of_bits);
+        self.pointer += number_of_bits;
+        if self.pointer >= 8 {
+            self.index += 1;
+            self.proceed_iter();
+            self.pointer -= 8;
+        }
+        byte
+    }
+    fn len(&self) -> usize {
+        self.length
+    }
+    fn is_empty(&self) -> bool {
+        self.length == 0
+    }
+    fn index(&self) -> usize {
+        self.index
+    }
+
+    #[cfg(feature = "tagging")]
+    fn byte_index(&self) -> super::ByteIndex {
+        super::ByteIndex::new(self.index, self.pointer)
     }
 }
 

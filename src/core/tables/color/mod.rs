@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::core::byte::ByteReader;
 use crate::core::{
     byte, Color, ColorTable, DeserializeEngine, DeserializeError, SerializeEngine, SerializeError,
     Table, TableIdentifier, TagWriter,
@@ -24,7 +25,10 @@ use crate::{vec, Vec};
 use crate::core::{ByteIndex, Span, TableType, TagKind};
 
 impl ColorTable {
-    pub(crate) fn next_modifer_flags<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+    pub(crate) fn next_modifer_flags<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
         let _modifier_flags = engine.bytes.next();
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
@@ -35,7 +39,10 @@ impl ColorTable {
             engine.bytes.byte_index(),
         );
     }
-    pub(crate) fn next_configurations<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+    pub(crate) fn next_configurations<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
@@ -84,7 +91,10 @@ impl ColorTable {
             );
         }
     }
-    pub(crate) fn next_table_links<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+    pub(crate) fn next_table_links<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
         #[cfg(feature = "tagging")]
         let links_start = engine.bytes.byte_index();
 
@@ -111,8 +121,8 @@ impl ColorTable {
 }
 
 impl Table for ColorTable {
-    fn deserialize<T: TagWriter>(
-        engine: &mut DeserializeEngine<T>,
+    fn deserialize<R: ByteReader, T: TagWriter>(
+        engine: &mut DeserializeEngine<R, T>,
     ) -> Result<Self, DeserializeError> {
         #[cfg(feature = "tagging")]
         let table_start = engine.bytes.byte_index();

@@ -27,10 +27,12 @@
 //! binary file. Additionally it defines the [`layout_to_data`] and [`layout_from_data`] functions that
 //! can be used to convert between the structs and the binary data.
 
-pub(crate) mod byte;
+pub mod byte;
 pub(crate) mod deserialize;
 pub(crate) mod serialize;
 pub(crate) mod tables;
+
+use byte::{ByteReader, ByteReaderImpl};
 
 #[cfg(not(feature = "tagging"))]
 mod tagging_stub;
@@ -178,8 +180,8 @@ pub enum SerializeError {
 }
 
 pub(crate) trait Table: Sized {
-    fn deserialize<T: TagWriter>(
-        engine: &mut DeserializeEngine<T>,
+    fn deserialize<R: ByteReader, T: TagWriter>(
+        engine: &mut DeserializeEngine<R, T>,
     ) -> Result<Self, DeserializeError>;
     fn serialize<T: TagWriter>(
         &self,
@@ -187,14 +189,15 @@ pub(crate) trait Table: Sized {
     ) -> Result<(), SerializeError>;
 }
 
-pub struct DeserializeEngine<'a, T: TagWriter = TagWriterNoOp> {
-    bytes: byte::ByteReader<'a>,
+pub struct DeserializeEngine<'a, R: ByteReader = ByteReaderImpl<'a>, T: TagWriter = TagWriterNoOp> {
+    bytes: R,
     pub layout: Layout,
     #[cfg(feature = "tagging")]
     pub tags: T,
     #[cfg(feature = "tagging")]
     tagging_data: TaggingData,
     _phantom: PhantomData<T>,
+    _phantom2: &'a PhantomData<R>,
 }
 
 #[derive(Default)]
@@ -213,12 +216,14 @@ pub struct SerializeEngine<'a, T: TagWriter = TagWriterNoOp> {
     _phantom: PhantomData<T>,
 }
 
-pub(crate) fn deserialize_layout(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+pub(crate) fn deserialize_layout<R: ByteReader>(
+    engine: &mut DeserializeEngine<R>,
+) -> Result<(), DeserializeError> {
     deserialize::next_signature(engine)?;
     deserialize::next_version(engine)?;
     deserialize::next_header(engine)?;
 
-    while engine.bytes.index < engine.bytes.len() - 1 {
+    while engine.bytes.index() < engine.bytes.len() - 1 {
         match engine.bytes.next().try_into().unwrap() {
             TableIdentifier::Character => {
                 #[cfg(feature = "tagging")]
@@ -252,7 +257,9 @@ pub(crate) fn deserialize_layout(engine: &mut DeserializeEngine) -> Result<(), D
     Ok(())
 }
 
-pub fn deserialize_with_engine(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+pub fn deserialize_with_engine<R: ByteReader>(
+    engine: &mut DeserializeEngine<R>,
+) -> Result<(), DeserializeError> {
     deserialize_layout(engine)?;
     Ok(())
 }

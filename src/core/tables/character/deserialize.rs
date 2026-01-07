@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::core::byte::ByteReader;
 use crate::core::{
     byte, Character, CharacterTable, DeserializeEngine, DeserializeError, TagWriter,
 };
@@ -26,7 +27,10 @@ use crate::tagging::{Span, TagKind};
 use log::*;
 
 impl CharacterTable {
-    pub(crate) fn next_modifer_flags<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+    pub(crate) fn next_modifer_flags<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
         let modifier_flags = engine.bytes.next();
         if byte::get_bit(modifier_flags, 0) {
             self.use_advance_x = true;
@@ -53,7 +57,10 @@ impl CharacterTable {
             engine.bytes.byte_index(),
         );
     }
-    pub(crate) fn next_configurations<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+    pub(crate) fn next_configurations<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
@@ -102,9 +109,9 @@ impl CharacterTable {
             );
         }
     }
-    pub(crate) fn next_table_links<T: TagWriter>(
+    pub(crate) fn next_table_links<R: ByteReader, T: TagWriter>(
         &mut self,
-        engine: &mut DeserializeEngine<T>,
+        engine: &mut DeserializeEngine<R, T>,
     ) -> Result<(), DeserializeError> {
         #[cfg(feature = "tagging")]
         let links_start = engine.bytes.byte_index();
@@ -186,8 +193,8 @@ impl CharacterTable {
     }
 }
 
-pub(crate) fn next_grapheme_cluster<T: TagWriter>(
-    engine: &mut DeserializeEngine<T>,
+pub(crate) fn next_grapheme_cluster<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
     character: &mut Character,
     constant_cluster_codepoints: Option<u8>,
 ) {
@@ -231,9 +238,9 @@ pub(crate) fn next_grapheme_cluster<T: TagWriter>(
             if codepoint_count == constant_cluster_codepoints {
                 end_cluster = true;
             }
-        } else if engine.bytes.peek() == 0 {
+        } else if engine.bytes.get() == 0 {
             end_cluster = true;
-            engine.bytes.index += 1;
+            engine.bytes.next();
         }
     }
 
