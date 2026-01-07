@@ -52,6 +52,21 @@ impl<'a> DeserializeEngine<'a, ByteReaderImpl<'a>> {
     }
 }
 
+impl<'a, R: ByteReader> DeserializeEngine<'a, R> {
+    pub fn from_reader(reader: R) -> Self {
+        Self {
+            bytes: reader,
+            layout: Layout::default(),
+            #[cfg(feature = "tagging")]
+            tags: TagWriterNoOp,
+            #[cfg(feature = "tagging")]
+            tagging_data: TaggingData::default(),
+            _phantom: PhantomData,
+            _phantom2: &PhantomData,
+        }
+    }
+}
+
 pub(crate) fn next_signature<R: ByteReader, T: TagWriter>(
     engine: &mut DeserializeEngine<R, T>,
 ) -> Result<(), DeserializeError> {

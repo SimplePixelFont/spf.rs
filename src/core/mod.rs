@@ -27,7 +27,7 @@
 //! binary file. Additionally it defines the [`layout_to_data`] and [`layout_from_data`] functions that
 //! can be used to convert between the structs and the binary data.
 
-pub(crate) mod byte;
+pub mod byte;
 pub(crate) mod deserialize;
 pub(crate) mod serialize;
 pub(crate) mod tables;

@@ -147,7 +147,16 @@ mod tests {
 
         let mut buffer: Vec<u8> = vec![];
         common::read_from_file("./res/sampleToyFont.spf", &mut buffer)?;
-        let _font = layout_from_data(&buffer);
+
+        let mut standard_engine = DeserializeEngine::from_data(&buffer);
+        let layout1 = deserialize_with_engine(&mut standard_engine).unwrap();
+
+        let mut buffer_iter = buffer.iter().copied();
+        let reader = byte::ByteReaderIter::from(&mut buffer_iter, buffer.len());
+        let mut iterator_engine = DeserializeEngine::from_reader(reader);
+        let layout2 = deserialize_with_engine(&mut iterator_engine).unwrap();
+
+        assert_eq!(layout1, layout2);
         Ok(())
     }
 
