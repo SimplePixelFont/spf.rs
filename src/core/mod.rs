@@ -216,8 +216,8 @@ pub struct SerializeEngine<'a, T: TagWriter = TagWriterNoOp> {
     _phantom: PhantomData<T>,
 }
 
-pub(crate) fn deserialize_layout<R: ByteReader>(
-    engine: &mut DeserializeEngine<R>,
+pub(crate) fn deserialize_layout<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
 ) -> Result<(), DeserializeError> {
     deserialize::next_signature(engine)?;
     deserialize::next_version(engine)?;
@@ -257,8 +257,8 @@ pub(crate) fn deserialize_layout<R: ByteReader>(
     Ok(())
 }
 
-pub fn deserialize_with_engine<R: ByteReader>(
-    engine: &mut DeserializeEngine<R>,
+pub fn deserialize_with_engine<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
 ) -> Result<(), DeserializeError> {
     deserialize_layout(engine)?;
     Ok(())
@@ -272,7 +272,9 @@ pub fn layout_from_data(buffer: &[u8]) -> Result<Layout, DeserializeError> {
     Ok(engine.layout)
 }
 
-pub(crate) fn serialize_layout(engine: &mut SerializeEngine) -> Result<(), SerializeError> {
+pub(crate) fn serialize_layout<T: TagWriter>(
+    engine: &mut SerializeEngine<T>,
+) -> Result<(), SerializeError> {
     serialize::push_signature(engine);
     serialize::push_version(engine);
     serialize::push_header(engine);
@@ -302,7 +304,9 @@ pub(crate) fn serialize_layout(engine: &mut SerializeEngine) -> Result<(), Seria
     Ok(())
 }
 
-pub fn serialize_with_engine(engine: &mut SerializeEngine) -> Result<(), SerializeError> {
+pub fn serialize_with_engine<T: TagWriter>(
+    engine: &mut SerializeEngine<T>,
+) -> Result<(), SerializeError> {
     serialize_layout(engine)?;
     Ok(())
 }
