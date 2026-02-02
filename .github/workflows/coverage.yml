@@ -2,10 +2,10 @@ name: coverage
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
-    
+    branches: ["main"]
+
 jobs:
   test:
     name: coverage
@@ -20,7 +20,7 @@ jobs:
       - name: Generate code coverage
         run: |
           cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml > report.txt
-      
+
       - uses: julia-actions/setup-julia@v2
         with:
           version: "1"
@@ -43,7 +43,7 @@ jobs:
           message: "${{ env.COVERAGE }}"
           labelColor: "#2d3136"
           color: "${{ env.COLOR }}"
-          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/magnifying_glass.png"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/magnifying_glass.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
 
       - name: deploy badge
