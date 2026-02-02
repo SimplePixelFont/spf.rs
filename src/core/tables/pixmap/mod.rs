@@ -21,6 +21,7 @@ use crate::core::{
     DeserializeEngine, Pixmap, PixmapTable, SerializeEngine, SerializeError, Table, TagWriter,
 };
 
+use crate::core::byte::ByteReader;
 #[cfg(feature = "tagging")]
 use crate::core::{ByteIndex, Span, TableType, TagKind};
 
@@ -28,8 +29,8 @@ pub(crate) use deserialize::*;
 pub(crate) use serialize::*;
 
 impl Table for PixmapTable {
-    fn deserialize<T: TagWriter>(
-        engine: &mut DeserializeEngine<T>,
+    fn deserialize<R: ByteReader, T: TagWriter>(
+        engine: &mut DeserializeEngine<R, T>,
     ) -> Result<Self, crate::core::DeserializeError> {
         #[cfg(feature = "tagging")]
         let table_start = engine.bytes.byte_index();
@@ -58,10 +59,10 @@ impl Table for PixmapTable {
             engine.bytes.byte_index(),
         );
 
-        for _ in 0..pixmap_count {
+        for index in 0..pixmap_count {
             #[cfg(feature = "tagging")]
             {
-                engine.tagging_data.current_record_index = engine.bytes.index as u8;
+                engine.tagging_data.current_record_index = index;
             }
             #[cfg(feature = "tagging")]
             let pixmap_start = engine.bytes.byte_index();

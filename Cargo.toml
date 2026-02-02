@@ -11,7 +11,7 @@ rust-version = "1.78.0"
 [lib]
 name = "spf"
 path = "src/lib.rs"
-crate-type = ["cdylib", "staticlib", "rlib"]
+crate-type = ["rlib"]
 
 [package.metadata.docs.rs]
 all-features = true
@@ -28,7 +28,6 @@ articles = []
 tagging = []
 
 [dependencies]
-rustversion = "1.0.22"
 log = { version = "0.4.27", optional = true }
 serde = { version = "1.0.225", features = ["derive"], optional = true }
 

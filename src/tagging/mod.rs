@@ -337,12 +337,6 @@ impl ByteWriter {
     }
 }
 
-impl ByteReader<'_> {
-    pub(crate) fn byte_index(&self) -> ByteIndex {
-        ByteIndex::new(self.index, self.pointer)
-    }
-}
-
 pub trait TagWriter {
     fn tag_span(&mut self, kind: TagKind, span: Span);
     fn tag_byte(&mut self, kind: TagKind, end_byte: ByteIndex);

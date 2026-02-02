@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::core::byte::ByteReader;
 use crate::core::{byte, DeserializeEngine, Pixmap, PixmapTable, TagWriter};
 use crate::{vec, Vec};
 
@@ -24,7 +25,10 @@ use crate::core::{Span, TagKind};
 use log::*;
 
 impl PixmapTable {
-    pub(crate) fn next_modifier_flags<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+    pub(crate) fn next_modifier_flags<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
         let _modifier_flags = engine.bytes.next();
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
@@ -35,7 +39,10 @@ impl PixmapTable {
             engine.bytes.byte_index(),
         );
     }
-    pub(crate) fn next_configurations<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+    pub(crate) fn next_configurations<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
@@ -119,7 +126,10 @@ impl PixmapTable {
         );
     }
 
-    pub(crate) fn next_table_links<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+    pub(crate) fn next_table_links<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
         #[cfg(feature = "tagging")]
         let links_start = engine.bytes.byte_index();
 
@@ -198,8 +208,8 @@ impl PixmapTable {
     }
 }
 
-pub(crate) fn next_width<T: TagWriter>(
-    engine: &mut DeserializeEngine<T>,
+pub(crate) fn next_width<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
     pixmap: &mut Pixmap,
     constant_width: Option<u8>,
 ) {
@@ -220,8 +230,8 @@ pub(crate) fn next_width<T: TagWriter>(
     }
 }
 
-pub(crate) fn next_height<T: TagWriter>(
-    engine: &mut DeserializeEngine<T>,
+pub(crate) fn next_height<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
     pixmap: &mut Pixmap,
     constant_height: Option<u8>,
 ) {
@@ -242,8 +252,8 @@ pub(crate) fn next_height<T: TagWriter>(
     }
 }
 
-pub(crate) fn next_bits_per_pixel<T: TagWriter>(
-    engine: &mut DeserializeEngine<T>,
+pub(crate) fn next_bits_per_pixel<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
     pixmap: &mut Pixmap,
     constant_bits_per_pixel: Option<u8>,
 ) {
@@ -267,8 +277,8 @@ pub(crate) fn next_bits_per_pixel<T: TagWriter>(
     }
 }
 
-pub(crate) fn next_pixmap<T: TagWriter>(
-    engine: &mut DeserializeEngine<T>,
+pub(crate) fn next_pixmap<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
     pixmap: &mut Pixmap,
     constant_width: Option<u8>,
     constant_height: Option<u8>,
@@ -284,17 +294,21 @@ pub(crate) fn next_pixmap<T: TagWriter>(
     let height = constant_height.or(pixmap.custom_height).unwrap();
 
     let pixels_used = width as u16 * height as u16;
-    for _ in 0..pixels_used {
-        let pixel = engine.bytes.incomplete_get(bits_per_pixel);
-        pixmap.data.push(pixel);
-        engine.bytes.pointer += bits_per_pixel;
-        if engine.bytes.pointer >= 8 {
-            engine.bytes.index += 1;
-            engine.bytes.pointer -= 8;
-        }
+    let total_bits = pixels_used * bits_per_pixel as u16;
+    let complete_bytes_used = (total_bits / 8) as usize;
+
+    for _ in 0..complete_bytes_used {
+        pixmap.data.push(engine.bytes.next());
     }
 
-    resolve_final_byte(engine, width, height, bits_per_pixel);
+    let remainder_bits = (total_bits % 8) as u8;
+    if !engine.layout.compact && remainder_bits > 0 {
+        pixmap.data.push(engine.bytes.next());
+    } else if engine.layout.compact && remainder_bits > 0 {
+        pixmap
+            .data
+            .push(engine.bytes.incomplete_next(remainder_bits));
+    }
 
     #[cfg(feature = "tagging")]
     engine.tags.tag_span(
@@ -307,31 +321,12 @@ pub(crate) fn next_pixmap<T: TagWriter>(
     );
 
     #[cfg(feature = "log")]
-    info!("Identified pixmap: {:?}", pixmap.data);
-}
-
-#[rustversion::since(1.87)]
-pub(crate) fn resolve_final_byte<T: TagWriter>(
-    engine: &mut DeserializeEngine<T>,
-    width: u8,
-    height: u8,
-    bits_per_pixel: u8,
-) {
-    if !engine.layout.compact && !(width * height * bits_per_pixel).is_multiple_of(8) {
-        engine.bytes.index += 1;
-        engine.bytes.pointer = 0;
-    }
-}
-
-#[rustversion::before(1.87)]
-pub(crate) fn resolve_final_byte<T: TagWriter>(
-    engine: &mut DeserializeEngine<T>,
-    width: u8,
-    height: u8,
-    bits_per_pixel: u8,
-) {
-    if !engine.layout.compact && (width * height * bits_per_pixel) % 8 != 0 {
-        engine.bytes.index += 1;
-        engine.bytes.pointer = 0;
+    {
+        let pixmap_bit_string: String = pixmap
+            .data
+            .iter()
+            .map(|byte| format!("{:08b} ", byte))
+            .collect();
+        info!("Identified pixmap: {:?}", pixmap_bit_string);
     }
 }

@@ -1,6 +1,6 @@
 pub(crate) trait TagWriter {}
 
-pub(crate) struct TagWriterNoOp;
+pub struct TagWriterNoOp;
 impl TagWriter for TagWriterNoOp {}
 
 pub(crate) struct TagWriterImpl {}

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::core::byte::ByteReader;
 #[cfg(feature = "tagging")]
 use crate::core::{ByteIndex, Span, TableType, TagKind};
 use crate::core::{
@@ -27,8 +28,8 @@ pub(crate) mod serialize;
 pub(crate) use serialize::*;
 
 impl Table for CharacterTable {
-    fn deserialize<T: TagWriter>(
-        engine: &mut DeserializeEngine<T>,
+    fn deserialize<R: ByteReader, T: TagWriter>(
+        engine: &mut DeserializeEngine<R, T>,
     ) -> Result<Self, DeserializeError> {
         #[cfg(feature = "tagging")]
         let table_start = engine.bytes.byte_index();
