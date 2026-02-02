@@ -88,35 +88,36 @@ impl PixmapTable {
         // configuration values
         #[cfg(feature = "tagging")]
         let configuration_values_start = engine.bytes.byte_index();
-        if self.constant_width.is_some() {
-            engine.bytes.push(self.constant_width.unwrap());
+
+        if let Some(constant_width) = self.constant_width {
+            engine.bytes.push(constant_width);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::PixmapTableConstantWidth {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_width.unwrap(),
+                    value: constant_width,
                 },
                 engine.bytes.byte_index(),
             );
         }
-        if self.constant_height.is_some() {
-            engine.bytes.push(self.constant_height.unwrap());
+        if let Some(constant_height) = self.constant_height {
+            engine.bytes.push(constant_height);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::PixmapTableConstantHeight {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_height.unwrap(),
+                    value: constant_height,
                 },
                 engine.bytes.byte_index(),
             );
         }
-        if self.constant_bits_per_pixel.is_some() {
-            engine.bytes.push(self.constant_bits_per_pixel.unwrap());
+        if let Some(constant_bits_per_pixel) = self.constant_bits_per_pixel {
+            engine.bytes.push(constant_bits_per_pixel);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::PixmapTableConstantBitsPerPixel {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_bits_per_pixel.unwrap(),
+                    value: constant_bits_per_pixel,
                 },
                 engine.bytes.byte_index(),
             );

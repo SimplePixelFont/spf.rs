@@ -91,13 +91,13 @@ impl CharacterTable {
         #[cfg(feature = "tagging")]
         let configuration_values_start = engine.bytes.byte_index();
 
-        if self.constant_cluster_codepoints.is_some() {
-            engine.bytes.push(self.constant_cluster_codepoints.unwrap());
+        if let Some(constant_cluster_codepoints) = self.constant_cluster_codepoints {
+            engine.bytes.push(constant_cluster_codepoints);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::CharacterTableConstantClusterCodepoints {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_cluster_codepoints.unwrap(),
+                    value: constant_cluster_codepoints,
                 },
                 engine.bytes.byte_index(),
             );
