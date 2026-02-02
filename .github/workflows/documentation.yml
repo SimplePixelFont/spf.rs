@@ -2,9 +2,9 @@ name: documentation
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   documentation:
@@ -48,12 +48,12 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
-      
+
       - uses: julia-actions/setup-julia@v2
         with:
           version: "1"
       - run: julia .ci/interpolate_colors.jl '#d94a69' '#00bfa3' ${{ needs.documentation.outputs.percent }}
-      
+
       - name: Update badge
         uses: SimplePixelFont/badge-spf-action@main
         with:
@@ -62,7 +62,7 @@ jobs:
           message: "${{ needs.documentation.outputs.percent }}"
           labelColor: "#2d3136"
           color: "${{ env.COLOR }}"
-          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/base_emojis/document.png"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/document.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
 
       - name: deploy badge

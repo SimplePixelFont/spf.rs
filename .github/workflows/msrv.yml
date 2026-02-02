@@ -1,4 +1,4 @@
-name: rust
+name: msrv
 
 on:
   push:
@@ -18,38 +18,38 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build
-        id: build
-        run: cargo build --verbose
+      - name: MSRV
+        id: msrv
+        run: cargo install cargo-msrv && cargo msrv verify
 
   badge:
     runs-on: ubuntu-latest
-    needs: build
+    needs: msrv
     if: always() && github.event_name == 'push'
 
     steps:
       - name: passing
-        if: needs.build.outputs.outcome == 'success'
+        if: needs.msrv.outputs.outcome == 'success'
         uses: SimplePixelFont/badge-spf-action@main
         with:
-          filename: build.png
-          label: Build
-          message: passing
+          filename: msrv.png
+          label: MSRV
+          message: 1.78.0
           labelColor: "#2d3136"
           color: "#00bfa3"
-          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/rust_orange.png"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/cog.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
 
       - name: failing
-        if: needs.build.outputs.outcome == 'failure'
+        if: needs.msrv.outputs.outcome == 'failure'
         uses: SimplePixelFont/badge-spf-action@main
         with:
-          filename: build.png
-          label: Build
-          message: failing
+          filename: msrv.png
+          label: MSRV
+          message: 1.78.0
           labelColor: "#2d3136"
           color: "#d94a69"
-          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/rust_orange.png"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/cog.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
 
       - name: deploy
@@ -57,5 +57,5 @@ jobs:
         with:
           token: ${{ secrets.GIST_SECRET }}
           gist_id: cfebb0fe555ac7e77ada109c469cdeb4
-          file_path: build.png
+          file_path: msrv.png
           file_type: binary

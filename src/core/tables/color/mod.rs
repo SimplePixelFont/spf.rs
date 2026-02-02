@@ -369,13 +369,14 @@ impl ColorTable {
         // configuration values
         #[cfg(feature = "tagging")]
         let configuration_values_start = engine.bytes.byte_index();
-        if self.constant_alpha.is_some() {
-            engine.bytes.push(self.constant_alpha.unwrap());
+
+        if let Some(constant_alpha) = self.constant_alpha {
+            engine.bytes.push(constant_alpha);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::ColorTableConstantAlpha {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_alpha.unwrap(),
+                    value: constant_alpha,
                 },
                 engine.bytes.byte_index(),
             );
