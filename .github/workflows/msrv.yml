@@ -2,7 +2,7 @@ name: msrv
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "run-msrv"]
   pull_request:
     branches: ["main"]
   merge_group:
