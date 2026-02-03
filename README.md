@@ -5,7 +5,7 @@
 [![Documentation](https://gist.githubusercontent.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4/raw/documentation.png)](https://gist.github.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4#file-documentation-md)
 ![Grammer](https://gist.githubusercontent.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4/raw/grammer.png)
 ![Lint](https://gist.githubusercontent.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4/raw/lint.png)
-![MSRV](https://gist.githubusercontent.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4/raw/msrv.png)
+[![MSRV](https://gist.githubusercontent.com/The-Nice-One/cfebb0fe555ac7e77ada109c469cdeb4/raw/msrv.png)]((https://github.com/SimplePixelFont/spf.rs/actions?query=workflow:"msrv"))
 
 Parser library for the [SimplePixelFont file specifications](https://github.com/SimplePixelFont/Specification), written in Rust.
 `spf.rs` is both a native crate and also an FFI library which can be used  in a variety of other programming languages which support library loading.

@@ -11,10 +11,10 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  msrv:
     runs-on: ubuntu-latest
     outputs:
-      outcome: ${{ steps.build.outcome }}
+      outcome: ${{ steps.msrv.outcome }}
 
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
           message: 1.78.0
           labelColor: "#2d3136"
           color: "#00bfa3"
-          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/cog.png"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/settings.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
 
       - name: failing
@@ -49,7 +49,7 @@ jobs:
           message: 1.78.0
           labelColor: "#2d3136"
           color: "#d94a69"
-          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/cog.png"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/settings.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
 
       - name: deploy
