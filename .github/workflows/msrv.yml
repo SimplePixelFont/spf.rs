@@ -11,7 +11,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  msrv:
     runs-on: ubuntu-latest
     outputs:
       outcome: ${{ steps.build.outcome }}
