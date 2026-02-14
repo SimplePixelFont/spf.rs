@@ -38,6 +38,9 @@ impl CharacterTable {
         if byte::get_bit(modifier_flags, 1) {
             self.use_pixmap_index = true;
         }
+        if byte::get_bit(modifier_flags, 2) {
+            self.use_pixmap_table_index = true;
+        }
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::CharacterTableModifierFlags {
@@ -52,6 +55,10 @@ impl CharacterTable {
                 TagKind::CharacterTableUsePixmapIndex {
                     table_index: engine.tagging_data.current_table_index,
                     value: self.use_pixmap_index,
+                },
+                TagKind::CharacterTableUsePixmapTableIndex {
+                    table_index: engine.tagging_data.current_table_index,
+                    value: self.use_pixmap_table_index,
                 },
             ],
             engine.bytes.byte_index(),

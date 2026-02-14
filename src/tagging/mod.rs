@@ -76,6 +76,10 @@ pub enum TagKind {
         table_index: u8,
         value: bool,
     },
+    CharacterTableUsePixmapTableIndex {
+        table_index: u8,
+        value: bool,
+    },
 
     CharacterTableConfigurations {
         table_index: u8,
@@ -141,6 +145,11 @@ pub enum TagKind {
         value: u8,
     },
     CharacterPixmapIndex {
+        table_index: u8,
+        char_index: u8,
+        value: u8,
+    },
+    CharacterPixmapTableIndex {
         table_index: u8,
         char_index: u8,
         value: u8,

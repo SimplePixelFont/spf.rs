@@ -62,6 +62,8 @@ impl TryFrom<Character> for SPFCharacter {
             advance_x: character.advance_x.unwrap_or(0) as c_uchar,
             has_pixmap_index: character.pixmap_index.is_some() as c_uchar,
             pixmap_index: character.pixmap_index.unwrap_or(0) as c_uchar,
+            has_pixmap_table_index: character.pixmap_table_index.is_some() as c_uchar,
+            pixmap_table_index: character.pixmap_table_index.unwrap_or(0) as c_uchar,
             grapheme_cluster: grapheme_cluster_ptr,
         })
     }
@@ -77,10 +79,13 @@ impl TryInto<Character> for &SPFCharacter {
                 .to_owned();
             let advance_x = ffi_to_option!(self.has_advance_x, self.advance_x);
             let pixmap_index = ffi_to_option!(self.has_pixmap_index, self.pixmap_index);
+            let pixmap_table_index =
+                ffi_to_option!(self.has_pixmap_table_index, self.pixmap_table_index);
 
             Ok(Character {
                 advance_x,
                 pixmap_index,
+                pixmap_table_index,
                 grapheme_cluster,
             })
         }
@@ -224,6 +229,7 @@ impl TryFrom<CharacterTable> for SPFCharacterTable {
         Ok(SPFCharacterTable {
             use_advance_x: table.use_advance_x as c_uchar,
             use_pixmap_index: table.use_pixmap_index as c_uchar,
+            use_pixmap_table_index: table.use_pixmap_table_index as c_uchar,
             has_constant_cluster_codepoints: table.constant_cluster_codepoints.is_some() as c_uchar,
             constant_cluster_codepoints: table.constant_cluster_codepoints.unwrap_or(0) as c_uchar,
             has_pixmap_table_indexes: table.pixmap_table_indexes.is_some() as c_uchar,
@@ -258,6 +264,7 @@ impl TryInto<CharacterTable> for &SPFCharacterTable {
             Ok(CharacterTable {
                 use_advance_x: self.use_advance_x != 0,
                 use_pixmap_index: self.use_pixmap_index != 0,
+                use_pixmap_table_index: self.use_pixmap_table_index != 0,
                 constant_cluster_codepoints,
                 pixmap_table_indexes,
                 characters,

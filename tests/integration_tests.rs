@@ -99,27 +99,32 @@ mod tests {
         font.character_tables = vec![CharacterTable {
             use_advance_x: false,
             use_pixmap_index: false,
+            use_pixmap_table_index: false,
             constant_cluster_codepoints: None,
             pixmap_table_indexes: Some(vec![0]),
             characters: vec![
                 Character {
                     advance_x: None,
                     pixmap_index: None,
+                    pixmap_table_index: None,
                     grapheme_cluster: "o".to_string(),
                 },
                 Character {
                     advance_x: None,
                     pixmap_index: None,
+                    pixmap_table_index: None,
                     grapheme_cluster: "w".to_string(),
                 },
                 Character {
                     advance_x: None,
                     pixmap_index: None,
+                    pixmap_table_index: None,
                     grapheme_cluster: "😊".to_string(),
                 },
                 Character {
                     advance_x: None,
                     pixmap_index: None,
+                    pixmap_table_index: None,
                     grapheme_cluster: "!=".to_string(),
                 },
             ],

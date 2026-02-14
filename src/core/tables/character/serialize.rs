@@ -44,6 +44,9 @@ impl CharacterTable {
         if self.use_pixmap_index {
             modifier_flags |= 0b00000010;
         }
+        if self.use_pixmap_table_index {
+            modifier_flags |= 0b00000100;
+        }
 
         engine.bytes.push(modifier_flags);
         #[cfg(feature = "tagging")]
@@ -60,6 +63,10 @@ impl CharacterTable {
                 TagKind::CharacterTableUsePixmapIndex {
                     table_index: engine.tagging_data.current_table_index,
                     value: self.use_pixmap_index,
+                },
+                TagKind::CharacterTableUsePixmapTableIndex {
+                    table_index: engine.tagging_data.current_table_index,
+                    value: self.use_pixmap_table_index,
                 },
             ],
             engine.bytes.byte_index(),
