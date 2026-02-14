@@ -91,6 +91,18 @@ impl Table for CharacterTable {
                     engine.bytes.byte_index(),
                 );
             }
+            if character_table.use_pixmap_table_index {
+                character.pixmap_table_index = Some(engine.bytes.next());
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::CharacterPixmapTableIndex {
+                        table_index: engine.tagging_data.current_table_index,
+                        char_index: engine.tagging_data.current_record_index,
+                        value: character.pixmap_table_index.unwrap(),
+                    },
+                    engine.bytes.byte_index(),
+                );
+            }
 
             next_grapheme_cluster(
                 engine,
@@ -180,6 +192,19 @@ impl Table for CharacterTable {
                     engine.bytes.byte_index(),
                 );
             }
+            if self.use_pixmap_table_index {
+                engine.bytes.push(character.pixmap_table_index.unwrap());
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::CharacterPixmapTableIndex {
+                        table_index: engine.tagging_data.current_table_index,
+                        char_index: engine.tagging_data.current_record_index,
+                        value: character.pixmap_table_index.unwrap(),
+                    },
+                    engine.bytes.byte_index(),
+                );
+            }
+
             push_grapheme_cluster(
                 engine,
                 self.constant_cluster_codepoints,

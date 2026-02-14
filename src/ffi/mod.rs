@@ -100,6 +100,7 @@ pub struct SPFPixmap {
 pub struct SPFCharacterTable {
     pub use_advance_x: c_uchar,
     pub use_pixmap_index: c_uchar,
+    pub use_pixmap_table_index: c_uchar,
 
     pub has_constant_cluster_codepoints: c_uchar,
     pub constant_cluster_codepoints: c_uchar,
@@ -119,6 +120,8 @@ pub struct SPFCharacter {
     pub advance_x: c_uchar,
     pub has_pixmap_index: c_uchar,
     pub pixmap_index: c_uchar,
+    pub has_pixmap_table_index: c_uchar,
+    pub pixmap_table_index: c_uchar,
 
     pub grapheme_cluster: *mut c_char,
 }

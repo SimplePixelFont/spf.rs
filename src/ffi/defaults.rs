@@ -38,6 +38,7 @@ impl Default for SPFCharacterTable {
         SPFCharacterTable {
             use_advance_x: u8::default(),
             use_pixmap_index: u8::default(),
+            use_pixmap_table_index: u8::default(),
             has_constant_cluster_codepoints: u8::default(),
             constant_cluster_codepoints: u8::default(),
             has_pixmap_table_indexes: u8::default(),
@@ -56,6 +57,8 @@ impl Default for SPFCharacter {
             advance_x: u8::default(),
             has_pixmap_index: u8::default(),
             pixmap_index: u8::default(),
+            has_pixmap_table_index: u8::default(),
+            pixmap_table_index: u8::default(),
             grapheme_cluster: core::ptr::null_mut(),
         }
     }

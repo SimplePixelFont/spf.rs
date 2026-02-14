@@ -144,6 +144,7 @@ impl TableBuilder for CharacterTableBuilder {
                     .pixmap_index
                     .as_ref()
                     .map(|pixmap_index| *pixmap_index.1.borrow()),
+                pixmap_table_index: None,
                 grapheme_cluster: character_builder.grapheme_cluster.clone(),
             });
         }

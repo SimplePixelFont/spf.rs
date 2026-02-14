@@ -99,6 +99,7 @@ pub struct Pixmap {
 pub struct CharacterTable {
     pub use_advance_x: bool,
     pub use_pixmap_index: bool,
+    pub use_pixmap_table_index: bool,
 
     pub constant_cluster_codepoints: Option<u8>,
 
@@ -112,6 +113,7 @@ pub struct CharacterTable {
 pub struct Character {
     pub advance_x: Option<u8>,
     pub pixmap_index: Option<u8>,
+    pub pixmap_table_index: Option<u8>,
 
     pub grapheme_cluster: String,
 }
