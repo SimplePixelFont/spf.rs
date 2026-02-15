@@ -136,6 +136,8 @@ impl TryFrom<Color> for SPFColor {
 
     fn try_from(color: Color) -> Result<Self, Self::Error> {
         Ok(SPFColor {
+            has_color_type: color.color_type.is_some() as c_uchar,
+            color_type: color.color_type.unwrap_or(ColorType::Dynamic) as c_uchar,
             has_custom_alpha: color.custom_alpha.is_some() as c_uchar,
             custom_alpha: color.custom_alpha.unwrap_or(0) as c_uchar,
             r: color.r as c_uchar,
@@ -149,8 +151,14 @@ impl TryInto<Color> for &SPFColor {
     type Error = ConversionError;
 
     fn try_into(self) -> Result<Color, Self::Error> {
+        let color_type = ffi_to_option!(
+            self.has_color_type,
+            // original C value can be lost!
+            ColorType::try_from(self.color_type).unwrap_or_default()
+        );
         let custom_alpha = ffi_to_option!(self.has_custom_alpha, self.custom_alpha);
         Ok(Color {
+            color_type,
             custom_alpha,
             r: self.r,
             g: self.g,
@@ -280,6 +288,7 @@ impl TryFrom<ColorTable> for SPFColorTable {
         let (colors_ptr, colors_len) = vec_to_raw_with_conversion!(table.colors, SPFColor);
 
         Ok(SPFColorTable {
+            use_color_type: table.use_color_type as c_uchar,
             has_constant_alpha: table.constant_alpha.is_some() as c_uchar,
             constant_alpha: table.constant_alpha.unwrap_or(0) as c_uchar,
             colors: colors_ptr,
@@ -297,6 +306,7 @@ impl TryInto<ColorTable> for &SPFColorTable {
             let constant_alpha = ffi_to_option!(self.has_constant_alpha, self.constant_alpha);
 
             Ok(ColorTable {
+                use_color_type: self.use_color_type != 0,
                 constant_alpha,
                 colors,
             })

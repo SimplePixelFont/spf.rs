@@ -67,6 +67,7 @@ impl Default for SPFCharacter {
 impl Default for SPFColorTable {
     fn default() -> Self {
         SPFColorTable {
+            use_color_type: u8::default(),
             has_constant_alpha: u8::default(),
             constant_alpha: u8::default(),
             colors: core::ptr::null_mut(),
@@ -79,6 +80,8 @@ impl Default for SPFColorTable {
 impl Default for SPFColor {
     fn default() -> Self {
         SPFColor {
+            has_color_type: u8::default(),
+            color_type: u8::default(),
             has_custom_alpha: u8::default(),
             custom_alpha: u8::default(),
             r: u8::default(),

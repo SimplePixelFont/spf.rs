@@ -129,6 +129,8 @@ pub struct SPFCharacter {
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFColorTable {
+    pub use_color_type: c_uchar,
+
     pub has_constant_alpha: c_uchar,
     pub constant_alpha: c_uchar,
 
@@ -139,8 +141,12 @@ pub struct SPFColorTable {
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFColor {
+    pub has_color_type: c_uchar,
+    pub color_type: c_uchar,
+
     pub has_custom_alpha: c_uchar,
     pub custom_alpha: c_uchar,
+
     pub r: c_uchar,
     pub g: c_uchar,
     pub b: c_uchar,
