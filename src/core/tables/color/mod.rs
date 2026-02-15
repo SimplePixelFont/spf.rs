@@ -16,8 +16,8 @@
 
 use crate::core::byte::ByteReader;
 use crate::core::{
-    byte, Color, ColorTable, DeserializeEngine, DeserializeError, SerializeEngine, SerializeError,
-    Table, TableIdentifier, TagWriter,
+    byte, Color, ColorTable, ColorType, DeserializeEngine, DeserializeError, SerializeEngine,
+    SerializeError, Table, TableIdentifier, TagWriter,
 };
 use crate::{vec, Vec};
 
@@ -29,13 +29,19 @@ impl ColorTable {
         &mut self,
         engine: &mut DeserializeEngine<R, T>,
     ) {
-        let _modifier_flags = engine.bytes.next();
+        let modifier_flags = engine.bytes.next();
+        self.use_color_type = byte::get_bit(modifier_flags, 0);
+
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::ColorTableModifierFlags {
                 table_index: engine.tagging_data.current_table_index,
             },
-            vec![],
+            #[cfg(feature = "tagging")]
+            vec![TagKind::ColorTableUseColorType {
+                table_index: engine.tagging_data.current_table_index,
+                value: self.use_color_type,
+            }],
             engine.bytes.byte_index(),
         );
     }
@@ -159,6 +165,19 @@ impl Table for ColorTable {
             let color_start = engine.bytes.byte_index();
 
             let mut color = Color::default();
+            if color_table.use_color_type {
+                color.color_type = Some(ColorType::try_from(engine.bytes.next())?);
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::ColorColorType {
+                        table_index: engine.tagging_data.current_table_index,
+                        char_index: engine.tagging_data.current_record_index,
+                        value: color.color_type.unwrap(),
+                    },
+                    engine.bytes.byte_index(),
+                );
+            }
+
             if color_table.constant_alpha.is_none() {
                 color.custom_alpha = Some(engine.bytes.next());
                 #[cfg(feature = "tagging")]
@@ -257,6 +276,19 @@ impl Table for ColorTable {
             #[cfg(feature = "tagging")]
             let color_start = engine.bytes.byte_index();
 
+            if self.use_color_type {
+                engine.bytes.push(color.color_type.unwrap() as u8);
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::ColorColorType {
+                        table_index: engine.tagging_data.current_table_index,
+                        char_index: engine.tagging_data.current_record_index,
+                        value: color.color_type.unwrap(),
+                    },
+                    engine.bytes.byte_index(),
+                );
+            }
+
             if self.constant_alpha.is_none() {
                 engine.bytes.push(color.custom_alpha.unwrap());
                 #[cfg(feature = "tagging")]
@@ -334,13 +366,22 @@ impl ColorTable {
         );
     }
     pub(crate) fn push_modifier_flags<T: TagWriter>(&self, engine: &mut SerializeEngine<T>) {
-        engine.bytes.push(0b00000000);
+        let mut modifier_flags = 0b00000000;
+        if self.use_color_type {
+            modifier_flags |= 0b00000001;
+        }
+
+        engine.bytes.push(modifier_flags);
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::ColorTableModifierFlags {
                 table_index: engine.tagging_data.current_table_index,
             },
-            vec![],
+            #[cfg(feature = "tagging")]
+            vec![TagKind::ColorTableUseColorType {
+                table_index: engine.tagging_data.current_table_index,
+                value: self.use_color_type,
+            }],
             engine.bytes.byte_index(),
         );
     }

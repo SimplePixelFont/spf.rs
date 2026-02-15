@@ -266,6 +266,10 @@ pub enum TagKind {
     ColorTableModifierFlags {
         table_index: u8,
     },
+    ColorTableUseColorType {
+        table_index: u8,
+        value: bool,
+    },
 
     ColorTableConfigurations {
         table_index: u8,
@@ -298,6 +302,11 @@ pub enum TagKind {
     ColorRecord {
         table_index: u8,
         color_index: u8,
+    },
+    ColorColorType {
+        table_index: u8,
+        char_index: u8,
+        value: ColorType,
     },
     ColorCustomAlpha {
         table_index: u8,
