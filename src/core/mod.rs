@@ -163,9 +163,8 @@ pub enum FontType {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FontTable {
     pub character_table_indexes: Option<Vec<u8>>,
-    pub pixmap_table_indexes: Option<Vec<u8>>,
 
-    pub families: Vec<Font>,
+    pub fonts: Vec<Font>,
 }
 
 #[derive(Default, Debug, Clone)]
