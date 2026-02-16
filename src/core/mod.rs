@@ -71,6 +71,7 @@ pub struct Layout {
     pub character_tables: Vec<CharacterTable>,
     pub color_tables: Vec<ColorTable>,
     pub pixmap_tables: Vec<PixmapTable>,
+    pub font_tables: Vec<FontTable>,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -174,7 +175,7 @@ pub struct Font {
     pub author: String,
     pub font_type: FontType,
     pub version: u8,
-    pub character_tables: Vec<u8>,
+    pub character_table_indexes: Vec<u8>,
 }
 
 #[repr(u8)]
@@ -183,6 +184,7 @@ enum TableIdentifier {
     Character = 0b00000001,
     Pixmap    = 0b00000010,
     Color     = 0b00000011,
+    Font      = 0b00000100,
 }
 
 impl TryFrom<u8> for TableIdentifier {
@@ -193,6 +195,7 @@ impl TryFrom<u8> for TableIdentifier {
             0b00000001 => Ok(TableIdentifier::Character),
             0b00000010 => Ok(TableIdentifier::Pixmap),
             0b00000011 => Ok(TableIdentifier::Color),
+            0b00000100 => Ok(TableIdentifier::Font),
             _ => Err(DeserializeError::UnsupportedTableIdentifier),
         }
     }
@@ -216,6 +219,19 @@ impl TryFrom<u8> for ColorType {
         match value {
             0 => Ok(ColorType::Dynamic),
             1 => Ok(ColorType::Absolute),
+            _ => Err(DeserializeError::UnsupportedColorType),
+        }
+    }
+}
+
+impl TryFrom<u8> for FontType {
+    type Error = DeserializeError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(FontType::Regular),
+            1 => Ok(FontType::Bold),
+            2 => Ok(FontType::Italic),
             _ => Err(DeserializeError::UnsupportedColorType),
         }
     }
@@ -281,7 +297,7 @@ pub(crate) fn deserialize_layout<R: ByteReader, T: TagWriter>(
     deserialize::next_header(engine)?;
 
     while engine.bytes.index() < engine.bytes.len() - 1 {
-        match engine.bytes.next().try_into().unwrap() {
+        match engine.bytes.next().try_into()? {
             TableIdentifier::Character => {
                 #[cfg(feature = "tagging")]
                 {
@@ -308,6 +324,14 @@ pub(crate) fn deserialize_layout<R: ByteReader, T: TagWriter>(
                 }
                 let table = ColorTable::deserialize(engine)?;
                 engine.layout.color_tables.push(table);
+            }
+            TableIdentifier::Font => {
+                #[cfg(feature = "tagging")]
+                {
+                    engine.tagging_data.current_table_index = engine.layout.font_tables.len() as u8;
+                }
+                let table = FontTable::deserialize(engine)?;
+                engine.layout.font_tables.push(table);
             }
         };
     }
@@ -356,6 +380,13 @@ pub(crate) fn serialize_layout<T: TagWriter>(
             engine.tagging_data.current_table_index = index as u8;
         }
         color_table.serialize(engine)?;
+    }
+    for (index, font_table) in engine.layout.font_tables.iter().enumerate() {
+        #[cfg(feature = "tagging")]
+        {
+            engine.tagging_data.current_table_index = index as u8;
+        }
+        font_table.serialize(engine)?;
     }
 
     Ok(())

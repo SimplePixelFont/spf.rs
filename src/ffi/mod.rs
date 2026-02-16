@@ -62,6 +62,8 @@ pub struct SPFLayout {
     pub color_tables_length: c_ulong,
     pub pixmap_tables: *mut SPFPixmapTable,
     pub pixmap_tables_length: c_ulong,
+    pub font_tables: *mut SPFFontTable,
+    pub font_tables_length: c_ulong,
 }
 
 #[derive(Debug, Clone)]
@@ -150,6 +152,28 @@ pub struct SPFColor {
     pub r: c_uchar,
     pub g: c_uchar,
     pub b: c_uchar,
+}
+
+#[derive(Debug, Clone)]
+#[repr(C)]
+pub struct SPFFontTable {
+    pub has_character_table_indexes: c_uchar,
+    pub character_table_indexes: *mut c_uchar,
+    pub character_table_indexes_length: c_ulong,
+
+    pub fonts: *mut SPFFont,
+    pub fonts_length: c_ulong,
+}
+
+#[derive(Debug, Clone)]
+#[repr(C)]
+pub struct SPFFont {
+    pub name: *mut c_char,
+    pub author: *mut c_char,
+    pub font_type: c_uchar,
+    pub version: c_uchar,
+    pub character_table_indexes: *mut c_uchar,
+    pub character_tables_indexes_length: c_ulong,
 }
 
 #[derive(Debug, Clone, Copy)]

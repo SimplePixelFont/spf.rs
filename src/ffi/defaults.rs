@@ -29,6 +29,8 @@ impl Default for SPFLayout {
             color_tables_length: 0,
             pixmap_tables: core::ptr::null_mut(),
             pixmap_tables_length: 0,
+            font_tables: core::ptr::null_mut(),
+            font_tables_length: 0,
         }
     }
 }
@@ -120,6 +122,31 @@ impl Default for SPFPixmap {
             custom_bits_per_pixel: u8::default(),
             data: core::ptr::null_mut(),
             data_length: 0,
+        }
+    }
+}
+
+impl Default for SPFFontTable {
+    fn default() -> Self {
+        SPFFontTable {
+            has_character_table_indexes: u8::default(),
+            character_table_indexes: core::ptr::null_mut(),
+            character_table_indexes_length: 0,
+            fonts: core::ptr::null_mut(),
+            fonts_length: 0,
+        }
+    }
+}
+
+impl Default for SPFFont {
+    fn default() -> Self {
+        SPFFont {
+            name: core::ptr::null_mut(),
+            author: core::ptr::null_mut(),
+            font_type: u8::default(),
+            version: u8::default(),
+            character_table_indexes: core::ptr::null_mut(),
+            character_tables_indexes_length: 0,
         }
     }
 }
