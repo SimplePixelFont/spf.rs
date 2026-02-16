@@ -121,14 +121,27 @@ pub struct Character {
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ColorTable {
+    pub use_color_type: bool,
+
     pub constant_alpha: Option<u8>,
 
     pub colors: Vec<Color>,
 }
 
+#[repr(u8)]
+#[non_exhaustive]
+#[derive(Default, Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum ColorType {
+    #[default]
+    Dynamic,
+    Absolute,
+}
+
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Color {
+    pub color_type: Option<ColorType>,
     pub custom_alpha: Option<u8>,
     pub r: u8,
     pub g: u8,
@@ -167,11 +180,24 @@ impl TryFrom<u8> for Version {
     }
 }
 
+impl TryFrom<u8> for ColorType {
+    type Error = DeserializeError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(ColorType::Dynamic),
+            1 => Ok(ColorType::Absolute),
+            _ => Err(DeserializeError::UnsupportedColorType),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum DeserializeError {
     UnexpectedEndOfFile,
     InvalidSignature,
     UnsupportedVersion,
+    UnsupportedColorType,
     UnsupportedTableIdentifier,
 }
 

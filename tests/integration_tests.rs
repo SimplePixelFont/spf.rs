@@ -69,15 +69,18 @@ mod tests {
 
     fn sample_color_table() -> ColorTable {
         ColorTable {
+            use_color_type: false,
             constant_alpha: None,
             colors: vec![
                 Color {
+                    color_type: None,
                     custom_alpha: Some(0),
                     r: 0,
                     g: 0,
                     b: 0,
                 },
                 Color {
+                    color_type: None,
                     custom_alpha: Some(255),
                     r: 36,
                     g: 174,
