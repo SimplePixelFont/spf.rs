@@ -149,6 +149,36 @@ pub struct Color {
 }
 
 #[repr(u8)]
+#[non_exhaustive]
+#[derive(Default, Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum FontType {
+    #[default]
+    Regular,
+    Bold,
+    Italic,
+}
+
+#[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct FontTable {
+    pub character_table_indexes: Option<Vec<u8>>,
+    pub pixmap_table_indexes: Option<Vec<u8>>,
+
+    pub families: Vec<Font>,
+}
+
+#[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Font {
+    pub name: String,
+    pub author: String,
+    pub font_type: FontType,
+    pub version: u8,
+    pub character_tables: Vec<u8>,
+}
+
+#[repr(u8)]
 #[rustfmt::skip]
 enum TableIdentifier {
     Character = 0b00000001,
