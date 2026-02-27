@@ -30,8 +30,8 @@ impl TryFrom<Font> for SPFFont {
         Ok(SPFFont {
             name: name_ptr,
             author: author_ptr,
-            font_type: font.font_type as c_uchar,
             version: font.version as c_uchar,
+            font_type: font.font_type as c_uchar,
             character_table_indexes: character_table_indexes_ptr,
             character_tables_indexes_length: character_table_indexes_len as c_ulong,
         })
@@ -55,8 +55,8 @@ impl TryInto<Font> for &SPFFont {
             Ok(Font {
                 name,
                 author,
-                font_type: FontType::try_from(self.font_type).unwrap_or_default(),
                 version: self.version,
+                font_type: FontType::try_from(self.font_type).unwrap_or_default(),
                 character_table_indexes,
             })
         }

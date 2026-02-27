@@ -170,8 +170,8 @@ pub struct SPFFontTable {
 pub struct SPFFont {
     pub name: *mut c_char,
     pub author: *mut c_char,
-    pub font_type: c_uchar,
     pub version: c_uchar,
+    pub font_type: c_uchar,
     pub character_table_indexes: *mut c_uchar,
     pub character_tables_indexes_length: c_ulong,
 }

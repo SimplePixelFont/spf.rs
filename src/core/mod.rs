@@ -173,8 +173,8 @@ pub struct FontTable {
 pub struct Font {
     pub name: String,
     pub author: String,
-    pub font_type: FontType,
     pub version: u8,
+    pub font_type: FontType,
     pub character_table_indexes: Vec<u8>,
 }
 

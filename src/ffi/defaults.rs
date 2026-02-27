@@ -143,8 +143,8 @@ impl Default for SPFFont {
         SPFFont {
             name: core::ptr::null_mut(),
             author: core::ptr::null_mut(),
-            font_type: u8::default(),
             version: u8::default(),
+            font_type: u8::default(),
             character_table_indexes: core::ptr::null_mut(),
             character_tables_indexes_length: 0,
         }
