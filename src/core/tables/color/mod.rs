@@ -171,7 +171,7 @@ impl Table for ColorTable {
                 engine.tags.tag_byte(
                     TagKind::ColorColorType {
                         table_index: engine.tagging_data.current_table_index,
-                        char_index: engine.tagging_data.current_record_index,
+                        color_index: engine.tagging_data.current_record_index,
                         value: color.color_type.unwrap(),
                     },
                     engine.bytes.byte_index(),
@@ -282,7 +282,7 @@ impl Table for ColorTable {
                 engine.tags.tag_byte(
                     TagKind::ColorColorType {
                         table_index: engine.tagging_data.current_table_index,
-                        char_index: engine.tagging_data.current_record_index,
+                        color_index: engine.tagging_data.current_record_index,
                         value: color.color_type.unwrap(),
                     },
                     engine.bytes.byte_index(),
