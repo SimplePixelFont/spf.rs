@@ -18,8 +18,8 @@ use crate::core::byte::ByteReader;
 #[cfg(feature = "tagging")]
 use crate::core::{ByteIndex, Span, TableType, TagKind};
 use crate::core::{
-    Character, CharacterTable, DeserializeEngine, DeserializeError, FontTable, SerializeEngine,
-    SerializeError, Table, TagWriter,
+    DeserializeEngine, DeserializeError, FontTable, SerializeEngine, SerializeError, Table,
+    TagWriter,
 };
 
 pub(crate) mod serialize;
@@ -39,95 +39,57 @@ impl Table for FontTable {
         #[cfg(feature = "tagging")]
         let table_start = engine.bytes.byte_index();
 
-        // self.push_table_identifier(engine);
-        // self.push_modifier_flags(engine);
-        // self.push_configurations(engine);
-        // self.push_table_links(engine)?;
+        self.push_table_identifier(engine);
+        self.push_modifier_flags(engine);
+        self.push_configurations(engine);
+        self.push_table_links(engine)?;
 
-        // // record length
-        // let character_count = self.characters.len();
-        // if character_count > 255 {
-        //     return Err(SerializeError::StaticVectorTooLarge);
-        // }
-        // engine.bytes.push(character_count as u8);
-        // #[cfg(feature = "tagging")]
-        // engine.tags.tag_byte(
-        //     TagKind::CharacterTableCharacterCount {
-        //         table_index: engine.tagging_data.current_table_index,
-        //         count: character_count as u8,
-        //     },
-        //     engine.bytes.byte_index(),
-        // );
+        // record length
+        let font_count = self.fonts.len();
+        if font_count > 255 {
+            return Err(SerializeError::StaticVectorTooLarge);
+        }
+        engine.bytes.push(font_count as u8);
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_byte(
+            TagKind::FontTableFontCount {
+                table_index: engine.tagging_data.current_table_index,
+                count: font_count as u8,
+            },
+            engine.bytes.byte_index(),
+        );
 
-        // // records
-        // for (index, character) in self.characters.iter().enumerate() {
-        //     #[cfg(feature = "tagging")]
-        //     {
-        //         engine.tagging_data.current_record_index = index as u8;
-        //     }
-        //     #[cfg(feature = "tagging")]
-        //     let character_start = engine.bytes.byte_index();
+        // records
+        for (index, font) in self.fonts.iter().enumerate() {
+            #[cfg(feature = "tagging")]
+            {
+                engine.tagging_data.current_record_index = index as u8;
+            }
+            #[cfg(feature = "tagging")]
+            let font_start = engine.bytes.byte_index();
 
-        //     if self.use_advance_x {
-        //         engine.bytes.push(character.advance_x.unwrap());
-        //         #[cfg(feature = "tagging")]
-        //         engine.tags.tag_byte(
-        //             TagKind::CharacterAdvanceX {
-        //                 table_index: engine.tagging_data.current_table_index,
-        //                 char_index: engine.tagging_data.current_record_index,
-        //                 value: character.advance_x.unwrap(),
-        //             },
-        //             engine.bytes.byte_index(),
-        //         );
-        //     }
-        //     if self.use_pixmap_index {
-        //         engine.bytes.push(character.pixmap_index.unwrap());
-        //         #[cfg(feature = "tagging")]
-        //         engine.tags.tag_byte(
-        //             TagKind::CharacterPixmapIndex {
-        //                 table_index: engine.tagging_data.current_table_index,
-        //                 char_index: engine.tagging_data.current_record_index,
-        //                 value: character.pixmap_index.unwrap(),
-        //             },
-        //             engine.bytes.byte_index(),
-        //         );
-        //     }
-        //     if self.use_pixmap_table_index {
-        //         engine.bytes.push(character.pixmap_table_index.unwrap());
-        //         #[cfg(feature = "tagging")]
-        //         engine.tags.tag_byte(
-        //             TagKind::CharacterPixmapTableIndex {
-        //                 table_index: engine.tagging_data.current_table_index,
-        //                 char_index: engine.tagging_data.current_record_index,
-        //                 value: character.pixmap_table_index.unwrap(),
-        //             },
-        //             engine.bytes.byte_index(),
-        //         );
-        //     }
+            push_name(engine, &font.name);
+            push_author(engine, &font.author);
+            push_version(engine, font.version);
+            push_font_type(engine, font.font_type);
 
-        //     push_grapheme_cluster(
-        //         engine,
-        //         self.constant_cluster_codepoints,
-        //         &character.grapheme_cluster,
-        //     );
+            #[cfg(feature = "tagging")]
+            engine.tags.tag_span(
+                TagKind::FontRecord {
+                    table_index: engine.tagging_data.current_table_index,
+                    font_index: engine.tagging_data.current_record_index,
+                },
+                Span::new(font_start, engine.bytes.byte_index()),
+            );
+        }
 
-        //     #[cfg(feature = "tagging")]
-        //     engine.tags.tag_span(
-        //         TagKind::CharacterRecord {
-        //             table_index: engine.tagging_data.current_table_index,
-        //             char_index: engine.tagging_data.current_record_index,
-        //         },
-        //         Span::new(character_start, engine.bytes.byte_index()),
-        //     );
-        // }
-
-        // #[cfg(feature = "tagging")]
-        // engine.tags.tag_span(
-        //     TagKind::CharacterTable {
-        //         index: engine.tagging_data.current_table_index,
-        //     },
-        //     Span::new(table_start, engine.bytes.byte_index()),
-        // );
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_span(
+            TagKind::FontTable {
+                index: engine.tagging_data.current_table_index,
+            },
+            Span::new(table_start, engine.bytes.byte_index()),
+        );
         Ok(())
     }
 }
