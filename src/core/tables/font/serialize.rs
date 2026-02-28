@@ -17,7 +17,7 @@
 use crate::core::{
     FontTable, FontType, SerializeEngine, SerializeError, TableIdentifier, TagWriter,
 };
-use crate::{vec, String};
+use crate::vec;
 
 #[cfg(feature = "tagging")]
 use crate::tagging::{Span, TagKind};
@@ -146,14 +146,14 @@ impl FontTable {
     }
 }
 
-pub(crate) fn push_string<T: TagWriter>(engine: &mut SerializeEngine<T>, string: &String) {
+pub(crate) fn push_string<T: TagWriter>(engine: &mut SerializeEngine<T>, string: &str) {
     string.bytes().for_each(|byte| {
         engine.bytes.push(byte);
     });
     engine.bytes.push(0);
 }
 
-pub(crate) fn push_name<T: TagWriter>(engine: &mut SerializeEngine<T>, string: &String) {
+pub(crate) fn push_name<T: TagWriter>(engine: &mut SerializeEngine<T>, string: &str) {
     #[cfg(feature = "tagging")]
     let string_start = engine.bytes.byte_index();
 
@@ -164,13 +164,13 @@ pub(crate) fn push_name<T: TagWriter>(engine: &mut SerializeEngine<T>, string: &
         TagKind::FontName {
             table_index: engine.tagging_data.current_table_index,
             font_index: engine.tagging_data.current_record_index,
-            value: string.clone(),
+            value: string.to_owned(),
         },
         Span::new(string_start, engine.bytes.byte_index()),
     );
 }
 
-pub(crate) fn push_author<T: TagWriter>(engine: &mut SerializeEngine<T>, string: &String) {
+pub(crate) fn push_author<T: TagWriter>(engine: &mut SerializeEngine<T>, string: &str) {
     #[cfg(feature = "tagging")]
     let string_start = engine.bytes.byte_index();
 
@@ -181,7 +181,7 @@ pub(crate) fn push_author<T: TagWriter>(engine: &mut SerializeEngine<T>, string:
         TagKind::FontAuthor {
             table_index: engine.tagging_data.current_table_index,
             font_index: engine.tagging_data.current_record_index,
-            value: string.clone(),
+            value: string.to_owned(),
         },
         Span::new(string_start, engine.bytes.byte_index()),
     );
@@ -211,4 +211,53 @@ pub(crate) fn push_font_type<T: TagWriter>(engine: &mut SerializeEngine<T>, font
         },
         engine.bytes.byte_index(),
     );
+}
+
+pub(crate) fn push_character_table_indexes<T: TagWriter>(
+    engine: &mut SerializeEngine<T>,
+    character_table_indexes: &Vec<u8>,
+) -> Result<(), SerializeError> {
+    #[cfg(feature = "tagging")]
+    let start = engine.bytes.byte_index();
+
+    let character_table_indexes_length = character_table_indexes.len();
+    if character_table_indexes_length > 255 {
+        return Err(SerializeError::StaticVectorTooLarge);
+    }
+
+    engine.bytes.push(character_table_indexes_length as u8);
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_byte(
+        TagKind::FontCharacterTableIndexesLength {
+            table_index: engine.tagging_data.current_table_index,
+            font_index: engine.tagging_data.current_record_index,
+            count: character_table_indexes_length as u8,
+        },
+        engine.bytes.byte_index(),
+    );
+
+    for character_table_index in character_table_indexes {
+        engine.bytes.push(*character_table_index);
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_byte(
+            TagKind::FontCharacterTableIndexesIndex {
+                table_index: engine.tagging_data.current_table_index,
+                font_index: engine.tagging_data.current_record_index,
+                index: *character_table_index,
+            },
+            engine.bytes.byte_index(),
+        );
+    }
+
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_span(
+        TagKind::FontCharacterTableIndexes {
+            table_index: engine.tagging_data.current_table_index,
+            font_index: engine.tagging_data.current_record_index,
+            value: character_table_indexes.clone(),
+        },
+        Span::new(start, engine.bytes.byte_index()),
+    );
+
+    Ok(())
 }

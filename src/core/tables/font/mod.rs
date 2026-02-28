@@ -72,6 +72,7 @@ impl Table for FontTable {
             next_author(engine, &mut font);
             next_version(engine, &mut font);
             next_font_type(engine, &mut font)?;
+            next_character_table_indexes(engine, &mut font);
             font_table.fonts.push(font);
 
             #[cfg(feature = "tagging")]
@@ -135,6 +136,7 @@ impl Table for FontTable {
             push_author(engine, &font.author);
             push_version(engine, font.version);
             push_font_type(engine, font.font_type);
+            push_character_table_indexes(engine, &font.character_table_indexes)?;
 
             #[cfg(feature = "tagging")]
             engine.tags.tag_span(

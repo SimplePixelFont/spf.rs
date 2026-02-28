@@ -255,3 +255,49 @@ pub(crate) fn next_font_type<R: ByteReader, T: TagWriter>(
 
     Ok(())
 }
+
+pub(crate) fn next_character_table_indexes<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
+    font: &mut Font,
+) {
+    #[cfg(feature = "tagging")]
+    let start = engine.bytes.byte_index();
+
+    let character_table_indexes_length = engine.bytes.next();
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_byte(
+        TagKind::FontCharacterTableIndexesLength {
+            table_index: engine.tagging_data.current_table_index,
+            font_index: engine.tagging_data.current_record_index,
+            count: character_table_indexes_length,
+        },
+        engine.bytes.byte_index(),
+    );
+
+    let mut character_table_indexes = Vec::new();
+    for _ in 0..character_table_indexes_length {
+        let character_table_index = engine.bytes.next();
+        character_table_indexes.push(character_table_index);
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_byte(
+            TagKind::FontCharacterTableIndexesIndex {
+                table_index: engine.tagging_data.current_table_index,
+                font_index: engine.tagging_data.current_record_index,
+                index: character_table_index,
+            },
+            engine.bytes.byte_index(),
+        );
+    }
+
+    font.character_table_indexes = character_table_indexes;
+
+    #[cfg(feature = "tagging")]
+    engine.tags.tag_span(
+        TagKind::FontCharacterTableIndexes {
+            table_index: engine.tagging_data.current_table_index,
+            font_index: engine.tagging_data.current_record_index,
+            value: font.character_table_indexes.clone(),
+        },
+        Span::new(start, engine.bytes.byte_index()),
+    );
+}

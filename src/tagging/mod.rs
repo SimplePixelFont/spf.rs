@@ -408,6 +408,16 @@ pub enum TagKind {
         font_index: u8,
         value: Vec<u8>,
     },
+    FontCharacterTableIndexesLength {
+        table_index: u8,
+        font_index: u8,
+        count: u8,
+    },
+    FontCharacterTableIndexesIndex {
+        table_index: u8,
+        font_index: u8,
+        index: u8,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
