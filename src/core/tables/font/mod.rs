@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::core::byte::ByteReader;
+use crate::core::{byte::ByteReader, Font};
 #[cfg(feature = "tagging")]
 use crate::core::{ByteIndex, Span, TableType, TagKind};
 use crate::core::{
@@ -22,6 +22,8 @@ use crate::core::{
     TagWriter,
 };
 
+pub(crate) mod deserialize;
+pub(crate) use deserialize::*;
 pub(crate) mod serialize;
 pub(crate) use serialize::*;
 
@@ -29,7 +31,68 @@ impl Table for FontTable {
     fn deserialize<R: ByteReader, T: TagWriter>(
         engine: &mut DeserializeEngine<R, T>,
     ) -> Result<Self, DeserializeError> {
-        Ok(Self::default())
+        #[cfg(feature = "tagging")]
+        let table_start = engine.bytes.byte_index();
+        #[cfg(feature = "tagging")]
+        let table_start = ByteIndex::new(table_start.byte - 1, table_start.bit);
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_byte(
+            TagKind::TableIdentifier {
+                table_type: TableType::Font,
+            },
+            engine.bytes.byte_index(),
+        );
+
+        let mut font_table = FontTable::default();
+        font_table.next_modifer_flags(engine);
+        font_table.next_configurations(engine);
+        font_table.next_table_links(engine)?;
+
+        let font_count = engine.bytes.next();
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_byte(
+            TagKind::FontTableFontCount {
+                table_index: engine.tagging_data.current_table_index,
+                count: font_count,
+            },
+            engine.bytes.byte_index(),
+        );
+
+        for index in 0..font_count {
+            #[cfg(feature = "tagging")]
+            {
+                engine.tagging_data.current_record_index = index;
+            }
+            #[cfg(feature = "tagging")]
+            let font_start = engine.bytes.byte_index();
+
+            let mut font = Font::default();
+
+            next_name(engine, &mut font);
+            next_author(engine, &mut font);
+            next_version(engine, &mut font);
+            next_font_type(engine, &mut font)?;
+            font_table.fonts.push(font);
+
+            #[cfg(feature = "tagging")]
+            engine.tags.tag_span(
+                TagKind::FontRecord {
+                    table_index: engine.tagging_data.current_table_index,
+                    font_index: engine.tagging_data.current_record_index,
+                },
+                Span::new(font_start, engine.bytes.byte_index()),
+            );
+        }
+
+        #[cfg(feature = "tagging")]
+        engine.tags.tag_span(
+            TagKind::FontTable {
+                index: engine.tagging_data.current_table_index,
+            },
+            Span::new(table_start, engine.bytes.byte_index()),
+        );
+
+        Ok(font_table)
     }
 
     fn serialize<T: TagWriter>(

@@ -244,6 +244,7 @@ pub enum DeserializeError {
     UnsupportedVersion,
     UnsupportedColorType,
     UnsupportedTableIdentifier,
+    UnsupportedFontType,
 }
 
 #[derive(Debug)]
