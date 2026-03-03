@@ -38,7 +38,7 @@ jobs:
           labelColor: "#2d3136"
           color: "#00bfa3"
           logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/rust_orange.png"
-          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram5x8-light.spf"
 
       - name: failing
         if: needs.build.outputs.outcome == 'failure'
@@ -50,7 +50,7 @@ jobs:
           labelColor: "#2d3136"
           color: "#d94a69"
           logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/rust_orange.png"
-          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram-light.spf"
+          font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram5x8-light.spf"
 
       - name: deploy
         uses: exuanbo/actions-deploy-gist@v1
