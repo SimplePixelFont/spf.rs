@@ -17,7 +17,7 @@
 use crate::core::{
     FontTable, FontType, SerializeEngine, SerializeError, TableIdentifier, TagWriter,
 };
-use crate::vec;
+use crate::{vec, Vec};
 
 #[cfg(feature = "tagging")]
 use crate::tagging::{Span, TagKind};
