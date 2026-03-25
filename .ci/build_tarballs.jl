@@ -26,7 +26,7 @@ cd spf.rs
 mkdir target
 cargo rustc --release --no-default-features --features "ffi,std" --crate-type cdylib --crate-type staticlib -- -C target-feature=-crt-static
 echo "------"
-ls target
+ls -R target
 echo "------"
 ls target/release
 echo "------"
