@@ -32,9 +32,9 @@ ls target/release
 echo "------"
 echo ${rust_target}
 echo "------"
-echo i686-unknown-linux-musl
+ls i686-unknown-linux-musl
 echo "------"
-echo i686-unknown-linux-musl/release
+ls i686-unknown-linux-musl/release
 echo "------"
 
 if [[ "${rust_target}" == "x86_64-pc-windows-gnu" ]]; then
