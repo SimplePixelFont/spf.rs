@@ -25,15 +25,10 @@ cd $WORKSPACE/srcdir
 cd spf.rs
 mkdir target
 cargo rustc --release --no-default-features --features "ffi,std" --crate-type cdylib --crate-type staticlib -- -C target-feature=-crt-static
-echo "------"
-ls -R target
-echo "------"
-echo ${rust_target}
-echo "------"
 
 if [[ "${rust_target}" == "x86_64-pc-windows-gnu" ]]; then
     install -D -m 755 "target/${rust_target}/release/spf.${dlext}" "${libdir}/libspf.${dlext}"
-elif [[ "${rust_target}" == "i686-unknown-linux-musl" ]]; then
+elif [[ "${rust_target}" == "i686-unknown-linux-musl" || "${rust_target}" == "x86_64-unknown-linux-musl" || "${rust_target}" == "aarch64-unknown-linux-musl" ]]; then
     install -D -m 755 "target/${rust_target}/release/deps/libspf.${dlext}" "${libdir}/libspf.${dlext}"
 else
     install -D -m 755 "target/${rust_target}/release/libspf.${dlext}" "${libdir}/libspf.${dlext}"
