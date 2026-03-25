@@ -24,8 +24,10 @@ script = raw"""
 cd $WORKSPACE/srcdir
 cd spf.rs
 mkdir target
-cargo rustc --release --no-default-features --features "ffi,std" --crate-type cdylib --crate-type staticlib -- -C target-feature=-crt-static
-
+RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --no-default-features --features "ffi,std" --crate-type cdylib --crate-type staticlib
+echo "-----"
+ls -R target
+echo "-----"
 if [[ "${rust_target}" == "x86_64-pc-windows-gnu" ]]; then
     install -D -m 755 "target/${rust_target}/release/spf.${dlext}" "${libdir}/libspf.${dlext}"
 elif [[ "${rust_target}" == "i686-unknown-linux-musl" || "${rust_target}" == "x86_64-unknown-linux-musl" || "${rust_target}" == "aarch64-unknown-linux-musl" ]]; then
