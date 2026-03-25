@@ -32,6 +32,10 @@ ls target/release
 echo "------"
 echo ${rust_target}
 echo "------"
+echo i686-unknown-linux-musl
+echo "------"
+echo i686-unknown-linux-musl/release
+echo "------"
 
 if [[ "${rust_target}" == "x86_64-pc-windows-gnu" ]]; then
     install -D -m 755 "target/${rust_target}/release/spf.${dlext}" "${libdir}/libspf.${dlext}"
