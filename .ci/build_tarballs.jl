@@ -28,13 +28,7 @@ cargo rustc --release --no-default-features --features "ffi,std" --crate-type cd
 echo "------"
 ls -R target
 echo "------"
-ls target/release
-echo "------"
 echo ${rust_target}
-echo "------"
-ls i686-unknown-linux-musl
-echo "------"
-ls i686-unknown-linux-musl/release
 echo "------"
 
 if [[ "${rust_target}" == "x86_64-pc-windows-gnu" ]]; then
