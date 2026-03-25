@@ -25,6 +25,7 @@ cd $WORKSPACE/srcdir
 cd spf.rs
 mkdir target
 cargo rustc --release --no-default-features --features "ffi,std" --crate-type cdylib --crate-type staticlib -- -C target-feature=-crt-static
+ls target
 
 if [[ "${rust_target}" == "x86_64-pc-windows-gnu" ]]; then
     install -D -m 755 "target/${rust_target}/release/spf.${dlext}" "${libdir}/libspf.${dlext}"
