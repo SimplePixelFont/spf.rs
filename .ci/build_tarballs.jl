@@ -24,7 +24,7 @@ script = raw"""
 cd $WORKSPACE/srcdir
 cd spf.rs
 mkdir target
-RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --no-default-features --features "ffi,std" --crate-type cdylib --crate-type staticlib
+RUSTFLAGS="-C target-feature=-crt-static --crate-type cdylib --crate-type staticlib" cargo rustc --release --no-default-features --features "ffi,std"
 echo "-----"
 ls -R target
 echo "-----"
