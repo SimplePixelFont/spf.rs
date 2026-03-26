@@ -20,7 +20,7 @@ jl_platforms = [
     "'armv7l-linux-gnueabihf'"
     "'powerpc64le-linux-gnu'"
     # "'riscv64-linux-gnu'" no rust toolchain for this platform
-    # "'i686-linux-musl'" # fails to build on this platform
+    "'i686-linux-musl'"
     "'x86_64-linux-musl'"
     "'aarch64-linux-musl'"
     "'armv6l-linux-musleabihf'"

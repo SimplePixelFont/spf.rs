@@ -28,6 +28,12 @@ cargo rustc --release --no-default-features --features "ffi,std" --crate-type cd
 
 if [[ "${rust_target}" == "x86_64-pc-windows-gnu" ]]; then
     install -D -m 755 "target/${rust_target}/release/spf.${dlext}" "${libdir}/libspf.${dlext}"
+elif [[ "${rust_target}" == "i686-unknown-linux-musl"        || 
+        "${rust_target}" == "x86_64-unknown-linux-musl"      || 
+        "${rust_target}" == "aarch64-unknown-linux-musl"     ||
+        "${rust_target}" == "arm-unknown-linux-musleabihf"   ||
+        "${rust_target}" == "armv7-unknown-linux-musleabihf" ]]; then
+    install -D -m 755 "target/${rust_target}/release/deps/libspf.${dlext}" "${libdir}/libspf.${dlext}"
 else
     install -D -m 755 "target/${rust_target}/release/libspf.${dlext}" "${libdir}/libspf.${dlext}"
 fi
