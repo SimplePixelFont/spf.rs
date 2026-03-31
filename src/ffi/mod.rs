@@ -45,6 +45,8 @@ use core::slice;
 
 pub mod converters;
 pub mod defaults;
+pub mod engine;
+pub mod free;
 
 #[macro_use]
 pub(crate) mod macros;
@@ -178,43 +180,117 @@ pub struct SPFFont {
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
-/// Used to represent a [`Vec<u8>`] in the C ABI. This is simply a `u_char` array on the heap which can be reconstructed with the pointer `data` and length `data_length`.
+/// Used to represent a [`Vec<u8>`] in the C ABI. This is simply a `u_char` array on the heap
+/// which can be reconstructed with the pointer `data` and length `data_length`.
+/// The caller is responsible for freeing this with [`free::spf_free_data`].
 pub struct SPFData {
     pub data: *mut c_uchar,
     pub data_length: c_ulong,
 }
 
+/// Status codes returned by all exported FFI functions. `SPFStatus::Ok` (0) indicates success;
+/// all other values indicate a specific failure. The caller should check this before reading
+/// any out-parameter.
+#[repr(C)]
+pub enum SPFStatus {
+    Ok = 0,
+    ErrUnexpectedEndOfFile = 1,
+    ErrInvalidSignature = 2,
+    ErrUnsupportedVersion = 3,
+    ErrUnsupportedColorType = 4,
+    ErrUnsupportedTableIdentifier = 5,
+    ErrUnsupportedFontType = 6,
+    ErrStaticVectorTooLarge = 10,
+    ErrInvalidPixmapData = 11,
+    ErrConversionNulError = 20,
+    ErrConversionUtf8Error = 21,
+}
+
+impl From<DeserializeError> for SPFStatus {
+    fn from(err: DeserializeError) -> Self {
+        match err {
+            DeserializeError::UnexpectedEndOfFile => SPFStatus::ErrUnexpectedEndOfFile,
+            DeserializeError::InvalidSignature => SPFStatus::ErrInvalidSignature,
+            DeserializeError::UnsupportedVersion => SPFStatus::ErrUnsupportedVersion,
+            DeserializeError::UnsupportedColorType => SPFStatus::ErrUnsupportedColorType,
+            DeserializeError::UnsupportedTableIdentifier => SPFStatus::ErrUnsupportedTableIdentifier,
+            DeserializeError::UnsupportedFontType => SPFStatus::ErrUnsupportedFontType,
+        }
+    }
+}
+
+impl From<SerializeError> for SPFStatus {
+    fn from(err: SerializeError) -> Self {
+        match err {
+            SerializeError::StaticVectorTooLarge => SPFStatus::ErrStaticVectorTooLarge,
+            SerializeError::InvalidPixmapData => SPFStatus::ErrInvalidPixmapData,
+        }
+    }
+}
+
+impl From<converters::ConversionError> for SPFStatus {
+    fn from(err: converters::ConversionError) -> Self {
+        match err {
+            converters::ConversionError::NulError(_) => SPFStatus::ErrConversionNulError,
+            converters::ConversionError::Utf8Error(_) => SPFStatus::ErrConversionUtf8Error,
+        }
+    }
+}
+
 #[no_mangle]
 /// Thin wrapper around [`layout_to_data`] compatible with the C ABI.
 ///
-/// This function takes a [`SPFLayout`] struct and converts it into a Rust native [`Layout`] struct.
-/// The [`Layout`] struct is then parsed into a [`Vec<u8>`] with the [`layout_to_data`] function.
-/// The [`Vec<u8>`] is then converted into a [`SPFData`] struct and returned.
-pub extern "C" fn spf_core_layout_to_data(layout: SPFLayout) -> SPFData {
-    let mut data = layout_to_data(&layout.try_into().unwrap())
-        .unwrap()
-        .into_boxed_slice();
-    let data_length = data.len() as c_ulong;
-    let data_ptr = data.as_mut_ptr();
-    core::mem::forget(data);
-    SPFData {
-        data: data_ptr,
-        data_length,
+/// Converts `layout` into a Rust-native [`Layout`], serializes it, and writes the result into
+/// `out` as an [`SPFData`]. Returns [`SPFStatus::Ok`] on success.
+///
+/// On failure the out-parameter is not written and the returned status describes the error.
+/// On success the caller is responsible for freeing `out` with [`free::spf_free_data`].
+pub unsafe extern "C" fn spf_core_layout_to_data(layout: SPFLayout, out: *mut SPFData) -> SPFStatus {
+    let rust_layout = match layout.try_into() {
+        Ok(l) => l,
+        Err(e) => return SPFStatus::from(e),
+    };
+    let data = match layout_to_data(&rust_layout) {
+        Ok(d) => d,
+        Err(e) => return SPFStatus::from(e),
+    };
+    let mut boxed = data.into_boxed_slice();
+    let data_length = boxed.len() as c_ulong;
+    let data_ptr = boxed.as_mut_ptr();
+    core::mem::forget(boxed);
+    unsafe {
+        *out = SPFData {
+            data: data_ptr,
+            data_length,
+        };
     }
+    SPFStatus::Ok
 }
 
 #[no_mangle]
 /// Thin wrapper around [`layout_from_data`] compatible with the C ABI.
 ///
-/// This function takes a pointer to a [`c_uchar`] array with a length of [`c_ulong`] and creates a
-/// [`Vec<u8>`] from the data. This data is then passed to the [`layout_from_data`] function to
-/// create a [`Layout`] struct. The [`Layout`] struct is then converted into a [`SPFLayout`] struct
-/// and returned.
+/// Reads `length` bytes from `pointer`, deserializes a font layout, and writes the result into
+/// `out` as an [`SPFLayout`]. Returns [`SPFStatus::Ok`] on success.
+///
+/// On failure the out-parameter is not written and the returned status describes the error.
+/// On success the caller is responsible for freeing `out` with [`free::spf_free_layout`].
 pub unsafe extern "C" fn spf_core_layout_from_data(
     pointer: *const c_uchar,
     length: c_ulong,
-) -> SPFLayout {
+    out: *mut SPFLayout,
+) -> SPFStatus {
     let data = unsafe { slice::from_raw_parts(pointer, length as usize) };
-    let layout = layout_from_data(data).unwrap();
-    layout.try_into().unwrap()
+    let layout = match layout_from_data(data) {
+        Ok(l) => l,
+        Err(e) => return SPFStatus::from(e),
+    };
+    let spf_layout = match layout.try_into() {
+        Ok(l) => l,
+        Err(e) => return SPFStatus::from(e),
+    };
+    unsafe {
+        *out = spf_layout;
+    }
+    SPFStatus::Ok
 }

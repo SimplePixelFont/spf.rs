@@ -40,7 +40,7 @@ impl TryInto<Character> for &SPFCharacter {
 
     fn try_into(self) -> Result<Character, Self::Error> {
         unsafe {
-            let grapheme_cluster = CString::from_raw(self.grapheme_cluster)
+            let grapheme_cluster = CStr::from_ptr(self.grapheme_cluster)
                 .to_str()?
                 .to_owned();
             let advance_x = ffi_to_option!(self.has_advance_x, self.advance_x);

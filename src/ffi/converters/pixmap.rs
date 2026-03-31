@@ -39,7 +39,12 @@ impl TryInto<Pixmap> for &SPFPixmap {
 
     fn try_into(self) -> Result<Pixmap, Self::Error> {
         unsafe {
-            let data = slice::from_raw_parts(self.data, self.data_length as usize).to_vec();
+            let data = if self.data.is_null() {
+                Vec::new()
+            } else {
+                slice::from_raw_parts(self.data, self.data_length as usize).to_vec()
+            };
+
             let custom_width = ffi_to_option!(self.has_custom_width, self.custom_width);
             let custom_height = ffi_to_option!(self.has_custom_height, self.custom_height);
             let custom_bits_per_pixel =
