@@ -24,7 +24,7 @@
 //! WebAssembly.
 //!
 //! To learn about how to use the `spf.rs` library in your language of choice, please refer to the
-//! [`crate::articles::c_usage`] article. Also note that the [`self::converters`] module is  not
+//! [`crate::articles::c_usage`] article. Also note that the [`self::converters`] module is not
 //! part of the `spf.rs` library and only exposed in the Rust crate.
 //!
 //! # Conventions
@@ -39,17 +39,26 @@
 //! All functions that return a [`Vec<u8>`] return a [`SPFData`] struct instead.
 
 use crate::core::*;
-
-use core::ffi::*;
 use core::slice;
+
+#[cfg(feature = "std")]
+pub(crate) use std::ffi::*;
+
+#[cfg(not(feature = "std"))]
+pub(crate) use alloc::ffi::*;
 
 pub mod converters;
 pub mod defaults;
-pub mod engine;
 pub mod free;
 
 #[macro_use]
 pub(crate) mod macros;
+
+#[doc(inline)]
+pub use converters::*;
+
+#[doc(inline)]
+pub use free::*;
 
 #[derive(Debug, Clone)]
 #[repr(C)]
@@ -189,7 +198,7 @@ pub struct SPFData {
 }
 
 /// Status codes returned by all exported FFI functions. `SPFStatus::Ok` (0) indicates success;
-/// all other values indicate a specific failure. The caller should check this before reading
+/// all other values indicate a specific failure. The C caller should check this before reading
 /// any out-parameter.
 #[repr(C)]
 pub enum SPFStatus {
@@ -233,20 +242,51 @@ impl From<converters::ConversionError> for SPFStatus {
         match err {
             converters::ConversionError::NulError(_) => SPFStatus::ErrConversionNulError,
             converters::ConversionError::Utf8Error(_) => SPFStatus::ErrConversionUtf8Error,
+            converters::ConversionError::UnsupportedVersion => SPFStatus::ErrUnsupportedVersion,
+            converters::ConversionError::UnsupportedColorType => SPFStatus::ErrUnsupportedColorType,
+            converters::ConversionError::UnsupportedFontType => SPFStatus::ErrUnsupportedFontType,
         }
     }
 }
 
+/// Named constants for the `version` field of [`SPFLayout`].
+#[repr(C)]
+pub enum SPFVersion {
+    FV0 = 0,
+}
+
+/// Named constants for the `color_type` field of [`SPFColor`].
+#[repr(C)]
+pub enum SPFColorType {
+    Dynamic = 0,
+    Absolute = 1,
+}
+
+/// Named constants for the `font_type` field of [`SPFFont`].
+#[repr(C)]
+pub enum SPFFontType {
+    Regular = 0,
+    Bold = 1,
+    Italic = 2,
+}
+
+// ── Exported functions ────────────────────────────────────────────────────────
+
 #[no_mangle]
 /// Thin wrapper around [`layout_to_data`] compatible with the C ABI.
 ///
-/// Converts `layout` into a Rust-native [`Layout`], serializes it, and writes the result into
-/// `out` as an [`SPFData`]. Returns [`SPFStatus::Ok`] on success.
+/// Reads the [`SPFLayout`] at `layout`, converts it to a Rust-native [`Layout`],
+/// serializes it, and writes the result into `out` as an [`SPFData`].
+/// Returns [`SPFStatus::Ok`] on success.
 ///
-/// On failure the out-parameter is not written and the returned status describes the error.
+/// The input `layout` is not consumed and remains valid after the call. On failure
+/// the out-parameter is not written and the returned status describes the error.
 /// On success the caller is responsible for freeing `out` with [`free::spf_free_data`].
-pub unsafe extern "C" fn spf_core_layout_to_data(layout: SPFLayout, out: *mut SPFData) -> SPFStatus {
-    let rust_layout = match layout.try_into() {
+pub unsafe extern "C" fn spf_core_layout_to_data(
+    layout: *const SPFLayout,
+    out: *mut SPFData,
+) -> SPFStatus {
+    let rust_layout: Layout = match unsafe { (*layout).clone().try_into() } {
         Ok(l) => l,
         Err(e) => return SPFStatus::from(e),
     };
@@ -259,10 +299,7 @@ pub unsafe extern "C" fn spf_core_layout_to_data(layout: SPFLayout, out: *mut SP
     let data_ptr = boxed.as_mut_ptr();
     core::mem::forget(boxed);
     unsafe {
-        *out = SPFData {
-            data: data_ptr,
-            data_length,
-        };
+        *out = SPFData { data: data_ptr, data_length };
     }
     SPFStatus::Ok
 }

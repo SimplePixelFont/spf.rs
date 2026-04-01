@@ -16,13 +16,6 @@
 
 //! Essential functions and structs used by both the native crate and FFI interface.
 //!
-//! <div class="warning">
-//!
-//! If you are using `spf.rs` as a native Rust crate you may instead want to use the interface exposed
-//! from the [`crate::ergonomics`] feature module.
-//!
-//! </div>
-//!
 //! This module provides raw composite structs that aim to reflect the structure of a `SimplePixelFont`
 //! binary file. Additionally it defines the [`layout_to_data`] and [`layout_from_data`] functions that
 //! can be used to convert between the structs and the binary data.
@@ -232,7 +225,7 @@ impl TryFrom<u8> for FontType {
             0 => Ok(FontType::Regular),
             1 => Ok(FontType::Bold),
             2 => Ok(FontType::Italic),
-            _ => Err(DeserializeError::UnsupportedColorType),
+            _ => Err(DeserializeError::UnsupportedFontType),
         }
     }
 }

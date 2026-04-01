@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-#[cfg(feature = "std")]
-pub(crate) use std::ffi::*;
-
-#[cfg(not(feature = "std"))]
-pub(crate) use alloc::ffi::*;
+#![doc(hidden)]
 
 #[cfg(feature = "std")]
 pub(crate) use std::str::Utf8Error;
@@ -45,6 +41,12 @@ pub(crate) mod pixmap_table;
 pub enum ConversionError {
     NulError(NulError),
     Utf8Error(Utf8Error),
+    /// A `version` byte in an [`SPFLayout`] did not correspond to any known [`Version`] variant.
+    UnsupportedVersion,
+    /// A `color_type` byte in an [`SPFColor`] did not correspond to any known [`ColorType`] variant.
+    UnsupportedColorType,
+    /// A `font_type` byte in an [`SPFFont`] did not correspond to any known [`FontType`] variant.
+    UnsupportedFontType,
 }
 
 impl From<NulError> for ConversionError {
@@ -101,8 +103,11 @@ impl TryInto<Layout> for SPFLayout {
             let font_tables =
                 vec_from_raw_with_conversion!(self.font_tables, self.font_tables_length);
 
+            let version = Version::try_from(self.version)
+                .map_err(|_| ConversionError::UnsupportedVersion)?;
+
             Ok(Layout {
-                version: Version::try_from(self.version).unwrap(),
+                version,
                 compact: self.compact != 0,
                 character_tables,
                 color_tables,

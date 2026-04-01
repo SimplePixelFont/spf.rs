@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#![doc(hidden)]
+
 use crate::Vec;
 
 #[derive(Debug)]

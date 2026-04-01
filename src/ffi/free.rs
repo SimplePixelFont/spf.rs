@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#![doc(hidden)]
 //! Free functions for all heap-allocated SPF FFI types.
 //!
 //! Every allocation produced by [`spf_core_layout_from_data`] or [`spf_core_layout_to_data`]

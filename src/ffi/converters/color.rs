@@ -36,11 +36,14 @@ impl TryInto<Color> for &SPFColor {
     type Error = ConversionError;
 
     fn try_into(self) -> Result<Color, Self::Error> {
-        let color_type = ffi_to_option!(
-            self.has_color_type,
-            // original C value can be lost!
-            ColorType::try_from(self.color_type).unwrap_or_default()
-        );
+        let color_type = if self.has_color_type != 0 {
+            Some(
+                ColorType::try_from(self.color_type)
+                    .map_err(|_| ConversionError::UnsupportedColorType)?,
+            )
+        } else {
+            None
+        };
         let custom_alpha = ffi_to_option!(self.has_custom_alpha, self.custom_alpha);
         Ok(Color {
             color_type,

@@ -56,11 +56,14 @@ impl TryInto<Font> for &SPFFont {
                 .to_vec()
             };
 
+            let font_type = FontType::try_from(self.font_type)
+                .map_err(|_| ConversionError::UnsupportedFontType)?;
+
             Ok(Font {
                 name,
                 author,
                 version: self.version,
-                font_type: FontType::try_from(self.font_type).unwrap_or_default(),
+                font_type,
                 character_table_indexes,
             })
         }
