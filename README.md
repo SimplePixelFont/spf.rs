@@ -35,6 +35,7 @@ to parallel developments within the specifictaitons. The following tables are su
 | Character Table | ✔ | `Added in v0.7.0-alpha.0` |
 | Pixmap Table | ✔ | `Added in v0.7.0-alpha.0` |
 | Color Table | ✔ | `Added in v0.7.0-alpha.0` |
+| Font Table | ✔ | `Added in v0.8.0-alpha.0` |
 
 Key:
 - `⚠️` = Work in progress
