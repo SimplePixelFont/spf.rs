@@ -37,7 +37,7 @@ use alloc::ffi::CString;
 pub unsafe extern "C" fn spf_free_data(data: SPFData) {
     if !data.data.is_null() {
         unsafe {
-            drop(Box::from_raw(core::slice::from_raw_parts_mut(
+            drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
                 data.data,
                 data.data_length as usize,
             )));
@@ -82,19 +82,19 @@ unsafe fn free_character_tables(ptr: *mut SPFCharacterTable, len: usize) {
                         drop(CString::from_raw(ch.grapheme_cluster));
                     }
                 }
-                drop(Box::from_raw(core::slice::from_raw_parts_mut(
+                drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
                     table.characters,
                     table.characters_length as usize,
                 )));
             }
             if !table.pixmap_table_indexes.is_null() {
-                drop(Box::from_raw(core::slice::from_raw_parts_mut(
+                drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
                     table.pixmap_table_indexes,
                     table.pixmap_table_indexes_length as usize,
                 )));
             }
         }
-        drop(Box::from_raw(core::slice::from_raw_parts_mut(ptr, len)));
+        drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(ptr, len)));
     }
 }
 
@@ -110,13 +110,13 @@ unsafe fn free_color_tables(ptr: *mut SPFColorTable, len: usize) {
         let tables = core::slice::from_raw_parts(ptr, len);
         for table in tables {
             if !table.colors.is_null() {
-                drop(Box::from_raw(core::slice::from_raw_parts_mut(
+                drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
                     table.colors,
                     table.colors_length as usize,
                 )));
             }
         }
-        drop(Box::from_raw(core::slice::from_raw_parts_mut(ptr, len)));
+        drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(ptr, len)));
     }
 }
 
@@ -138,25 +138,25 @@ unsafe fn free_pixmap_tables(ptr: *mut SPFPixmapTable, len: usize) {
                 );
                 for pixmap in pixmaps {
                     if !pixmap.data.is_null() {
-                        drop(Box::from_raw(core::slice::from_raw_parts_mut(
+                        drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
                             pixmap.data,
                             pixmap.data_length as usize,
                         )));
                     }
                 }
-                drop(Box::from_raw(core::slice::from_raw_parts_mut(
+                drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
                     table.pixmaps,
                     table.pixmaps_length as usize,
                 )));
             }
             if !table.color_table_indexes.is_null() {
-                drop(Box::from_raw(core::slice::from_raw_parts_mut(
+                drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
                     table.color_table_indexes,
                     table.color_table_indexes_length as usize,
                 )));
             }
         }
-        drop(Box::from_raw(core::slice::from_raw_parts_mut(ptr, len)));
+        drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(ptr, len)));
     }
 }
 
@@ -185,25 +185,25 @@ unsafe fn free_font_tables(ptr: *mut SPFFontTable, len: usize) {
                         drop(CString::from_raw(font.author));
                     }
                     if !font.character_table_indexes.is_null() {
-                        drop(Box::from_raw(core::slice::from_raw_parts_mut(
+                        drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
                             font.character_table_indexes,
                             font.character_tables_indexes_length as usize,
                         )));
                     }
                 }
-                drop(Box::from_raw(core::slice::from_raw_parts_mut(
+                drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
                     table.fonts,
                     table.fonts_length as usize,
                 )));
             }
 
             if !table.character_table_indexes.is_null() {
-                drop(Box::from_raw(core::slice::from_raw_parts_mut(
+                drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
                     table.character_table_indexes,
                     table.character_table_indexes_length as usize,
                 )));
             }
         }
-        drop(Box::from_raw(core::slice::from_raw_parts_mut(ptr, len)));
+        drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(ptr, len)));
     }
 }

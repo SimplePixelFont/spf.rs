@@ -270,8 +270,6 @@ pub enum SPFFontType {
     Italic = 2,
 }
 
-// ── Exported functions ────────────────────────────────────────────────────────
-
 #[no_mangle]
 /// Thin wrapper around [`layout_to_data`] compatible with the C ABI.
 ///
