@@ -40,11 +40,15 @@ impl TryInto<FontTable> for &SPFFontTable {
 
     fn try_into(self) -> Result<FontTable, Self::Error> {
         unsafe {
-            let character_table_indexes = slice::from_raw_parts(
-                self.character_table_indexes,
-                self.character_table_indexes_length as usize,
-            )
-            .to_vec();
+            let character_table_indexes = if self.character_table_indexes.is_null() {
+                Vec::new()
+            } else {
+                slice::from_raw_parts(
+                    self.character_table_indexes,
+                    self.character_table_indexes_length as usize,
+                )
+                .to_vec()
+            };
             let character_table_indexes =
                 ffi_to_option!(self.has_character_table_indexes, character_table_indexes);
 

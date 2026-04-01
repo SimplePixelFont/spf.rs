@@ -46,11 +46,15 @@ impl TryInto<CharacterTable> for &SPFCharacterTable {
 
     fn try_into(self) -> Result<CharacterTable, Self::Error> {
         unsafe {
-            let pixmap_table_indexes = slice::from_raw_parts(
-                self.pixmap_table_indexes,
-                self.pixmap_table_indexes_length as usize,
-            )
-            .to_vec();
+            let pixmap_table_indexes = if self.pixmap_table_indexes.is_null() {
+                Vec::new()
+            } else {
+                slice::from_raw_parts(
+                    self.pixmap_table_indexes,
+                    self.pixmap_table_indexes_length as usize,
+                )
+                .to_vec()
+            };
 
             let characters = vec_from_raw_with_conversion!(self.characters, self.characters_length);
 

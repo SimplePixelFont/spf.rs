@@ -46,11 +46,15 @@ impl TryInto<PixmapTable> for &SPFPixmapTable {
 
     fn try_into(self) -> Result<PixmapTable, Self::Error> {
         unsafe {
-            let color_table_indexes = slice::from_raw_parts(
-                self.color_table_indexes,
-                self.color_table_indexes_length as usize,
-            )
-            .to_vec();
+            let color_table_indexes = if self.color_table_indexes.is_null() {
+                Vec::new()
+            } else {
+                slice::from_raw_parts(
+                    self.color_table_indexes,
+                    self.color_table_indexes_length as usize,
+                )
+                .to_vec()
+            };
             let color_table_indexes =
                 ffi_to_option!(self.has_color_table_indexes, color_table_indexes);
 

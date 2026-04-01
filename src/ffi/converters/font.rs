@@ -43,20 +43,27 @@ impl TryInto<Font> for &SPFFont {
 
     fn try_into(self) -> Result<Font, Self::Error> {
         unsafe {
-            let name = CString::from_raw(self.name).to_str()?.to_owned();
-            let author = CString::from_raw(self.author).to_str()?.to_owned();
+            let name = CStr::from_ptr(self.name).to_str()?.to_owned();
+            let author = CStr::from_ptr(self.author).to_str()?.to_owned();
 
-            let character_table_indexes = slice::from_raw_parts(
-                self.character_table_indexes,
-                self.character_tables_indexes_length as usize,
-            )
-            .to_vec();
+            let character_table_indexes = if self.character_table_indexes.is_null() {
+                Vec::new()
+            } else {
+                slice::from_raw_parts(
+                    self.character_table_indexes,
+                    self.character_tables_indexes_length as usize,
+                )
+                .to_vec()
+            };
+
+            let font_type = FontType::try_from(self.font_type)
+                .map_err(|_| ConversionError::UnsupportedFontType)?;
 
             Ok(Font {
                 name,
                 author,
                 version: self.version,
-                font_type: FontType::try_from(self.font_type).unwrap_or_default(),
+                font_type,
                 character_table_indexes,
             })
         }
