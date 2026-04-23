@@ -4,73 +4,140 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: "The tag name of the release to add assets to (e.g., v1.0.0)"
+        description: "Tag name (e.g. v1.0.0)"
         required: true
-      asset_folder:
-        description: "Path to the folder containing assets (relative to repo root, e.g., artifacts)"
-        required: true
-        default: "artifacts" # Optional: Set a default folder
+
+# ── Tag conventions ───────────────────────────────────────────────────────────
+#   v{version}             → builds spf (library)
 
 jobs:
-  builder:
-    name: Upload release assets
+  parse-tag:
+    name: Parse Tag
     runs-on: ubuntu-latest
     outputs:
-      outcome: ${{ steps.upload.outcome }}
-    permissions:
-      contents: write # Required to write release assets
-
+      type:        ${{ steps.parse.outputs.type }}
+      version:     ${{ steps.parse.outputs.version }}
+      sha:         ${{ steps.parse.outputs.sha }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Get SHA of tag_name
-        id: get_sha
+      - name: Parse tag → component metadata
+        id: parse
         run: |
-          SHA=$(git rev-list -n 1 ${{ inputs.tag_name }})
+          TAG="${{ inputs.tag_name }}"
+          SHA=$(git rev-list -n 1 "$TAG")
           echo "sha=$SHA" >> $GITHUB_OUTPUT
 
-      - uses: julia-actions/setup-julia@v2
+          # v1.0.0  →  version=1.0.0
+          VERSION=$(echo "$TAG" | awk -F'-v' '{print $2}')
+
+          echo "type=library"         >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  header-file:
+    name: Generate ABI Header
+    needs: parse-tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cbindgen
+        run: cargo install cbindgen --locked
+      - name: Generate header
+        run: |
+          cbindgen --output spf.h --lang c --cpp-compat
+
+  # ── Cross-compile matrix ──────────────────────────────────────────────────────
+  # macOS targets run on macos-latest: aws-lc-sys requires the real Apple SDK
+  # (CoreServices.h and friends) which zigbuild's bundled SDK doesn't ship.
+  # All other targets run on ubuntu-latest and cross-compile via cargo-zigbuild.
+  build:
+    name: Build ${{ needs.parse-tag.outputs.component }} (${{ matrix.target }})
+    needs: [parse-tag, header-file]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ── Linux (cross-compiled from ubuntu via zigbuild) ──────────────────
+          - { target: x86_64-unknown-linux-gnu,      os: ubuntu-latest }
+          # - { target: x86_64-unknown-linux-musl,     os: ubuntu-latest }
+          - { target: aarch64-unknown-linux-gnu,     os: ubuntu-latest }
+          # - { target: aarch64-unknown-linux-musl,    os: ubuntu-latest }
+          - { target: i686-unknown-linux-gnu,        os: ubuntu-latest }
+          - { target: armv7-unknown-linux-gnueabihf, os: ubuntu-latest }
+          # ── Windows (cross-compiled from ubuntu via zigbuild) ────────────────
+          - { target: x86_64-pc-windows-gnu,         os: ubuntu-latest }
+          # ── FreeBSD (cross-compiled from ubuntu via zigbuild) ────────────────
+          - { target: x86_64-unknown-freebsd,        os: ubuntu-latest }
+          # ── macOS (native runners — aws-lc-sys needs the real Apple SDK) ─────
+          - { target: x86_64-apple-darwin,           os: macos-latest  }
+          - { target: aarch64-apple-darwin,          os: macos-latest  }
+    runs-on: ${{ matrix.os }}
+    env:
+      TAG_NAME:  ${{ inputs.tag_name }}
+      TARGET:    ${{ matrix.target }}
+
+    steps:
+      - uses: actions/checkout@v4
         with:
-          version: "1.7"
-      - run: TAG_NAME='${{ inputs.tag_name }}' SHA='${{ steps.get_sha.outputs.sha }}' julia -- ./.ci/release.jl
+          ref: ${{ needs.parse-tag.outputs.sha }}
 
-      - name: List files in folder
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # zigbuild only needed on Linux runners
+      - name: Install Zig + cargo-zigbuild
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          echo "Looking for assets in folder: ${{ github.workspace }}/${{ inputs.asset_folder }}"
-          ls -l "${{ github.workspace }}/${{ inputs.asset_folder }}"
+          pip install ziglang --quiet
+          cargo install cargo-zigbuild --locked
 
-      - name: Upload assets to release
+      - name: Build
+        run: bash .ci/build.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-${{ matrix.target }}
+          path: artifacts/*.tar.gz
+
+  # ── Collect and publish ───────────────────────────────────────────────────────
+  release:
+    name: Upload Release Assets
+    needs: [parse-tag, build]
+    outputs:
+      outcome: ${{ steps.upload.outcome }}
+    if: always() && needs.build.result != 'cancelled'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: artifact-*
+          merge-multiple: true
+          path: artifacts/
+
+      - name: List collected artifacts
+        run: ls -lh artifacts/
+
+      - uses: softprops/action-gh-release@v1
         id: upload
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          TAG_NAME: ${{ inputs.tag_name }}
-          ASSET_FOLDER: ${{ inputs.asset_folder }}
-        run: |
-          # Check if folder exists and is not empty
-          if [ -d "$ASSET_FOLDER" ] && [ "$(ls -A $ASSET_FOLDER)" ]; then
-            echo "Uploading assets from $ASSET_FOLDER to release $TAG_NAME..."
-            # Use find to handle files potentially containing spaces or special characters
-            # Upload files one by one to avoid issues with too many arguments for gh release upload *
-            find "$ASSET_FOLDER" -maxdepth 1 -type f -print0 | while IFS= read -r -d $'\0' file; do
-              echo "Uploading '$file'..."
-              gh release upload "$TAG_NAME" "$file" --clobber
-            done
-            echo "Asset upload complete."
-          else
-            echo "Warning: Asset folder '$ASSET_FOLDER' not found or is empty. No assets uploaded."
-          fi
+        with:
+          tag_name: ${{ inputs.tag_name }}
+          files: artifacts/*
+
 
   badge:
     runs-on: ubuntu-latest
-    needs: builder
+    needs: release
     if: always()
 
     steps:
       - name: passing
-        if: needs.builder.outputs.outcome == 'success'
+        if: needs.release.outputs.outcome == 'success'
         uses: SimplePixelFont/badge-spf-action@main
         with:
           filename: compatibility.png
@@ -82,7 +149,7 @@ jobs:
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram5x8-light.spf"
 
       - name: failing
-        if: needs.builder.outputs.outcome == 'failure' || needs.builder.outputs.outcome == 'cancelled' || needs.builder.outputs.outcome == 'skipped'
+        if: needs.release.outputs.outcome == 'failure' || needs.release.outputs.outcome == 'cancelled' || needs.release.outputs.outcome == 'skipped'
         uses: SimplePixelFont/badge-spf-action@main
         with:
           filename: compatibility.png
