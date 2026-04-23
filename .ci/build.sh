@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Uses plain `cargo build` on native macOS runners.
-# Uses `cargo zigbuild` on Linux runners for all other cross targets.
-
 set -euo pipefail
 
 : "${TARGET:?TARGET env var is required}"
@@ -9,7 +6,6 @@ set -euo pipefail
 
 echo "▶ Building target='$TARGET' tag='$TAG_NAME'"
 
-# By default, we build both. musl targets will set this to false.
 BUILD_CDYLIB=true
 
 # ── Per-target naming conventions ────────────────────────────────────────────
@@ -33,13 +29,13 @@ case "$TARGET" in
     STATIC_LIB_EXT=".a"
     ;;
   *musl*)
-    BUILD_CDYLIB=true
+    BUILD_CDYLIB=false
     LIB_PREFIX="lib"
     LIB_EXT=".so"
     STATIC_LIB_PREFIX="lib"
     STATIC_LIB_EXT=".a"
     ;;
-  *)  # Standard Linux, FreeBSD
+  *)
     LIB_PREFIX="lib"
     LIB_EXT=".so"
     STATIC_LIB_PREFIX="lib"
@@ -47,36 +43,36 @@ case "$TARGET" in
     ;;
 esac
 
-# Patch Cargo.toml based on whether we can build a cdylib
+# ── Patch Cargo.toml ──────────────────────────────────────────────────────────
 CRATE_TYPES="\"rlib\", \"staticlib\""
 if [ "$BUILD_CDYLIB" = true ]; then
   CRATE_TYPES="\"rlib\", \"cdylib\", \"staticlib\""
 fi
 
-# macOS sed vs GNU sed
+# macOS (Darwin) requires an empty string for the -i flag
 if [[ "$(uname)" == "Darwin" ]]; then
   sed -i '' "s/crate-type = \[\"rlib\"\]/crate-type = \[$CRATE_TYPES\]/" Cargo.toml
 else
+  # Linux and Windows (Git Bash)
   sed -i "s/crate-type = \[\"rlib\"\]/crate-type = \[$CRATE_TYPES\]/" Cargo.toml
 fi
 
 # ── Build ─────────────────────────────────────────────────────────────────────
-if [[ "$(uname)" == "Darwin" ]]; then
+# Use native cargo on macOS and Windows runners (where SDKs are present).
+# Use cargo-zigbuild on Linux runners for cross-compilation.
+if [[ "$(uname)" == "Darwin" ]] || [[ "$(uname)" == *"MINGW"* ]] || [[ "$(uname)" == *"MSYS"* ]]; then
   cargo build --release --target "$TARGET"
 else
   cargo zigbuild --release --target "$TARGET"
 fi
 
-# ── Collect binary into a staging dir ────────────────────────────────────────
+# ── Collect into staging ─────────────────────────────────────────────────────
 STAGING="staging/${TARGET}"
 mkdir -p "$STAGING" artifacts
 
-# Copy dynamic library if built
 if [ "$BUILD_CDYLIB" = true ]; then
   cp "target/${TARGET}/release/${LIB_PREFIX}spf${LIB_EXT}" "$STAGING/"
 fi
-
-# Always copy static library
 cp "target/${TARGET}/release/${STATIC_LIB_PREFIX}spf${STATIC_LIB_EXT}" "$STAGING/"
 cp spf.h "$STAGING/"
 cp LICENSE-APACHE "$STAGING/"
