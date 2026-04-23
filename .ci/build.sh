@@ -31,7 +31,12 @@ case "$TARGET" in
 esac
 
 # Patch Cargo.toml to also build staticlib and cdylib
-sed -i 's/crate-type = \["rlib"\]/crate-type = \["rlib", "cdylib", "staticlib"\]/' Cargo.toml
+# macOS requires an empty string argument for the -i flag (BSD sed vs GNU sed)
+if [[ "$(uname)" == "Darwin" ]]; then
+  sed -i '' 's/crate-type = \["rlib"\]/crate-type = \["rlib", "cdylib", "staticlib"\]/' Cargo.toml
+else
+  sed -i 's/crate-type = \["rlib"\]/crate-type = \["rlib", "cdylib", "staticlib"\]/' Cargo.toml
+fi
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 # On macOS runners, aws-lc-sys needs the real Apple SDK (CoreServices.h etc.)
