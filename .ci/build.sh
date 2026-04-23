@@ -30,6 +30,9 @@ case "$TARGET" in
     ;;
 esac
 
+# Patch Cargo.toml to also build staticlib and cdylib
+sed -i 's/crate-type = \["rlib"\]/crate-type = \["rlib", "cdylib", "staticlib"\]/' Cargo.toml
+
 # ── Build ─────────────────────────────────────────────────────────────────────
 # On macOS runners, aws-lc-sys needs the real Apple SDK (CoreServices.h etc.)
 # which zigbuild's bundled minimal SDK doesn't include. Build natively there.

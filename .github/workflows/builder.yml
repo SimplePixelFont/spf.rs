@@ -38,7 +38,6 @@ jobs:
 
   header-file:
     name: Generate ABI Header
-    needs: parse-tag
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
