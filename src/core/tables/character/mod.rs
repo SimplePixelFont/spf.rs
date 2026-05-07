@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::core::byte::ByteReader;
+use crate::core::{byte::ByteReader, CharacterTableModifierFlags};
 #[cfg(feature = "tagging")]
 use crate::core::{ByteIndex, Span, TableType, TagKind};
 use crate::core::{
@@ -67,7 +67,10 @@ impl Table for CharacterTable {
             let character_start = engine.bytes.byte_index();
 
             let mut character = Character::default();
-            if character_table.use_advance_x {
+            if character_table
+                .modifier_flags
+                .contains(CharacterTableModifierFlags::UseAdvanceX)
+            {
                 character.advance_x = Some(engine.bytes.next());
                 #[cfg(feature = "tagging")]
                 engine.tags.tag_byte(
@@ -79,7 +82,10 @@ impl Table for CharacterTable {
                     engine.bytes.byte_index(),
                 );
             }
-            if character_table.use_pixmap_index {
+            if character_table
+                .modifier_flags
+                .contains(CharacterTableModifierFlags::UsePixmapIndex)
+            {
                 character.pixmap_index = Some(engine.bytes.next());
                 #[cfg(feature = "tagging")]
                 engine.tags.tag_byte(
@@ -91,7 +97,10 @@ impl Table for CharacterTable {
                     engine.bytes.byte_index(),
                 );
             }
-            if character_table.use_pixmap_table_index {
+            if character_table
+                .modifier_flags
+                .contains(CharacterTableModifierFlags::UsePixmapTableIndex)
+            {
                 character.pixmap_table_index = Some(engine.bytes.next());
                 #[cfg(feature = "tagging")]
                 engine.tags.tag_byte(
@@ -168,7 +177,10 @@ impl Table for CharacterTable {
             #[cfg(feature = "tagging")]
             let character_start = engine.bytes.byte_index();
 
-            if self.use_advance_x {
+            if self
+                .modifier_flags
+                .contains(CharacterTableModifierFlags::UseAdvanceX)
+            {
                 engine.bytes.push(character.advance_x.unwrap());
                 #[cfg(feature = "tagging")]
                 engine.tags.tag_byte(
@@ -180,7 +192,10 @@ impl Table for CharacterTable {
                     engine.bytes.byte_index(),
                 );
             }
-            if self.use_pixmap_index {
+            if self
+                .modifier_flags
+                .contains(CharacterTableModifierFlags::UsePixmapIndex)
+            {
                 engine.bytes.push(character.pixmap_index.unwrap());
                 #[cfg(feature = "tagging")]
                 engine.tags.tag_byte(
@@ -192,7 +207,10 @@ impl Table for CharacterTable {
                     engine.bytes.byte_index(),
                 );
             }
-            if self.use_pixmap_table_index {
+            if self
+                .modifier_flags
+                .contains(CharacterTableModifierFlags::UsePixmapTableIndex)
+            {
                 engine.bytes.push(character.pixmap_table_index.unwrap());
                 #[cfg(feature = "tagging")]
                 engine.tags.tag_byte(

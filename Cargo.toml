@@ -21,14 +21,15 @@ rustdoc-args = ["--cfg", "docsrs"]
 default = ["std", "log", "serde", "ffi", "articles", "tagging"]
 std = []
 log = ["dep:log"]
-serde = ["dep:serde"]
+serde = ["dep:serde", "bitflags/serde"]
 ffi = []
 articles = []
 tagging = []
 
 [dependencies]
+bitflags = { version = "2.11.1" }
 log = { version = "0.4.27", optional = true }
-serde = { version = "1.0.225", features = ["derive"], optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
 
 [dev-dependencies]
 env_logger = "0.11.8"

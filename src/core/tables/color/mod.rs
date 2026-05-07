@@ -16,8 +16,9 @@
 
 use crate::core::byte::ByteReader;
 use crate::core::{
-    byte, Color, ColorTable, ColorType, DeserializeEngine, DeserializeError, SerializeEngine,
-    SerializeError, Table, TableIdentifier, TagWriter,
+    Color, ColorTable, ColorTableConfigurationFlags, ColorTableModifierFlags, ColorType,
+    DeserializeEngine, DeserializeError, SerializeEngine, SerializeError, Table, TableIdentifier,
+    TagWriter,
 };
 use crate::{vec, Vec};
 
@@ -29,9 +30,7 @@ impl ColorTable {
         &mut self,
         engine: &mut DeserializeEngine<R, T>,
     ) {
-        let modifier_flags = engine.bytes.next();
-        self.use_color_type = byte::get_bit(modifier_flags, 0);
-
+        self.modifier_flags = ColorTableModifierFlags::from_bits_retain(engine.bytes.next());
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::ColorTableModifierFlags {
@@ -40,7 +39,9 @@ impl ColorTable {
             #[cfg(feature = "tagging")]
             vec![TagKind::ColorTableUseColorType {
                 table_index: engine.tagging_data.current_table_index,
-                value: self.use_color_type,
+                value: self
+                    .modifier_flags
+                    .contains(ColorTableModifierFlags::UseColorType),
             }],
             engine.bytes.byte_index(),
         );
@@ -52,8 +53,11 @@ impl ColorTable {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
-        let configuration_flags = engine.bytes.next();
-        let use_constant_alpha = byte::get_bit(configuration_flags, 0);
+        self.configuration_flags =
+            ColorTableConfigurationFlags::from_bits_retain(engine.bytes.next());
+        let use_constant_alpha = self
+            .configuration_flags
+            .contains(ColorTableConfigurationFlags::ConstantAlpha);
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
@@ -104,7 +108,7 @@ impl ColorTable {
         #[cfg(feature = "tagging")]
         let links_start = engine.bytes.byte_index();
 
-        let _link_flags = engine.bytes.next();
+        let _link_flags = engine.bytes.next(); // will need to be updated later to use bitflags
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::ColorTableLinkFlags {
@@ -165,7 +169,10 @@ impl Table for ColorTable {
             let color_start = engine.bytes.byte_index();
 
             let mut color = Color::default();
-            if color_table.use_color_type {
+            if color_table
+                .modifier_flags
+                .contains(ColorTableModifierFlags::UseColorType)
+            {
                 color.color_type = Some(ColorType::try_from(engine.bytes.next())?);
                 #[cfg(feature = "tagging")]
                 engine.tags.tag_byte(
@@ -276,7 +283,10 @@ impl Table for ColorTable {
             #[cfg(feature = "tagging")]
             let color_start = engine.bytes.byte_index();
 
-            if self.use_color_type {
+            if self
+                .modifier_flags
+                .contains(ColorTableModifierFlags::UseColorType)
+            {
                 engine.bytes.push(color.color_type.unwrap() as u8);
                 #[cfg(feature = "tagging")]
                 engine.tags.tag_byte(
@@ -366,12 +376,7 @@ impl ColorTable {
         );
     }
     pub(crate) fn push_modifier_flags<T: TagWriter>(&self, engine: &mut SerializeEngine<T>) {
-        let mut modifier_flags = 0b00000000;
-        if self.use_color_type {
-            modifier_flags |= 0b00000001;
-        }
-
-        engine.bytes.push(modifier_flags);
+        engine.bytes.push(self.modifier_flags.bits());
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::ColorTableModifierFlags {
@@ -380,7 +385,9 @@ impl ColorTable {
             #[cfg(feature = "tagging")]
             vec![TagKind::ColorTableUseColorType {
                 table_index: engine.tagging_data.current_table_index,
-                value: self.use_color_type,
+                value: self
+                    .modifier_flags
+                    .contains(ColorTableModifierFlags::UseColorType),
             }],
             engine.bytes.byte_index(),
         );
@@ -389,12 +396,7 @@ impl ColorTable {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
-        let mut configuration_flags = 0;
-        if self.constant_alpha.is_some() {
-            configuration_flags |= 0b00000001;
-        }
-
-        engine.bytes.push(configuration_flags); // configuration flags
+        engine.bytes.push(self.configuration_flags.bits()); // configuration flags
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::ColorTableConfigurationFlags {

@@ -16,7 +16,7 @@
 
 use crate::core::byte::ByteReader;
 use crate::core::{
-    byte, DeserializeEngine, DeserializeError, Font, FontTable, FontType, TagWriter,
+    DeserializeEngine, DeserializeError, Font, FontTable, FontTableLinkFlags, FontType, TagWriter,
 };
 use crate::{vec, String, Vec};
 
@@ -59,8 +59,10 @@ impl FontTable {
         #[cfg(feature = "tagging")]
         let links_start = engine.bytes.byte_index();
 
-        let link_flags = engine.bytes.next();
-        let link_character_tables = byte::get_bit(link_flags, 0);
+        self.link_flags = FontTableLinkFlags::from_bits_retain(engine.bytes.next());
+        let link_character_tables = self
+            .link_flags
+            .contains(FontTableLinkFlags::LinkCharacterTables);
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
