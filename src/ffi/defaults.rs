@@ -38,11 +38,13 @@ impl Default for SPFLayout {
 impl Default for SPFCharacterTable {
     fn default() -> Self {
         SPFCharacterTable {
-            use_advance_x: u8::default(),
-            use_pixmap_index: u8::default(),
-            use_pixmap_table_index: u8::default(),
+            modifier_flags: u8::default(),
             has_constant_cluster_codepoints: u8::default(),
+
+            configuration_flags: u8::default(),
             constant_cluster_codepoints: u8::default(),
+            
+            link_flags: u8::default(),
             has_pixmap_table_indexes: u8::default(),
             pixmap_table_indexes: core::ptr::null_mut(),
             pixmap_table_indexes_length: 0,
@@ -69,7 +71,9 @@ impl Default for SPFCharacter {
 impl Default for SPFColorTable {
     fn default() -> Self {
         SPFColorTable {
-            use_color_type: u8::default(),
+            modifier_flags: u8::default(),
+
+            configuration_flags: u8::default(),
             has_constant_alpha: u8::default(),
             constant_alpha: u8::default(),
             colors: core::ptr::null_mut(),
@@ -96,12 +100,15 @@ impl Default for SPFColor {
 impl Default for SPFPixmapTable {
     fn default() -> Self {
         SPFPixmapTable {
+            configuration_flags: u8::default(),
             has_constant_width: u8::default(),
             constant_width: u8::default(),
             has_constant_height: u8::default(),
             constant_height: u8::default(),
             has_constant_bits_per_pixel: u8::default(),
             constant_bits_per_pixel: u8::default(),
+
+            link_flags: u8::default(),
             has_color_table_indexes: u8::default(),
             color_table_indexes: core::ptr::null_mut(),
             color_table_indexes_length: 0,
@@ -129,6 +136,7 @@ impl Default for SPFPixmap {
 impl Default for SPFFontTable {
     fn default() -> Self {
         SPFFontTable {
+            link_flags: u8::default(),
             has_character_table_indexes: u8::default(),
             character_table_indexes: core::ptr::null_mut(),
             character_table_indexes_length: 0,

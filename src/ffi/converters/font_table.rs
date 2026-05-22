@@ -26,6 +26,7 @@ impl TryFrom<FontTable> for SPFFontTable {
         let (fonts_ptr, fonts_len) = vec_to_raw_with_conversion!(table.fonts, SPFFont);
 
         Ok(SPFFontTable {
+            link_flags: table.link_flags.bits(),
             has_character_table_indexes: table.character_table_indexes.is_some() as c_uchar,
             character_table_indexes: character_table_indexes_ptr,
             character_table_indexes_length: character_table_indexes_len as c_ulong,
@@ -55,6 +56,7 @@ impl TryInto<FontTable> for &SPFFontTable {
             let fonts = vec_from_raw_with_conversion!(self.fonts, self.fonts_length);
 
             Ok(FontTable {
+                link_flags: FontTableLinkFlags::from_bits_retain(self.link_flags),
                 character_table_indexes,
                 fonts,
             })
