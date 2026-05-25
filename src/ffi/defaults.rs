@@ -29,6 +29,8 @@ impl Default for SPFLayout {
             color_tables_length: 0,
             pixmap_tables: core::ptr::null_mut(),
             pixmap_tables_length: 0,
+            font_tables: core::ptr::null_mut(),
+            font_tables_length: 0,
         }
     }
 }
@@ -36,10 +38,13 @@ impl Default for SPFLayout {
 impl Default for SPFCharacterTable {
     fn default() -> Self {
         SPFCharacterTable {
-            use_advance_x: u8::default(),
-            use_pixmap_index: u8::default(),
+            modifier_flags: u8::default(),
             has_constant_cluster_codepoints: u8::default(),
+
+            configuration_flags: u8::default(),
             constant_cluster_codepoints: u8::default(),
+            
+            link_flags: u8::default(),
             has_pixmap_table_indexes: u8::default(),
             pixmap_table_indexes: core::ptr::null_mut(),
             pixmap_table_indexes_length: 0,
@@ -56,6 +61,8 @@ impl Default for SPFCharacter {
             advance_x: u8::default(),
             has_pixmap_index: u8::default(),
             pixmap_index: u8::default(),
+            has_pixmap_table_index: u8::default(),
+            pixmap_table_index: u8::default(),
             grapheme_cluster: core::ptr::null_mut(),
         }
     }
@@ -64,6 +71,9 @@ impl Default for SPFCharacter {
 impl Default for SPFColorTable {
     fn default() -> Self {
         SPFColorTable {
+            modifier_flags: u8::default(),
+
+            configuration_flags: u8::default(),
             has_constant_alpha: u8::default(),
             constant_alpha: u8::default(),
             colors: core::ptr::null_mut(),
@@ -76,6 +86,8 @@ impl Default for SPFColorTable {
 impl Default for SPFColor {
     fn default() -> Self {
         SPFColor {
+            has_color_type: u8::default(),
+            color_type: u8::default(),
             has_custom_alpha: u8::default(),
             custom_alpha: u8::default(),
             r: u8::default(),
@@ -88,12 +100,15 @@ impl Default for SPFColor {
 impl Default for SPFPixmapTable {
     fn default() -> Self {
         SPFPixmapTable {
+            configuration_flags: u8::default(),
             has_constant_width: u8::default(),
             constant_width: u8::default(),
             has_constant_height: u8::default(),
             constant_height: u8::default(),
             has_constant_bits_per_pixel: u8::default(),
             constant_bits_per_pixel: u8::default(),
+
+            link_flags: u8::default(),
             has_color_table_indexes: u8::default(),
             color_table_indexes: core::ptr::null_mut(),
             color_table_indexes_length: 0,
@@ -114,6 +129,32 @@ impl Default for SPFPixmap {
             custom_bits_per_pixel: u8::default(),
             data: core::ptr::null_mut(),
             data_length: 0,
+        }
+    }
+}
+
+impl Default for SPFFontTable {
+    fn default() -> Self {
+        SPFFontTable {
+            link_flags: u8::default(),
+            has_character_table_indexes: u8::default(),
+            character_table_indexes: core::ptr::null_mut(),
+            character_table_indexes_length: 0,
+            fonts: core::ptr::null_mut(),
+            fonts_length: 0,
+        }
+    }
+}
+
+impl Default for SPFFont {
+    fn default() -> Self {
+        SPFFont {
+            name: core::ptr::null_mut(),
+            author: core::ptr::null_mut(),
+            version: u8::default(),
+            font_type: u8::default(),
+            character_table_indexes: core::ptr::null_mut(),
+            character_tables_indexes_length: 0,
         }
     }
 }

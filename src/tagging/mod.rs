@@ -76,6 +76,10 @@ pub enum TagKind {
         table_index: u8,
         value: bool,
     },
+    CharacterTableUsePixmapTableIndex {
+        table_index: u8,
+        value: bool,
+    },
 
     CharacterTableConfigurations {
         table_index: u8,
@@ -141,6 +145,11 @@ pub enum TagKind {
         value: u8,
     },
     CharacterPixmapIndex {
+        table_index: u8,
+        char_index: u8,
+        value: u8,
+    },
+    CharacterPixmapTableIndex {
         table_index: u8,
         char_index: u8,
         value: u8,
@@ -257,6 +266,10 @@ pub enum TagKind {
     ColorTableModifierFlags {
         table_index: u8,
     },
+    ColorTableUseColorType {
+        table_index: u8,
+        value: bool,
+    },
 
     ColorTableConfigurations {
         table_index: u8,
@@ -290,6 +303,11 @@ pub enum TagKind {
         table_index: u8,
         color_index: u8,
     },
+    ColorColorType {
+        table_index: u8,
+        color_index: u8,
+        value: ColorType,
+    },
     ColorCustomAlpha {
         table_index: u8,
         color_index: u8,
@@ -310,6 +328,96 @@ pub enum TagKind {
         color_index: u8,
         value: u8,
     },
+
+    FontTable {
+        index: u8,
+    },
+
+    FontTableModifierFlags {
+        table_index: u8,
+    },
+
+    FontTableConfigurations {
+        table_index: u8,
+    },
+
+    FontTableConfigurationFlags {
+        table_index: u8,
+    },
+
+    FontTableLinks {
+        table_index: u8,
+    },
+
+    FontTableLinkFlags {
+        table_index: u8,
+    },
+    FontTableLinkCharacterTables {
+        table_index: u8,
+        value: bool,
+    },
+
+    FontTableCharacterTableLinks {
+        table_index: u8,
+    },
+
+    FontTableCharacterTableIndexesLength {
+        table_index: u8,
+        count: u8,
+    },
+    FontTableCharacterTableIndexes {
+        table_index: u8,
+        indexes: Vec<u8>,
+    },
+    FontTableCharacterTableIndex {
+        table_index: u8,
+        index: u8,
+    },
+
+    FontTableFontCount {
+        table_index: u8,
+        count: u8,
+    },
+
+    FontRecord {
+        table_index: u8,
+        font_index: u8,
+    },
+    FontName {
+        table_index: u8,
+        font_index: u8,
+        value: String,
+    },
+    FontAuthor {
+        table_index: u8,
+        font_index: u8,
+        value: String,
+    },
+    FontVersion {
+        table_index: u8,
+        font_index: u8,
+        value: u8,
+    },
+    FontFontType {
+        table_index: u8,
+        font_index: u8,
+        value: FontType,
+    },
+    FontCharacterTableIndexes {
+        table_index: u8,
+        font_index: u8,
+        value: Vec<u8>,
+    },
+    FontCharacterTableIndexesLength {
+        table_index: u8,
+        font_index: u8,
+        count: u8,
+    },
+    FontCharacterTableIndexesIndex {
+        table_index: u8,
+        font_index: u8,
+        index: u8,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -317,6 +425,7 @@ pub enum TableType {
     Character,
     Pixmap,
     Color,
+    Font,
 }
 
 #[derive(Debug, Clone)]
@@ -332,12 +441,6 @@ impl Tag {
 }
 
 impl ByteWriter {
-    pub(crate) fn byte_index(&self) -> ByteIndex {
-        ByteIndex::new(self.index, self.pointer)
-    }
-}
-
-impl ByteReader<'_> {
     pub(crate) fn byte_index(&self) -> ByteIndex {
         ByteIndex::new(self.index, self.pointer)
     }

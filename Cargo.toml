@@ -1,11 +1,12 @@
 [package]
 name = "spf"
-version = "0.7.2"
+version = "0.8.0-alpha.0"
 description = ".spf (Simple Pixel Font) file parser"
 repository = "https://github.com/SimplePixelFont/spf.rs"
 license = "Apache-2.0"
 edition = "2021"
 categories = ["parsing", "no-std"]
+rust-version = "1.78.0"
 
 [lib]
 name = "spf"
@@ -17,18 +18,18 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["std", "log", "ergonomics", "serde", "ffi", "articles", "tagging"]
+default = ["std", "log", "serde", "ffi", "articles", "tagging"]
 std = []
 log = ["dep:log"]
-ergonomics = []
-serde = ["dep:serde"]
+serde = ["dep:serde", "bitflags/serde"]
 ffi = []
 articles = []
 tagging = []
 
 [dependencies]
+bitflags = { version = "2.11.1" }
 log = { version = "0.4.27", optional = true }
-serde = { version = "1.0.225", features = ["derive"], optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
 
 [dev-dependencies]
 env_logger = "0.11.8"

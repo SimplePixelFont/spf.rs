@@ -24,7 +24,7 @@
 //! WebAssembly.
 //!
 //! To learn about how to use the `spf.rs` library in your language of choice, please refer to the
-//! [`crate::articles::c_usage`] article. Also note that the [`self::converters`] module is  not
+//! [`crate::articles::c_usage`] article. Also note that the [`self::converters`] module is not
 //! part of the `spf.rs` library and only exposed in the Rust crate.
 //!
 //! # Conventions
@@ -39,15 +39,44 @@
 //! All functions that return a [`Vec<u8>`] return a [`SPFData`] struct instead.
 
 use crate::core::*;
-
-use core::ffi::*;
 use core::slice;
+
+#[cfg(feature = "std")]
+pub(crate) use std::ffi::*;
+
+#[cfg(not(feature = "std"))]
+pub(crate) use alloc::ffi::*;
 
 pub mod converters;
 pub mod defaults;
+pub mod free;
 
 #[macro_use]
 pub(crate) mod macros;
+
+#[doc(inline)]
+pub use converters::*;
+
+#[doc(inline)]
+pub use free::*;
+
+pub const SPF_PIXMAP_TABLE_CONFIGURATION_FLAGS_CONSTANT_WIDTH: u8 = 1 << 0;
+pub const SPF_PIXMAP_TABLE_CONFIGURATION_FLAGS_CONSTANT_HEIGHT: u8 = 1 << 1;
+pub const SPF_PIXMAP_TABLE_CONFIGURATION_FLAGS_CONSTANT_BITS_PER_PIXEL: u8 = 1 << 2;
+pub const SPF_PIXMAP_TABLE_LINK_FLAGS_LINK_COLOR_TABLES: u8 = 1 << 0;
+
+pub const SPF_CHARACTER_TABLE_MODIFIER_FLAGS_USE_ADVANCE_X: u8 = 1 << 0;
+pub const SPF_CHARACTER_TABLE_MODIFIER_FLAGS_USE_PIXMAP_INDEX: u8 = 1 << 1;
+pub const SPF_CHARACTER_TABLE_MODIFIER_FLAGS_USE_PIXMAP_TABLE_INDEX: u8 = 1 << 2;
+
+pub const SPF_CHARACTER_TABLE_CONFIGURATION_FLAGS_CONSTANT_CLUSTER_CODEPOINTS: u8 = 1 << 0;
+
+pub const SPF_CHARACTER_TABLE_LINK_FLAGS_LINK_PIXMAP_TABLES: u8 = 1 << 0;
+
+pub const SPF_COLOR_TABLE_MODIFIER_FLAGS_USE_COLOR_TYPE: u8 = 1 << 0;
+pub const SPF_COLOR_TABLE_CONFIGURATION_FLAGS_CONSTANT_ALPHA: u8 = 1 << 0;
+
+pub const SPF_FONT_TABLE_LINK_FLAGS_LINK_CHARACTER_TABLES: u8 = 1 << 0;
 
 #[derive(Debug, Clone)]
 #[repr(C)]
@@ -62,11 +91,14 @@ pub struct SPFLayout {
     pub color_tables_length: c_ulong,
     pub pixmap_tables: *mut SPFPixmapTable,
     pub pixmap_tables_length: c_ulong,
+    pub font_tables: *mut SPFFontTable,
+    pub font_tables_length: c_ulong,
 }
 
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFPixmapTable {
+    pub configuration_flags: c_uchar,
     pub has_constant_width: c_uchar,
     pub constant_width: c_uchar,
     pub has_constant_height: c_uchar,
@@ -74,6 +106,7 @@ pub struct SPFPixmapTable {
     pub has_constant_bits_per_pixel: c_uchar,
     pub constant_bits_per_pixel: c_uchar,
 
+    pub link_flags: c_uchar,
     pub has_color_table_indexes: c_uchar,
     pub color_table_indexes: *mut c_uchar,
     pub color_table_indexes_length: c_ulong,
@@ -98,12 +131,13 @@ pub struct SPFPixmap {
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFCharacterTable {
-    pub use_advance_x: c_uchar,
-    pub use_pixmap_index: c_uchar,
+    pub modifier_flags: c_uchar,
 
+    pub configuration_flags: c_uchar,
     pub has_constant_cluster_codepoints: c_uchar,
     pub constant_cluster_codepoints: c_uchar,
 
+    pub link_flags: c_uchar,
     pub has_pixmap_table_indexes: c_uchar,
     pub pixmap_table_indexes: *mut c_uchar,
     pub pixmap_table_indexes_length: c_ulong,
@@ -119,6 +153,8 @@ pub struct SPFCharacter {
     pub advance_x: c_uchar,
     pub has_pixmap_index: c_uchar,
     pub pixmap_index: c_uchar,
+    pub has_pixmap_table_index: c_uchar,
+    pub pixmap_table_index: c_uchar,
 
     pub grapheme_cluster: *mut c_char,
 }
@@ -126,6 +162,9 @@ pub struct SPFCharacter {
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFColorTable {
+    pub modifier_flags: c_uchar,
+
+    pub configuration_flags: c_uchar,
     pub has_constant_alpha: c_uchar,
     pub constant_alpha: c_uchar,
 
@@ -136,52 +175,179 @@ pub struct SPFColorTable {
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFColor {
+    pub has_color_type: c_uchar,
+    pub color_type: c_uchar,
+
     pub has_custom_alpha: c_uchar,
     pub custom_alpha: c_uchar,
+
     pub r: c_uchar,
     pub g: c_uchar,
     pub b: c_uchar,
 }
 
+#[derive(Debug, Clone)]
+#[repr(C)]
+pub struct SPFFontTable {
+    pub link_flags: c_uchar,
+    pub has_character_table_indexes: c_uchar,
+    pub character_table_indexes: *mut c_uchar,
+    pub character_table_indexes_length: c_ulong,
+
+    pub fonts: *mut SPFFont,
+    pub fonts_length: c_ulong,
+}
+
+#[derive(Debug, Clone)]
+#[repr(C)]
+pub struct SPFFont {
+    pub name: *mut c_char,
+    pub author: *mut c_char,
+    pub version: c_uchar,
+    pub font_type: c_uchar,
+    pub character_table_indexes: *mut c_uchar,
+    pub character_tables_indexes_length: c_ulong,
+}
+
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
-/// Used to represent a [`Vec<u8>`] in the C ABI. This is simply a `u_char` array on the heap which can be reconstructed with the pointer `data` and length `data_length`.
+/// Used to represent a [`Vec<u8>`] in the C ABI. This is simply a `u_char` array on the heap
+/// which can be reconstructed with the pointer `data` and length `data_length`.
+/// The caller is responsible for freeing this with [`free::spf_free_data`].
 pub struct SPFData {
     pub data: *mut c_uchar,
     pub data_length: c_ulong,
 }
 
+/// Status codes returned by all exported FFI functions. `SPFStatus::Ok` (0) indicates success;
+/// all other values indicate a specific failure. The C caller should check this before reading
+/// any out-parameter.
+#[repr(C)]
+pub enum SPFStatus {
+    Ok = 0,
+    ErrUnexpectedEndOfFile = 1,
+    ErrInvalidSignature = 2,
+    ErrUnsupportedVersion = 3,
+    ErrUnsupportedColorType = 4,
+    ErrUnsupportedTableIdentifier = 5,
+    ErrUnsupportedFontType = 6,
+    ErrStaticVectorTooLarge = 10,
+    ErrInvalidPixmapData = 11,
+    ErrConversionNulError = 20,
+    ErrConversionUtf8Error = 21,
+}
+
+impl From<DeserializeError> for SPFStatus {
+    fn from(err: DeserializeError) -> Self {
+        match err {
+            DeserializeError::UnexpectedEndOfFile => SPFStatus::ErrUnexpectedEndOfFile,
+            DeserializeError::InvalidSignature => SPFStatus::ErrInvalidSignature,
+            DeserializeError::UnsupportedVersion => SPFStatus::ErrUnsupportedVersion,
+            DeserializeError::UnsupportedColorType => SPFStatus::ErrUnsupportedColorType,
+            DeserializeError::UnsupportedTableIdentifier => SPFStatus::ErrUnsupportedTableIdentifier,
+            DeserializeError::UnsupportedFontType => SPFStatus::ErrUnsupportedFontType,
+        }
+    }
+}
+
+impl From<SerializeError> for SPFStatus {
+    fn from(err: SerializeError) -> Self {
+        match err {
+            SerializeError::StaticVectorTooLarge => SPFStatus::ErrStaticVectorTooLarge,
+            SerializeError::InvalidPixmapData => SPFStatus::ErrInvalidPixmapData,
+        }
+    }
+}
+
+impl From<converters::ConversionError> for SPFStatus {
+    fn from(err: converters::ConversionError) -> Self {
+        match err {
+            converters::ConversionError::NulError(_) => SPFStatus::ErrConversionNulError,
+            converters::ConversionError::Utf8Error(_) => SPFStatus::ErrConversionUtf8Error,
+            converters::ConversionError::UnsupportedVersion => SPFStatus::ErrUnsupportedVersion,
+            converters::ConversionError::UnsupportedColorType => SPFStatus::ErrUnsupportedColorType,
+            converters::ConversionError::UnsupportedFontType => SPFStatus::ErrUnsupportedFontType,
+        }
+    }
+}
+
+/// Named constants for the `version` field of [`SPFLayout`].
+#[repr(C)]
+pub enum SPFVersion {
+    FV0 = 0,
+}
+
+/// Named constants for the `color_type` field of [`SPFColor`].
+#[repr(C)]
+pub enum SPFColorType {
+    Dynamic = 0,
+    Absolute = 1,
+}
+
+/// Named constants for the `font_type` field of [`SPFFont`].
+#[repr(C)]
+pub enum SPFFontType {
+    Regular = 0,
+    Bold = 1,
+    Italic = 2,
+}
+
 #[no_mangle]
 /// Thin wrapper around [`layout_to_data`] compatible with the C ABI.
 ///
-/// This function takes a [`SPFLayout`] struct and converts it into a Rust native [`Layout`] struct.
-/// The [`Layout`] struct is then parsed into a [`Vec<u8>`] with the [`layout_to_data`] function.
-/// The [`Vec<u8>`] is then converted into a [`SPFData`] struct and returned.
-pub extern "C" fn spf_core_layout_to_data(layout: SPFLayout) -> SPFData {
-    let mut data = layout_to_data(&layout.try_into().unwrap())
-        .unwrap()
-        .into_boxed_slice();
-    let data_length = data.len() as c_ulong;
-    let data_ptr = data.as_mut_ptr();
-    core::mem::forget(data);
-    SPFData {
-        data: data_ptr,
-        data_length,
+/// Reads the [`SPFLayout`] at `layout`, converts it to a Rust-native [`Layout`],
+/// serializes it, and writes the result into `out` as an [`SPFData`].
+/// Returns [`SPFStatus::Ok`] on success.
+///
+/// The input `layout` is not consumed and remains valid after the call. On failure
+/// the out-parameter is not written and the returned status describes the error.
+/// On success the caller is responsible for freeing `out` with [`free::spf_free_data`].
+pub unsafe extern "C" fn spf_core_layout_to_data(
+    layout: *const SPFLayout,
+    out: *mut SPFData,
+) -> SPFStatus {
+    let rust_layout: Layout = match unsafe { (*layout).clone().try_into() } {
+        Ok(l) => l,
+        Err(e) => return SPFStatus::from(e),
+    };
+    let data = match layout_to_data(&rust_layout) {
+        Ok(d) => d,
+        Err(e) => return SPFStatus::from(e),
+    };
+    let mut boxed = data.into_boxed_slice();
+    let data_length = boxed.len() as c_ulong;
+    let data_ptr = boxed.as_mut_ptr();
+    core::mem::forget(boxed);
+    unsafe {
+        *out = SPFData { data: data_ptr, data_length };
     }
+    SPFStatus::Ok
 }
 
 #[no_mangle]
 /// Thin wrapper around [`layout_from_data`] compatible with the C ABI.
 ///
-/// This function takes a pointer to a [`c_uchar`] array with a length of [`c_ulong`] and creates a
-/// [`Vec<u8>`] from the data. This data is then passed to the [`layout_from_data`] function to
-/// create a [`Layout`] struct. The [`Layout`] struct is then converted into a [`SPFLayout`] struct
-/// and returned.
+/// Reads `length` bytes from `pointer`, deserializes a font layout, and writes the result into
+/// `out` as an [`SPFLayout`]. Returns [`SPFStatus::Ok`] on success.
+///
+/// On failure the out-parameter is not written and the returned status describes the error.
+/// On success the caller is responsible for freeing `out` with [`free::spf_free_layout`].
 pub unsafe extern "C" fn spf_core_layout_from_data(
     pointer: *const c_uchar,
     length: c_ulong,
-) -> SPFLayout {
+    out: *mut SPFLayout,
+) -> SPFStatus {
     let data = unsafe { slice::from_raw_parts(pointer, length as usize) };
-    let layout = layout_from_data(data).unwrap();
-    layout.try_into().unwrap()
+    let layout = match layout_from_data(data) {
+        Ok(l) => l,
+        Err(e) => return SPFStatus::from(e),
+    };
+    let spf_layout = match layout.try_into() {
+        Ok(l) => l,
+        Err(e) => return SPFStatus::from(e),
+    };
+    unsafe {
+        *out = spf_layout;
+    }
+    SPFStatus::Ok
 }

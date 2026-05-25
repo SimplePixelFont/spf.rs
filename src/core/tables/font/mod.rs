@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-pub(crate) mod deserialize;
-pub(crate) mod serialize;
-
-use crate::core::{
-    DeserializeEngine, Pixmap, PixmapTable, SerializeEngine, SerializeError, Table, TagWriter,
-};
-
-use crate::core::byte::ByteReader;
+use crate::core::{byte::ByteReader, Font};
 #[cfg(feature = "tagging")]
 use crate::core::{ByteIndex, Span, TableType, TagKind};
+use crate::core::{
+    DeserializeEngine, DeserializeError, FontTable, SerializeEngine, SerializeError, Table,
+    TagWriter,
+};
 
+pub(crate) mod deserialize;
 pub(crate) use deserialize::*;
+pub(crate) mod serialize;
 pub(crate) use serialize::*;
 
-impl Table for PixmapTable {
+impl Table for FontTable {
     fn deserialize<R: ByteReader, T: TagWriter>(
         engine: &mut DeserializeEngine<R, T>,
-    ) -> Result<Self, crate::core::DeserializeError> {
+    ) -> Result<Self, DeserializeError> {
         #[cfg(feature = "tagging")]
         let table_start = engine.bytes.byte_index();
         #[cfg(feature = "tagging")]
@@ -39,67 +38,64 @@ impl Table for PixmapTable {
         #[cfg(feature = "tagging")]
         engine.tags.tag_byte(
             TagKind::TableIdentifier {
-                table_type: TableType::Pixmap,
+                table_type: TableType::Font,
             },
             engine.bytes.byte_index(),
         );
 
-        let mut pixmap_table = PixmapTable::default();
-        pixmap_table.next_modifier_flags(engine);
-        pixmap_table.next_configurations(engine);
-        pixmap_table.next_table_links(engine);
+        let mut font_table = FontTable::default();
+        font_table.next_modifer_flags(engine);
+        font_table.next_configurations(engine);
+        font_table.next_table_links(engine)?;
 
-        let pixmap_count = engine.bytes.next();
+        let font_count = engine.bytes.next();
         #[cfg(feature = "tagging")]
         engine.tags.tag_byte(
-            TagKind::PixmapTablePixmapCount {
+            TagKind::FontTableFontCount {
                 table_index: engine.tagging_data.current_table_index,
-                count: pixmap_count,
+                count: font_count,
             },
             engine.bytes.byte_index(),
         );
 
-        for index in 0..pixmap_count {
+        for index in 0..font_count {
             #[cfg(feature = "tagging")]
             {
                 engine.tagging_data.current_record_index = index;
             }
             #[cfg(feature = "tagging")]
-            let pixmap_start = engine.bytes.byte_index();
+            let font_start = engine.bytes.byte_index();
 
-            let mut pixmap = Pixmap::default();
-            next_width(engine, &mut pixmap, pixmap_table.constant_width);
-            next_height(engine, &mut pixmap, pixmap_table.constant_height);
-            next_bits_per_pixel(engine, &mut pixmap, pixmap_table.constant_bits_per_pixel);
-            next_pixmap(
-                engine,
-                &mut pixmap,
-                pixmap_table.constant_width,
-                pixmap_table.constant_height,
-                pixmap_table.constant_bits_per_pixel,
-            );
-            pixmap_table.pixmaps.push(pixmap);
+            let mut font = Font::default();
+
+            next_name(engine, &mut font);
+            next_author(engine, &mut font);
+            next_version(engine, &mut font);
+            next_font_type(engine, &mut font)?;
+            next_character_table_indexes(engine, &mut font);
+            font_table.fonts.push(font);
 
             #[cfg(feature = "tagging")]
             engine.tags.tag_span(
-                TagKind::PixmapRecord {
+                TagKind::FontRecord {
                     table_index: engine.tagging_data.current_table_index,
-                    pixmap_index: engine.tagging_data.current_record_index,
+                    font_index: engine.tagging_data.current_record_index,
                 },
-                Span::new(pixmap_start, engine.bytes.byte_index()),
+                Span::new(font_start, engine.bytes.byte_index()),
             );
         }
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_span(
-            TagKind::PixmapTable {
+            TagKind::FontTable {
                 index: engine.tagging_data.current_table_index,
             },
             Span::new(table_start, engine.bytes.byte_index()),
         );
 
-        Ok(pixmap_table)
+        Ok(font_table)
     }
+
     fn serialize<T: TagWriter>(
         &self,
         engine: &mut SerializeEngine<T>,
@@ -112,59 +108,53 @@ impl Table for PixmapTable {
         self.push_configurations(engine);
         self.push_table_links(engine)?;
 
-        if self.pixmaps.len() > 255 {
+        // record length
+        let font_count = self.fonts.len();
+        if font_count > 255 {
             return Err(SerializeError::StaticVectorTooLarge);
         }
-        engine.bytes.push(self.pixmaps.len() as u8);
+        engine.bytes.push(font_count as u8);
         #[cfg(feature = "tagging")]
         engine.tags.tag_byte(
-            TagKind::PixmapTablePixmapCount {
+            TagKind::FontTableFontCount {
                 table_index: engine.tagging_data.current_table_index,
-                count: self.pixmaps.len() as u8,
+                count: font_count as u8,
             },
             engine.bytes.byte_index(),
         );
-        for (index, pixmap) in self.pixmaps.iter().enumerate() {
+
+        // records
+        for (index, font) in self.fonts.iter().enumerate() {
             #[cfg(feature = "tagging")]
             {
                 engine.tagging_data.current_record_index = index as u8;
             }
             #[cfg(feature = "tagging")]
-            let pixmap_start = engine.bytes.byte_index();
+            let font_start = engine.bytes.byte_index();
 
-            push_width(engine, self.constant_width, pixmap.custom_width);
-            push_height(engine, self.constant_height, pixmap.custom_height);
-            push_bits_per_pixel(
-                engine,
-                self.constant_bits_per_pixel,
-                pixmap.custom_bits_per_pixel,
-            );
-            push_pixmap(
-                engine,
-                self.constant_width,
-                self.constant_height,
-                self.constant_bits_per_pixel,
-                pixmap,
-            )?;
+            push_name(engine, &font.name);
+            push_author(engine, &font.author);
+            push_version(engine, font.version);
+            push_font_type(engine, font.font_type);
+            push_character_table_indexes(engine, &font.character_table_indexes)?;
 
             #[cfg(feature = "tagging")]
             engine.tags.tag_span(
-                TagKind::PixmapRecord {
+                TagKind::FontRecord {
                     table_index: engine.tagging_data.current_table_index,
-                    pixmap_index: engine.tagging_data.current_record_index,
+                    font_index: engine.tagging_data.current_record_index,
                 },
-                Span::new(pixmap_start, engine.bytes.byte_index()),
+                Span::new(font_start, engine.bytes.byte_index()),
             );
         }
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_span(
-            TagKind::PixmapTable {
+            TagKind::FontTable {
                 index: engine.tagging_data.current_table_index,
             },
             Span::new(table_start, engine.bytes.byte_index()),
         );
-
         Ok(())
     }
 }

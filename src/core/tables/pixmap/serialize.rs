@@ -20,7 +20,7 @@ use crate::core::{
 use crate::{format, vec, String};
 
 #[cfg(feature = "tagging")]
-use crate::core::{Span, TableType, TagKind};
+use crate::core::{PixmapTableConfigurationFlags, PixmapTableLinkFlags, Span, TableType, TagKind};
 
 #[cfg(feature = "log")]
 pub(crate) use log::*;
@@ -51,18 +51,7 @@ impl PixmapTable {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
-        let mut configuration_flags = 0; // configuration flags
-        if self.constant_width.is_some() {
-            configuration_flags |= 0b00000001;
-        }
-        if self.constant_height.is_some() {
-            configuration_flags |= 0b00000010;
-        }
-        if self.constant_bits_per_pixel.is_some() {
-            configuration_flags |= 0b00000100;
-        }
-
-        engine.bytes.push(configuration_flags);
+        engine.bytes.push(self.configuration_flags.bits());
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::PixmapTableConfigurationFlags {
@@ -71,15 +60,21 @@ impl PixmapTable {
             vec![
                 TagKind::PixmapTableUseConstantWidth {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_width.is_some(),
+                    value: self
+                        .configuration_flags
+                        .contains(PixmapTableConfigurationFlags::ConstantWidth),
                 },
                 TagKind::PixmapTableUseConstantHeight {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_height.is_some(),
+                    value: self
+                        .configuration_flags
+                        .contains(PixmapTableConfigurationFlags::ConstantHeight),
                 },
                 TagKind::PixmapTableUseConstantBitsPerPixel {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_bits_per_pixel.is_some(),
+                    value: self
+                        .configuration_flags
+                        .contains(PixmapTableConfigurationFlags::ConstantBitsPerPixel),
                 },
             ],
             engine.bytes.byte_index(),
@@ -88,35 +83,36 @@ impl PixmapTable {
         // configuration values
         #[cfg(feature = "tagging")]
         let configuration_values_start = engine.bytes.byte_index();
-        if self.constant_width.is_some() {
-            engine.bytes.push(self.constant_width.unwrap());
+
+        if let Some(constant_width) = self.constant_width {
+            engine.bytes.push(constant_width);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::PixmapTableConstantWidth {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_width.unwrap(),
+                    value: constant_width,
                 },
                 engine.bytes.byte_index(),
             );
         }
-        if self.constant_height.is_some() {
-            engine.bytes.push(self.constant_height.unwrap());
+        if let Some(constant_height) = self.constant_height {
+            engine.bytes.push(constant_height);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::PixmapTableConstantHeight {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_height.unwrap(),
+                    value: constant_height,
                 },
                 engine.bytes.byte_index(),
             );
         }
-        if self.constant_bits_per_pixel.is_some() {
-            engine.bytes.push(self.constant_bits_per_pixel.unwrap());
+        if let Some(constant_bits_per_pixel) = self.constant_bits_per_pixel {
+            engine.bytes.push(constant_bits_per_pixel);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::PixmapTableConstantBitsPerPixel {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_bits_per_pixel.unwrap(),
+                    value: constant_bits_per_pixel,
                 },
                 engine.bytes.byte_index(),
             );
@@ -145,13 +141,8 @@ impl PixmapTable {
         #[cfg(feature = "tagging")]
         let table_links_start = engine.bytes.byte_index();
 
-        let mut link_flags = 0b00000000;
-        if self.color_table_indexes.is_some() {
-            link_flags |= 0b00000001;
-        }
-
         // Table relations
-        engine.bytes.push(link_flags);
+        engine.bytes.push(self.link_flags.bits());
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::PixmapTableLinkFlags {
@@ -159,7 +150,9 @@ impl PixmapTable {
             },
             vec![TagKind::PixmapTableLinkColorTables {
                 table_index: engine.tagging_data.current_table_index,
-                value: self.color_table_indexes.is_some(),
+                value: self
+                    .link_flags
+                    .contains(PixmapTableLinkFlags::LinkColorTables),
             }],
             engine.bytes.byte_index(),
         );

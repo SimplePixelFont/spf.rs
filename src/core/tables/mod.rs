@@ -16,4 +16,5 @@
 
 pub(crate) mod character;
 pub(crate) mod color;
+pub(crate) mod font;
 pub(crate) mod pixmap;

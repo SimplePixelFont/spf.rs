@@ -1,54 +1,55 @@
-name: tests
+name: msrv
 
 on:
   push:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  merge_group:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  tests:
+  msrv:
     runs-on: ubuntu-latest
     outputs:
-      outcome: ${{ steps.tests.outcome }}
+      outcome: ${{ steps.msrv.outcome }}
 
     steps:
       - uses: actions/checkout@v4
-      - name: tests
-        id: tests
-        run: cargo test --verbose
+      - name: MSRV
+        id: msrv
+        run: cargo install cargo-msrv && cargo msrv verify
 
   badge:
     runs-on: ubuntu-latest
-    needs: tests
+    needs: msrv
     if: always() && github.event_name == 'push'
 
     steps:
       - name: passing
-        if: needs.tests.outputs.outcome == 'success'
+        if: needs.msrv.outputs.outcome == 'success'
         uses: SimplePixelFont/badge-spf-action@main
         with:
-          filename: tests.png
-          label: Tests
-          message: passing
+          filename: msrv.png
+          label: MSRV
+          message: 1.78.0
           labelColor: "#2d3136"
           color: "#00bfa3"
-          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/wrench.png"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/settings.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram5x8-light.spf"
 
       - name: failing
-        if: needs.tests.outputs.outcome == 'failure'
+        if: needs.msrv.outputs.outcome == 'failure'
         uses: SimplePixelFont/badge-spf-action@main
         with:
-          filename: tests.png
-          label: Tests
-          message: failing
+          filename: msrv.png
+          label: MSRV
+          message: 1.78.0
           labelColor: "#2d3136"
           color: "#d94a69"
-          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/wrench.png"
+          logo: "https://raw.githubusercontent.com/The-Nice-One/GalleryArt/refs/heads/main/emojis_flattened/settings.png"
           font: "https://raw.githubusercontent.com/SimplePixelFont/web-spf/refs/heads/main/Monogram5x8-light.spf"
 
       - name: deploy
@@ -56,5 +57,5 @@ jobs:
         with:
           token: ${{ secrets.GIST_SECRET }}
           gist_id: cfebb0fe555ac7e77ada109c469cdeb4
-          file_path: tests.png
+          file_path: msrv.png
           file_type: binary

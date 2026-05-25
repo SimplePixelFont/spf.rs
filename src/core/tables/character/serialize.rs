@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#[cfg(feature = "tagging")]
+use crate::core::CharacterTableLinkFlags;
+use crate::core::CharacterTableModifierFlags;
 use crate::core::{CharacterTable, SerializeEngine, SerializeError, TableIdentifier, TagWriter};
 use crate::{vec, String};
 
@@ -37,15 +40,7 @@ impl CharacterTable {
         );
     }
     pub(crate) fn push_modifier_flags<T: TagWriter>(&self, engine: &mut SerializeEngine<T>) {
-        let mut modifier_flags = 0b00000000;
-        if self.use_advance_x {
-            modifier_flags |= 0b00000001;
-        }
-        if self.use_pixmap_index {
-            modifier_flags |= 0b00000010;
-        }
-
-        engine.bytes.push(modifier_flags);
+        engine.bytes.push(self.modifier_flags.bits());
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::CharacterTableModifierFlags {
@@ -55,11 +50,21 @@ impl CharacterTable {
             vec![
                 TagKind::CharacterTableUseAdvanceX {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.use_advance_x,
+                    value: self
+                        .modifier_flags
+                        .contains(CharacterTableModifierFlags::UseAdvanceX),
                 },
                 TagKind::CharacterTableUsePixmapIndex {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.use_pixmap_index,
+                    value: self
+                        .modifier_flags
+                        .contains(CharacterTableModifierFlags::UsePixmapIndex),
+                },
+                TagKind::CharacterTableUsePixmapTableIndex {
+                    table_index: engine.tagging_data.current_table_index,
+                    value: self
+                        .modifier_flags
+                        .contains(CharacterTableModifierFlags::UsePixmapTableIndex),
                 },
             ],
             engine.bytes.byte_index(),
@@ -69,12 +74,7 @@ impl CharacterTable {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
-        let mut configuration_flags = 0b00000000;
-        if self.constant_cluster_codepoints.is_some() {
-            configuration_flags |= 0b00000001;
-        }
-
-        engine.bytes.push(configuration_flags); // Configuration flags byte
+        engine.bytes.push(self.configuration_flags.bits()); // Configuration flags byte
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::CharacterTableConfigurationFlags {
@@ -91,13 +91,13 @@ impl CharacterTable {
         #[cfg(feature = "tagging")]
         let configuration_values_start = engine.bytes.byte_index();
 
-        if self.constant_cluster_codepoints.is_some() {
-            engine.bytes.push(self.constant_cluster_codepoints.unwrap());
+        if let Some(constant_cluster_codepoints) = self.constant_cluster_codepoints {
+            engine.bytes.push(constant_cluster_codepoints);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::CharacterTableConstantClusterCodepoints {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_cluster_codepoints.unwrap(),
+                    value: constant_cluster_codepoints,
                 },
                 engine.bytes.byte_index(),
             );
@@ -127,14 +127,8 @@ impl CharacterTable {
         #[cfg(feature = "tagging")]
         let links_start = engine.bytes.byte_index();
 
-        // Table Links
-        let mut link_flags = 0b00000000;
-        if self.pixmap_table_indexes.is_some() {
-            link_flags |= 0b00000001;
-        }
-
         // Table relations
-        engine.bytes.push(link_flags);
+        engine.bytes.push(self.link_flags.bits());
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::CharacterTableLinkFlags {
@@ -142,7 +136,9 @@ impl CharacterTable {
             },
             vec![TagKind::CharacterTableLinkPixmapTables {
                 table_index: engine.tagging_data.current_table_index,
-                value: self.pixmap_table_indexes.is_some(),
+                value: self
+                    .link_flags
+                    .contains(CharacterTableLinkFlags::LinkPixmapTables),
             }],
             engine.bytes.byte_index(),
         );

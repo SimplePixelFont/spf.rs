@@ -16,21 +16,17 @@
 
 //! Essential functions and structs used by both the native crate and FFI interface.
 //!
-//! <div class="warning">
-//!
-//! If you are using `spf.rs` as a native Rust crate you may instead want to use the interface exposed
-//! from the [`crate::ergonomics`] feature module.
-//!
-//! </div>
-//!
 //! This module provides raw composite structs that aim to reflect the structure of a `SimplePixelFont`
 //! binary file. Additionally it defines the [`layout_to_data`] and [`layout_from_data`] functions that
 //! can be used to convert between the structs and the binary data.
 
-pub(crate) mod byte;
+pub mod byte;
 pub(crate) mod deserialize;
 pub(crate) mod serialize;
 pub(crate) mod tables;
+
+use bitflags::bitflags;
+use byte::{ByteReader, ByteReaderImpl};
 
 #[cfg(not(feature = "tagging"))]
 mod tagging_stub;
@@ -42,6 +38,60 @@ pub(crate) use tagging_stub::*;
 
 use crate::{String, Vec};
 use core::marker::PhantomData;
+
+bitflags! {
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct PixmapTableConfigurationFlags: u8 {
+        const ConstantWidth = 0b00000001;
+        const ConstantHeight = 0b00000010;
+        const ConstantBitsPerPixel = 0b00000100;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct PixmapTableLinkFlags: u8 {
+        const LinkColorTables = 0b00000001;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct CharacterTableModifierFlags: u8 {
+        const UseAdvanceX = 0b00000001;
+        const UsePixmapIndex = 0b00000010;
+        const UsePixmapTableIndex = 0b00000100;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct CharacterTableLinkFlags: u8 {
+        const LinkPixmapTables = 0b00000001;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct CharacterTableConfigurationFlags: u8 {
+        const ConstantClusterCodePoints = 0b00000001;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct ColorTableModifierFlags: u8 {
+        const UseColorType = 0b00000001;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct ColorTableConfigurationFlags: u8 {
+        const ConstantAlpha = 0b00000001;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct FontTableLinkFlags: u8 {
+        const LinkCharacterTables = 0b00000001;
+    }
+}
 
 #[repr(u8)]
 #[non_exhaustive]
@@ -59,6 +109,7 @@ impl core::fmt::Display for Version {
     }
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Layout {
@@ -69,20 +120,25 @@ pub struct Layout {
     pub character_tables: Vec<CharacterTable>,
     pub color_tables: Vec<ColorTable>,
     pub pixmap_tables: Vec<PixmapTable>,
+    pub font_tables: Vec<FontTable>,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PixmapTable {
+    pub configuration_flags: PixmapTableConfigurationFlags,
     pub constant_width: Option<u8>,
     pub constant_height: Option<u8>,
     pub constant_bits_per_pixel: Option<u8>,
 
+    pub link_flags: PixmapTableLinkFlags,
     pub color_table_indexes: Option<Vec<u8>>,
 
     pub pixmaps: Vec<Pixmap>,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Pixmap {
@@ -92,43 +148,95 @@ pub struct Pixmap {
     pub data: Vec<u8>,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CharacterTable {
-    pub use_advance_x: bool,
-    pub use_pixmap_index: bool,
+    pub modifier_flags: CharacterTableModifierFlags,
 
+    pub configuration_flags: CharacterTableConfigurationFlags,
     pub constant_cluster_codepoints: Option<u8>,
 
+    pub link_flags: CharacterTableLinkFlags,
     pub pixmap_table_indexes: Option<Vec<u8>>,
 
     pub characters: Vec<Character>,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Character {
     pub advance_x: Option<u8>,
     pub pixmap_index: Option<u8>,
+    pub pixmap_table_index: Option<u8>,
 
     pub grapheme_cluster: String,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ColorTable {
+    pub modifier_flags: ColorTableModifierFlags,
+
+    pub configuration_flags: ColorTableConfigurationFlags,
     pub constant_alpha: Option<u8>,
 
     pub colors: Vec<Color>,
 }
 
+#[repr(u8)]
+#[non_exhaustive]
+#[derive(Default, Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum ColorType {
+    #[default]
+    Dynamic,
+    Absolute,
+}
+
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Color {
+    pub color_type: Option<ColorType>,
     pub custom_alpha: Option<u8>,
     pub r: u8,
     pub g: u8,
     pub b: u8,
+}
+
+#[repr(u8)]
+#[non_exhaustive]
+#[derive(Default, Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum FontType {
+    #[default]
+    Regular,
+    Bold,
+    Italic,
+}
+
+#[non_exhaustive]
+#[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct FontTable {
+    pub link_flags: FontTableLinkFlags,
+    pub character_table_indexes: Option<Vec<u8>>,
+
+    pub fonts: Vec<Font>,
+}
+
+#[non_exhaustive]
+#[derive(Default, Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Font {
+    pub name: String,
+    pub author: String,
+    pub version: u8,
+    pub font_type: FontType,
+    pub character_table_indexes: Vec<u8>,
 }
 
 #[repr(u8)]
@@ -137,6 +245,7 @@ enum TableIdentifier {
     Character = 0b00000001,
     Pixmap    = 0b00000010,
     Color     = 0b00000011,
+    Font      = 0b00000100,
 }
 
 impl TryFrom<u8> for TableIdentifier {
@@ -147,6 +256,7 @@ impl TryFrom<u8> for TableIdentifier {
             0b00000001 => Ok(TableIdentifier::Character),
             0b00000010 => Ok(TableIdentifier::Pixmap),
             0b00000011 => Ok(TableIdentifier::Color),
+            0b00000100 => Ok(TableIdentifier::Font),
             _ => Err(DeserializeError::UnsupportedTableIdentifier),
         }
     }
@@ -163,12 +273,39 @@ impl TryFrom<u8> for Version {
     }
 }
 
+impl TryFrom<u8> for ColorType {
+    type Error = DeserializeError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(ColorType::Dynamic),
+            1 => Ok(ColorType::Absolute),
+            _ => Err(DeserializeError::UnsupportedColorType),
+        }
+    }
+}
+
+impl TryFrom<u8> for FontType {
+    type Error = DeserializeError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(FontType::Regular),
+            1 => Ok(FontType::Bold),
+            2 => Ok(FontType::Italic),
+            _ => Err(DeserializeError::UnsupportedFontType),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum DeserializeError {
     UnexpectedEndOfFile,
     InvalidSignature,
     UnsupportedVersion,
+    UnsupportedColorType,
     UnsupportedTableIdentifier,
+    UnsupportedFontType,
 }
 
 #[derive(Debug)]
@@ -178,8 +315,8 @@ pub enum SerializeError {
 }
 
 pub(crate) trait Table: Sized {
-    fn deserialize<T: TagWriter>(
-        engine: &mut DeserializeEngine<T>,
+    fn deserialize<R: ByteReader, T: TagWriter>(
+        engine: &mut DeserializeEngine<R, T>,
     ) -> Result<Self, DeserializeError>;
     fn serialize<T: TagWriter>(
         &self,
@@ -187,14 +324,15 @@ pub(crate) trait Table: Sized {
     ) -> Result<(), SerializeError>;
 }
 
-pub struct DeserializeEngine<'a, T: TagWriter = TagWriterNoOp> {
-    bytes: byte::ByteReader<'a>,
+pub struct DeserializeEngine<'a, R: ByteReader = ByteReaderImpl<'a>, T: TagWriter = TagWriterNoOp> {
+    bytes: R,
     pub layout: Layout,
     #[cfg(feature = "tagging")]
     pub tags: T,
     #[cfg(feature = "tagging")]
     tagging_data: TaggingData,
     _phantom: PhantomData<T>,
+    _phantom2: &'a PhantomData<R>,
 }
 
 #[derive(Default)]
@@ -213,13 +351,15 @@ pub struct SerializeEngine<'a, T: TagWriter = TagWriterNoOp> {
     _phantom: PhantomData<T>,
 }
 
-pub(crate) fn deserialize_layout(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+pub(crate) fn deserialize_layout<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
+) -> Result<(), DeserializeError> {
     deserialize::next_signature(engine)?;
     deserialize::next_version(engine)?;
     deserialize::next_header(engine)?;
 
-    while engine.bytes.index < engine.bytes.len() - 1 {
-        match engine.bytes.next().try_into().unwrap() {
+    while engine.bytes.index() < engine.bytes.len() - 1 {
+        match engine.bytes.next().try_into()? {
             TableIdentifier::Character => {
                 #[cfg(feature = "tagging")]
                 {
@@ -247,12 +387,22 @@ pub(crate) fn deserialize_layout(engine: &mut DeserializeEngine) -> Result<(), D
                 let table = ColorTable::deserialize(engine)?;
                 engine.layout.color_tables.push(table);
             }
+            TableIdentifier::Font => {
+                #[cfg(feature = "tagging")]
+                {
+                    engine.tagging_data.current_table_index = engine.layout.font_tables.len() as u8;
+                }
+                let table = FontTable::deserialize(engine)?;
+                engine.layout.font_tables.push(table);
+            }
         };
     }
     Ok(())
 }
 
-pub fn deserialize_with_engine(engine: &mut DeserializeEngine) -> Result<(), DeserializeError> {
+pub fn deserialize_with_engine<R: ByteReader, T: TagWriter>(
+    engine: &mut DeserializeEngine<R, T>,
+) -> Result<(), DeserializeError> {
     deserialize_layout(engine)?;
     Ok(())
 }
@@ -265,7 +415,9 @@ pub fn layout_from_data(buffer: &[u8]) -> Result<Layout, DeserializeError> {
     Ok(engine.layout)
 }
 
-pub(crate) fn serialize_layout(engine: &mut SerializeEngine) -> Result<(), SerializeError> {
+pub(crate) fn serialize_layout<T: TagWriter>(
+    engine: &mut SerializeEngine<T>,
+) -> Result<(), SerializeError> {
     serialize::push_signature(engine);
     serialize::push_version(engine);
     serialize::push_header(engine);
@@ -291,11 +443,20 @@ pub(crate) fn serialize_layout(engine: &mut SerializeEngine) -> Result<(), Seria
         }
         color_table.serialize(engine)?;
     }
+    for (index, font_table) in engine.layout.font_tables.iter().enumerate() {
+        #[cfg(feature = "tagging")]
+        {
+            engine.tagging_data.current_table_index = index as u8;
+        }
+        font_table.serialize(engine)?;
+    }
 
     Ok(())
 }
 
-pub fn serialize_with_engine(engine: &mut SerializeEngine) -> Result<(), SerializeError> {
+pub fn serialize_with_engine<T: TagWriter>(
+    engine: &mut SerializeEngine<T>,
+) -> Result<(), SerializeError> {
     serialize_layout(engine)?;
     Ok(())
 }

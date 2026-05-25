@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+use crate::core::byte::ByteReader;
 use crate::core::{
-    byte, Color, ColorTable, DeserializeEngine, DeserializeError, SerializeEngine, SerializeError,
-    Table, TableIdentifier, TagWriter,
+    Color, ColorTable, ColorTableConfigurationFlags, ColorTableModifierFlags, ColorType,
+    DeserializeEngine, DeserializeError, SerializeEngine, SerializeError, Table, TableIdentifier,
+    TagWriter,
 };
 use crate::{vec, Vec};
 
@@ -24,23 +26,38 @@ use crate::{vec, Vec};
 use crate::core::{ByteIndex, Span, TableType, TagKind};
 
 impl ColorTable {
-    pub(crate) fn next_modifer_flags<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
-        let _modifier_flags = engine.bytes.next();
+    pub(crate) fn next_modifer_flags<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
+        self.modifier_flags = ColorTableModifierFlags::from_bits_retain(engine.bytes.next());
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::ColorTableModifierFlags {
                 table_index: engine.tagging_data.current_table_index,
             },
-            vec![],
+            #[cfg(feature = "tagging")]
+            vec![TagKind::ColorTableUseColorType {
+                table_index: engine.tagging_data.current_table_index,
+                value: self
+                    .modifier_flags
+                    .contains(ColorTableModifierFlags::UseColorType),
+            }],
             engine.bytes.byte_index(),
         );
     }
-    pub(crate) fn next_configurations<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+    pub(crate) fn next_configurations<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
-        let configuration_flags = engine.bytes.next();
-        let use_constant_alpha = byte::get_bit(configuration_flags, 0);
+        self.configuration_flags =
+            ColorTableConfigurationFlags::from_bits_retain(engine.bytes.next());
+        let use_constant_alpha = self
+            .configuration_flags
+            .contains(ColorTableConfigurationFlags::ConstantAlpha);
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
@@ -84,11 +101,14 @@ impl ColorTable {
             );
         }
     }
-    pub(crate) fn next_table_links<T: TagWriter>(&mut self, engine: &mut DeserializeEngine<T>) {
+    pub(crate) fn next_table_links<R: ByteReader, T: TagWriter>(
+        &mut self,
+        engine: &mut DeserializeEngine<R, T>,
+    ) {
         #[cfg(feature = "tagging")]
         let links_start = engine.bytes.byte_index();
 
-        let _link_flags = engine.bytes.next();
+        let _link_flags = engine.bytes.next(); // will need to be updated later to use bitflags
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::ColorTableLinkFlags {
@@ -111,8 +131,8 @@ impl ColorTable {
 }
 
 impl Table for ColorTable {
-    fn deserialize<T: TagWriter>(
-        engine: &mut DeserializeEngine<T>,
+    fn deserialize<R: ByteReader, T: TagWriter>(
+        engine: &mut DeserializeEngine<R, T>,
     ) -> Result<Self, DeserializeError> {
         #[cfg(feature = "tagging")]
         let table_start = engine.bytes.byte_index();
@@ -149,6 +169,22 @@ impl Table for ColorTable {
             let color_start = engine.bytes.byte_index();
 
             let mut color = Color::default();
+            if color_table
+                .modifier_flags
+                .contains(ColorTableModifierFlags::UseColorType)
+            {
+                color.color_type = Some(ColorType::try_from(engine.bytes.next())?);
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::ColorColorType {
+                        table_index: engine.tagging_data.current_table_index,
+                        color_index: engine.tagging_data.current_record_index,
+                        value: color.color_type.unwrap(),
+                    },
+                    engine.bytes.byte_index(),
+                );
+            }
+
             if color_table.constant_alpha.is_none() {
                 color.custom_alpha = Some(engine.bytes.next());
                 #[cfg(feature = "tagging")]
@@ -247,6 +283,22 @@ impl Table for ColorTable {
             #[cfg(feature = "tagging")]
             let color_start = engine.bytes.byte_index();
 
+            if self
+                .modifier_flags
+                .contains(ColorTableModifierFlags::UseColorType)
+            {
+                engine.bytes.push(color.color_type.unwrap() as u8);
+                #[cfg(feature = "tagging")]
+                engine.tags.tag_byte(
+                    TagKind::ColorColorType {
+                        table_index: engine.tagging_data.current_table_index,
+                        color_index: engine.tagging_data.current_record_index,
+                        value: color.color_type.unwrap(),
+                    },
+                    engine.bytes.byte_index(),
+                );
+            }
+
             if self.constant_alpha.is_none() {
                 engine.bytes.push(color.custom_alpha.unwrap());
                 #[cfg(feature = "tagging")]
@@ -324,13 +376,19 @@ impl ColorTable {
         );
     }
     pub(crate) fn push_modifier_flags<T: TagWriter>(&self, engine: &mut SerializeEngine<T>) {
-        engine.bytes.push(0b00000000);
+        engine.bytes.push(self.modifier_flags.bits());
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::ColorTableModifierFlags {
                 table_index: engine.tagging_data.current_table_index,
             },
-            vec![],
+            #[cfg(feature = "tagging")]
+            vec![TagKind::ColorTableUseColorType {
+                table_index: engine.tagging_data.current_table_index,
+                value: self
+                    .modifier_flags
+                    .contains(ColorTableModifierFlags::UseColorType),
+            }],
             engine.bytes.byte_index(),
         );
     }
@@ -338,12 +396,7 @@ impl ColorTable {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
-        let mut configuration_flags = 0;
-        if self.constant_alpha.is_some() {
-            configuration_flags |= 0b00000001;
-        }
-
-        engine.bytes.push(configuration_flags); // configuration flags
+        engine.bytes.push(self.configuration_flags.bits()); // configuration flags
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::ColorTableConfigurationFlags {
@@ -359,13 +412,14 @@ impl ColorTable {
         // configuration values
         #[cfg(feature = "tagging")]
         let configuration_values_start = engine.bytes.byte_index();
-        if self.constant_alpha.is_some() {
-            engine.bytes.push(self.constant_alpha.unwrap());
+
+        if let Some(constant_alpha) = self.constant_alpha {
+            engine.bytes.push(constant_alpha);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::ColorTableConstantAlpha {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_alpha.unwrap(),
+                    value: constant_alpha,
                 },
                 engine.bytes.byte_index(),
             );

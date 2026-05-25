@@ -46,10 +46,6 @@ pub(crate) use alloc::vec::Vec;
 
 pub mod core;
 
-#[cfg_attr(docsrs, doc(cfg(feature = "ergonomics")))]
-#[cfg(feature = "ergonomics")]
-pub mod ergonomics;
-
 #[cfg_attr(docsrs, doc(cfg(feature = "ffi")))]
 #[cfg(feature = "ffi")]
 pub mod ffi;
