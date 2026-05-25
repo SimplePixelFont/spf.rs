@@ -25,15 +25,14 @@ mod tests {
         pixmap.data =  vec![0b01000010, 0b01000010, 0b01000010, 0b00001111];
 
         let mut pixmap_table = PixmapTable::default();
-        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantWidth       |
-                                           PixmapTableConfigurationFlags::ConstantHeight      |
-                                           PixmapTableConfigurationFlags::ConstantBitsPerPixel;
+        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
         pixmap_table.constant_width = None;
         pixmap_table.constant_height = Some(4);
         pixmap_table.constant_bits_per_pixel = Some(7);
 
         pixmap_table.link_flags = PixmapTableLinkFlags::LinkColorTables;
         pixmap_table.color_table_indexes = Some(vec![0]);
+
         pixmap_table.pixmaps = vec![pixmap];
         pixmap_table
     }
@@ -56,9 +55,13 @@ mod tests {
         pixmap4.data = vec![0b11110001, 0b10001111];
 
         let mut pixmap_table = PixmapTable::default();
+        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
         pixmap_table.constant_height = Some(4);
         pixmap_table.constant_bits_per_pixel = Some(1);
+
+        pixmap_table.link_flags = PixmapTableLinkFlags::LinkColorTables;
         pixmap_table.color_table_indexes = Some(vec![0]);
+
         pixmap_table.pixmaps = vec![pixmap1, pixmap2, pixmap3, pixmap4];
         pixmap_table
     }
@@ -92,7 +95,10 @@ mod tests {
         font.character_table_indexes = vec![0];
 
         let mut font_table = FontTable::default();
+
+        font_table.link_flags = FontTableLinkFlags::LinkCharacterTables;
         font_table.character_table_indexes = Some(vec![0]);
+        
         font_table.fonts = vec![font];
         font_table
     }
@@ -113,7 +119,10 @@ mod tests {
         char4.grapheme_cluster = "!=".to_string();
 
         let mut character_table = CharacterTable::default();
+
+        character_table.link_flags = CharacterTableLinkFlags::LinkPixmapTables;
         character_table.pixmap_table_indexes = Some(vec![0]);
+        
         character_table.characters = vec![char1, char2, char3, char4];
 
         font.character_tables = vec![character_table];
