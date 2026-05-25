@@ -23,7 +23,9 @@ impl TryFrom<ColorTable> for SPFColorTable {
         let (colors_ptr, colors_len) = vec_to_raw_with_conversion!(table.colors, SPFColor);
 
         Ok(SPFColorTable {
-            use_color_type: table.use_color_type as c_uchar,
+            modifier_flags: table.modifier_flags.bits(),
+
+            configuration_flags: table.configuration_flags.bits(),
             has_constant_alpha: table.constant_alpha.is_some() as c_uchar,
             constant_alpha: table.constant_alpha.unwrap_or(0) as c_uchar,
             colors: colors_ptr,
@@ -41,7 +43,8 @@ impl TryInto<ColorTable> for &SPFColorTable {
             let constant_alpha = ffi_to_option!(self.has_constant_alpha, self.constant_alpha);
 
             Ok(ColorTable {
-                use_color_type: self.use_color_type != 0,
+                modifier_flags: ColorTableModifierFlags::from_bits_retain(self.modifier_flags),
+                configuration_flags: ColorTableConfigurationFlags::from_bits_retain(self.configuration_flags),
                 constant_alpha,
                 colors,
             })

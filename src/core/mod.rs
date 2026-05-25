@@ -25,6 +25,7 @@ pub(crate) mod deserialize;
 pub(crate) mod serialize;
 pub(crate) mod tables;
 
+use bitflags::bitflags;
 use byte::{ByteReader, ByteReaderImpl};
 
 #[cfg(not(feature = "tagging"))]
@@ -37,6 +38,60 @@ pub(crate) use tagging_stub::*;
 
 use crate::{String, Vec};
 use core::marker::PhantomData;
+
+bitflags! {
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct PixmapTableConfigurationFlags: u8 {
+        const ConstantWidth = 0b00000001;
+        const ConstantHeight = 0b00000010;
+        const ConstantBitsPerPixel = 0b00000100;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct PixmapTableLinkFlags: u8 {
+        const LinkColorTables = 0b00000001;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct CharacterTableModifierFlags: u8 {
+        const UseAdvanceX = 0b00000001;
+        const UsePixmapIndex = 0b00000010;
+        const UsePixmapTableIndex = 0b00000100;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct CharacterTableLinkFlags: u8 {
+        const LinkPixmapTables = 0b00000001;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct CharacterTableConfigurationFlags: u8 {
+        const ConstantClusterCodePoints = 0b00000001;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct ColorTableModifierFlags: u8 {
+        const UseColorType = 0b00000001;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct ColorTableConfigurationFlags: u8 {
+        const ConstantAlpha = 0b00000001;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct FontTableLinkFlags: u8 {
+        const LinkCharacterTables = 0b00000001;
+    }
+}
 
 #[repr(u8)]
 #[non_exhaustive]
@@ -54,6 +109,7 @@ impl core::fmt::Display for Version {
     }
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Layout {
@@ -67,18 +123,22 @@ pub struct Layout {
     pub font_tables: Vec<FontTable>,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PixmapTable {
+    pub configuration_flags: PixmapTableConfigurationFlags,
     pub constant_width: Option<u8>,
     pub constant_height: Option<u8>,
     pub constant_bits_per_pixel: Option<u8>,
 
+    pub link_flags: PixmapTableLinkFlags,
     pub color_table_indexes: Option<Vec<u8>>,
 
     pub pixmaps: Vec<Pixmap>,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Pixmap {
@@ -88,20 +148,22 @@ pub struct Pixmap {
     pub data: Vec<u8>,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CharacterTable {
-    pub use_advance_x: bool,
-    pub use_pixmap_index: bool,
-    pub use_pixmap_table_index: bool,
+    pub modifier_flags: CharacterTableModifierFlags,
 
+    pub configuration_flags: CharacterTableConfigurationFlags,
     pub constant_cluster_codepoints: Option<u8>,
 
+    pub link_flags: CharacterTableLinkFlags,
     pub pixmap_table_indexes: Option<Vec<u8>>,
 
     pub characters: Vec<Character>,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Character {
@@ -112,11 +174,13 @@ pub struct Character {
     pub grapheme_cluster: String,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ColorTable {
-    pub use_color_type: bool,
+    pub modifier_flags: ColorTableModifierFlags,
 
+    pub configuration_flags: ColorTableConfigurationFlags,
     pub constant_alpha: Option<u8>,
 
     pub colors: Vec<Color>,
@@ -132,6 +196,7 @@ pub enum ColorType {
     Absolute,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Color {
@@ -153,14 +218,17 @@ pub enum FontType {
     Italic,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FontTable {
+    pub link_flags: FontTableLinkFlags,
     pub character_table_indexes: Option<Vec<u8>>,
 
     pub fonts: Vec<Font>,
 }
 
+#[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Font {

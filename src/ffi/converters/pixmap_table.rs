@@ -26,12 +26,15 @@ impl TryFrom<PixmapTable> for SPFPixmapTable {
         let (pixmaps_ptr, pixmaps_len) = vec_to_raw_with_conversion!(table.pixmaps, SPFPixmap);
 
         Ok(SPFPixmapTable {
+            configuration_flags: table.configuration_flags.bits(),
             has_constant_width: table.constant_width.is_some() as c_uchar,
             constant_width: table.constant_width.unwrap_or(0) as c_uchar,
             has_constant_height: table.constant_height.is_some() as c_uchar,
             constant_height: table.constant_height.unwrap_or(0) as c_uchar,
             has_constant_bits_per_pixel: table.constant_bits_per_pixel.is_some() as c_uchar,
             constant_bits_per_pixel: table.constant_bits_per_pixel.unwrap_or(0) as c_uchar,
+
+            link_flags: table.link_flags.bits(),
             has_color_table_indexes: table.color_table_indexes.is_some() as c_uchar,
             color_table_indexes: color_table_indexes_ptr,
             color_table_indexes_length: color_table_indexes_len as c_ulong,
@@ -67,9 +70,11 @@ impl TryInto<PixmapTable> for &SPFPixmapTable {
             );
 
             Ok(PixmapTable {
+                configuration_flags: PixmapTableConfigurationFlags::from_bits_retain(self.configuration_flags),
                 constant_width,
                 constant_height,
                 constant_bits_per_pixel,
+                link_flags: PixmapTableLinkFlags::from_bits_retain(self.link_flags),
                 color_table_indexes,
                 pixmaps,
             })

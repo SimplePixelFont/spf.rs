@@ -16,7 +16,8 @@
 
 use crate::core::byte::ByteReader;
 use crate::core::{
-    byte, Character, CharacterTable, DeserializeEngine, DeserializeError, TagWriter,
+    Character, CharacterTable, CharacterTableConfigurationFlags, CharacterTableLinkFlags,
+    CharacterTableModifierFlags, DeserializeEngine, DeserializeError, TagWriter,
 };
 use crate::{vec, String, Vec};
 
@@ -31,16 +32,7 @@ impl CharacterTable {
         &mut self,
         engine: &mut DeserializeEngine<R, T>,
     ) {
-        let modifier_flags = engine.bytes.next();
-        if byte::get_bit(modifier_flags, 0) {
-            self.use_advance_x = true;
-        }
-        if byte::get_bit(modifier_flags, 1) {
-            self.use_pixmap_index = true;
-        }
-        if byte::get_bit(modifier_flags, 2) {
-            self.use_pixmap_table_index = true;
-        }
+        self.modifier_flags = CharacterTableModifierFlags::from_bits_retain(engine.bytes.next());
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::CharacterTableModifierFlags {
@@ -50,15 +42,21 @@ impl CharacterTable {
             vec![
                 TagKind::CharacterTableUseAdvanceX {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.use_advance_x,
+                    value: self
+                        .modifier_flags
+                        .contains(CharacterTableModifierFlags::UseAdvanceX),
                 },
                 TagKind::CharacterTableUsePixmapIndex {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.use_pixmap_index,
+                    value: self
+                        .modifier_flags
+                        .contains(CharacterTableModifierFlags::UsePixmapIndex),
                 },
                 TagKind::CharacterTableUsePixmapTableIndex {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.use_pixmap_table_index,
+                    value: self
+                        .modifier_flags
+                        .contains(CharacterTableModifierFlags::UsePixmapTableIndex),
                 },
             ],
             engine.bytes.byte_index(),
@@ -71,8 +69,11 @@ impl CharacterTable {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
-        let configuration_flags = engine.bytes.next();
-        let use_constant_cluster_codepoints = byte::get_bit(configuration_flags, 0);
+        self.configuration_flags =
+            CharacterTableConfigurationFlags::from_bits_retain(engine.bytes.next());
+        let use_constant_cluster_codepoints = self
+            .configuration_flags
+            .contains(CharacterTableConfigurationFlags::ConstantClusterCodePoints);
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
@@ -123,8 +124,10 @@ impl CharacterTable {
         #[cfg(feature = "tagging")]
         let links_start = engine.bytes.byte_index();
 
-        let link_flags = engine.bytes.next();
-        let link_pixmap_tables = byte::get_bit(link_flags, 0);
+        self.link_flags = CharacterTableLinkFlags::from_bits_retain(engine.bytes.next());
+        let link_pixmap_tables = self
+            .link_flags
+            .contains(CharacterTableLinkFlags::LinkPixmapTables);
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(

@@ -27,11 +27,13 @@ impl TryFrom<CharacterTable> for SPFCharacterTable {
             vec_to_raw_with_conversion!(table.characters, SPFCharacter);
 
         Ok(SPFCharacterTable {
-            use_advance_x: table.use_advance_x as c_uchar,
-            use_pixmap_index: table.use_pixmap_index as c_uchar,
-            use_pixmap_table_index: table.use_pixmap_table_index as c_uchar,
+            modifier_flags: table.modifier_flags.bits(),
+
+            configuration_flags: table.configuration_flags.bits(),
             has_constant_cluster_codepoints: table.constant_cluster_codepoints.is_some() as c_uchar,
             constant_cluster_codepoints: table.constant_cluster_codepoints.unwrap_or(0) as c_uchar,
+
+            link_flags: table.link_flags.bits(),
             has_pixmap_table_indexes: table.pixmap_table_indexes.is_some() as c_uchar,
             pixmap_table_indexes: pixmap_table_indexes_ptr,
             pixmap_table_indexes_length: pixmap_table_indexes_len as c_ulong,
@@ -66,10 +68,10 @@ impl TryInto<CharacterTable> for &SPFCharacterTable {
                 ffi_to_option!(self.has_pixmap_table_indexes, pixmap_table_indexes);
 
             Ok(CharacterTable {
-                use_advance_x: self.use_advance_x != 0,
-                use_pixmap_index: self.use_pixmap_index != 0,
-                use_pixmap_table_index: self.use_pixmap_table_index != 0,
+                modifier_flags: CharacterTableModifierFlags::from_bits_retain(self.modifier_flags),
+                configuration_flags: CharacterTableConfigurationFlags::from_bits_retain(self.configuration_flags),
                 constant_cluster_codepoints,
+                link_flags: CharacterTableLinkFlags::from_bits_retain(self.link_flags),
                 pixmap_table_indexes,
                 characters,
             })

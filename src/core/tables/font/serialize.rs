@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#[cfg(feature = "tagging")]
+use crate::core::FontTableLinkFlags;
 use crate::core::{
     FontTable, FontType, SerializeEngine, SerializeError, TableIdentifier, TagWriter,
 };
@@ -63,14 +65,8 @@ impl FontTable {
         #[cfg(feature = "tagging")]
         let links_start = engine.bytes.byte_index();
 
-        // Table Links
-        let mut link_flags = 0b00000000;
-        if self.character_table_indexes.is_some() {
-            link_flags |= 0b00000001;
-        }
-
         // Table relations
-        engine.bytes.push(link_flags);
+        engine.bytes.push(self.link_flags.bits());
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::FontTableLinkFlags {
@@ -78,7 +74,9 @@ impl FontTable {
             },
             vec![TagKind::FontTableLinkCharacterTables {
                 table_index: engine.tagging_data.current_table_index,
-                value: self.character_table_indexes.is_some(),
+                value: self
+                    .link_flags
+                    .contains(FontTableLinkFlags::LinkCharacterTables),
             }],
             engine.bytes.byte_index(),
         );

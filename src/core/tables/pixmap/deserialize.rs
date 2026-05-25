@@ -15,7 +15,10 @@
  */
 
 use crate::core::byte::ByteReader;
-use crate::core::{byte, DeserializeEngine, Pixmap, PixmapTable, TagWriter};
+use crate::core::{
+    DeserializeEngine, Pixmap, PixmapTable, PixmapTableConfigurationFlags, PixmapTableLinkFlags,
+    TagWriter,
+};
 use crate::{vec, Vec};
 
 #[cfg(feature = "tagging")]
@@ -46,10 +49,17 @@ impl PixmapTable {
         #[cfg(feature = "tagging")]
         let configurations_start = engine.bytes.byte_index();
 
-        let configuration_flags = engine.bytes.next();
-        let use_constant_width = byte::get_bit(configuration_flags, 0);
-        let use_constant_height = byte::get_bit(configuration_flags, 1);
-        let use_constant_bits_per_pixel = byte::get_bit(configuration_flags, 2);
+        self.configuration_flags =
+            PixmapTableConfigurationFlags::from_bits_retain(engine.bytes.next());
+        let use_constant_width = self
+            .configuration_flags
+            .contains(PixmapTableConfigurationFlags::ConstantWidth);
+        let use_constant_height = self
+            .configuration_flags
+            .contains(PixmapTableConfigurationFlags::ConstantHeight);
+        let use_constant_bits_per_pixel = self
+            .configuration_flags
+            .contains(PixmapTableConfigurationFlags::ConstantBitsPerPixel);
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
@@ -133,8 +143,10 @@ impl PixmapTable {
         #[cfg(feature = "tagging")]
         let links_start = engine.bytes.byte_index();
 
-        let link_flags = engine.bytes.next();
-        let link_color_tables = byte::get_bit(link_flags, 0);
+        self.link_flags = PixmapTableLinkFlags::from_bits_retain(engine.bytes.next());
+        let link_color_tables = self
+            .link_flags
+            .contains(PixmapTableLinkFlags::LinkColorTables);
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(

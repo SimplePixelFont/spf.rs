@@ -60,6 +60,24 @@ pub use converters::*;
 #[doc(inline)]
 pub use free::*;
 
+pub const SPF_PIXMAP_TABLE_CONFIGURATION_FLAGS_CONSTANT_WIDTH: u8 = 1 << 0;
+pub const SPF_PIXMAP_TABLE_CONFIGURATION_FLAGS_CONSTANT_HEIGHT: u8 = 1 << 1;
+pub const SPF_PIXMAP_TABLE_CONFIGURATION_FLAGS_CONSTANT_BITS_PER_PIXEL: u8 = 1 << 2;
+pub const SPF_PIXMAP_TABLE_LINK_FLAGS_LINK_COLOR_TABLES: u8 = 1 << 0;
+
+pub const SPF_CHARACTER_TABLE_MODIFIER_FLAGS_USE_ADVANCE_X: u8 = 1 << 0;
+pub const SPF_CHARACTER_TABLE_MODIFIER_FLAGS_USE_PIXMAP_INDEX: u8 = 1 << 1;
+pub const SPF_CHARACTER_TABLE_MODIFIER_FLAGS_USE_PIXMAP_TABLE_INDEX: u8 = 1 << 2;
+
+pub const SPF_CHARACTER_TABLE_CONFIGURATION_FLAGS_CONSTANT_CLUSTER_CODEPOINTS: u8 = 1 << 0;
+
+pub const SPF_CHARACTER_TABLE_LINK_FLAGS_LINK_PIXMAP_TABLES: u8 = 1 << 0;
+
+pub const SPF_COLOR_TABLE_MODIFIER_FLAGS_USE_COLOR_TYPE: u8 = 1 << 0;
+pub const SPF_COLOR_TABLE_CONFIGURATION_FLAGS_CONSTANT_ALPHA: u8 = 1 << 0;
+
+pub const SPF_FONT_TABLE_LINK_FLAGS_LINK_CHARACTER_TABLES: u8 = 1 << 0;
+
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFLayout {
@@ -80,6 +98,7 @@ pub struct SPFLayout {
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFPixmapTable {
+    pub configuration_flags: c_uchar,
     pub has_constant_width: c_uchar,
     pub constant_width: c_uchar,
     pub has_constant_height: c_uchar,
@@ -87,6 +106,7 @@ pub struct SPFPixmapTable {
     pub has_constant_bits_per_pixel: c_uchar,
     pub constant_bits_per_pixel: c_uchar,
 
+    pub link_flags: c_uchar,
     pub has_color_table_indexes: c_uchar,
     pub color_table_indexes: *mut c_uchar,
     pub color_table_indexes_length: c_ulong,
@@ -111,13 +131,13 @@ pub struct SPFPixmap {
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFCharacterTable {
-    pub use_advance_x: c_uchar,
-    pub use_pixmap_index: c_uchar,
-    pub use_pixmap_table_index: c_uchar,
+    pub modifier_flags: c_uchar,
 
+    pub configuration_flags: c_uchar,
     pub has_constant_cluster_codepoints: c_uchar,
     pub constant_cluster_codepoints: c_uchar,
 
+    pub link_flags: c_uchar,
     pub has_pixmap_table_indexes: c_uchar,
     pub pixmap_table_indexes: *mut c_uchar,
     pub pixmap_table_indexes_length: c_ulong,
@@ -142,8 +162,9 @@ pub struct SPFCharacter {
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFColorTable {
-    pub use_color_type: c_uchar,
+    pub modifier_flags: c_uchar,
 
+    pub configuration_flags: c_uchar,
     pub has_constant_alpha: c_uchar,
     pub constant_alpha: c_uchar,
 
@@ -168,6 +189,7 @@ pub struct SPFColor {
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct SPFFontTable {
+    pub link_flags: c_uchar,
     pub has_character_table_indexes: c_uchar,
     pub character_table_indexes: *mut c_uchar,
     pub character_table_indexes_length: c_ulong,

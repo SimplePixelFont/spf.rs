@@ -18,127 +18,114 @@ mod tests {
             .try_init();
     }
     fn second_sample_pixmap_table() -> PixmapTable {
-        PixmapTable {
-            constant_width: None,
-            constant_height: Some(4),
-            constant_bits_per_pixel: Some(7),
-            color_table_indexes: Some(vec![0]),
-            pixmaps: vec![Pixmap {
-                custom_width: Some(1),
-                custom_height: None,
-                custom_bits_per_pixel: None,
-                data: vec![0b01000010, 0b01000010, 0b01000010, 0b00001111],
-            }],
-        }
+        let mut pixmap = Pixmap::default();
+        pixmap.custom_width =  Some(1);
+        pixmap.custom_height = None;
+        pixmap.custom_bits_per_pixel = None;
+        pixmap.data =  vec![0b01000010, 0b01000010, 0b01000010, 0b00001111];
+
+        let mut pixmap_table = PixmapTable::default();
+        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
+        pixmap_table.constant_width = None;
+        pixmap_table.constant_height = Some(4);
+        pixmap_table.constant_bits_per_pixel = Some(7);
+
+        pixmap_table.link_flags = PixmapTableLinkFlags::LinkColorTables;
+        pixmap_table.color_table_indexes = Some(vec![0]);
+
+        pixmap_table.pixmaps = vec![pixmap];
+        pixmap_table
     }
 
     fn sample_pixmap_table() -> PixmapTable {
-        PixmapTable {
-            constant_width: None,
-            constant_height: Some(4),
-            constant_bits_per_pixel: Some(1),
-            color_table_indexes: Some(vec![0]),
-            pixmaps: vec![
-                Pixmap {
-                    custom_width: Some(4),
-                    custom_height: None,
-                    custom_bits_per_pixel: None,
-                    data: vec![0b10011111, 0b11111001],
-                },
-                Pixmap {
-                    custom_width: Some(5),
-                    custom_height: None,
-                    custom_bits_per_pixel: None,
-                    data: vec![0b10110101, 0b11010110, 0b00001111],
-                },
-                Pixmap {
-                    custom_width: Some(4),
-                    custom_height: None,
-                    custom_bits_per_pixel: None,
-                    data: vec![0b00000110, 0b01101001],
-                },
-                Pixmap {
-                    custom_width: Some(4),
-                    custom_height: None,
-                    custom_bits_per_pixel: None,
-                    data: vec![0b11110001, 0b10001111],
-                },
-            ],
-        }
+        let mut pixmap1 = Pixmap::default();
+        pixmap1.custom_width = Some(4);
+        pixmap1.data = vec![0b10011111, 0b11111001];
+
+        let mut pixmap2 = Pixmap::default();
+        pixmap2.custom_width = Some(5);
+        pixmap2.data = vec![0b10110101, 0b11010110, 0b00001111];
+
+        let mut pixmap3 = Pixmap::default();
+        pixmap3.custom_width = Some(4);
+        pixmap3.data = vec![0b00000110, 0b01101001];
+
+        let mut pixmap4 = Pixmap::default();
+        pixmap4.custom_width = Some(4);
+        pixmap4.data = vec![0b11110001, 0b10001111];
+
+        let mut pixmap_table = PixmapTable::default();
+        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
+        pixmap_table.constant_height = Some(4);
+        pixmap_table.constant_bits_per_pixel = Some(1);
+
+        pixmap_table.link_flags = PixmapTableLinkFlags::LinkColorTables;
+        pixmap_table.color_table_indexes = Some(vec![0]);
+
+        pixmap_table.pixmaps = vec![pixmap1, pixmap2, pixmap3, pixmap4];
+        pixmap_table
     }
 
     fn sample_color_table() -> ColorTable {
-        ColorTable {
-            use_color_type: false,
-            constant_alpha: None,
-            colors: vec![
-                Color {
-                    color_type: None,
-                    custom_alpha: Some(0),
-                    r: 0,
-                    g: 0,
-                    b: 0,
-                },
-                Color {
-                    color_type: None,
-                    custom_alpha: Some(255),
-                    r: 36,
-                    g: 174,
-                    b: 214,
-                },
-            ],
-        }
+        let mut transparent_color = Color::default();
+        transparent_color.color_type = None;
+        transparent_color.custom_alpha = Some(0);
+        transparent_color.r = 0;
+        transparent_color.g = 0;
+        transparent_color.b = 0;
+
+        let mut opaque_color = Color::default();
+        opaque_color.color_type = None;
+        opaque_color.custom_alpha = Some(255);
+        opaque_color.r = 36;
+        opaque_color.g = 174;
+        opaque_color.b = 214;
+
+        let mut color_table = ColorTable::default();
+        color_table.colors = vec![transparent_color, opaque_color];
+        color_table
     }
 
     fn sample_font_table() -> FontTable {
-        FontTable {
-            character_table_indexes: Some(vec![0]),
-            fonts: vec![Font {
-                name: "SampleToyFont".into(),
-                author: "The-Nice-One".into(),
-                version: 0,
-                font_type: FontType::Regular,
-                character_table_indexes: vec![0],
-            }],
-        }
+        let mut font = Font::default();
+        font.name = "SampleToyFont".into();
+        font.author = "The-Nice-One".into();
+        font.version = 0;
+        font.font_type = FontType::Regular;
+        font.character_table_indexes = vec![0];
+
+        let mut font_table = FontTable::default();
+
+        font_table.link_flags = FontTableLinkFlags::LinkCharacterTables;
+        font_table.character_table_indexes = Some(vec![0]);
+        
+        font_table.fonts = vec![font];
+        font_table
     }
 
     fn sample_layout() -> Layout {
         let mut font = Layout::default();
 
-        font.character_tables = vec![CharacterTable {
-            use_advance_x: false,
-            use_pixmap_index: false,
-            use_pixmap_table_index: false,
-            constant_cluster_codepoints: None,
-            pixmap_table_indexes: Some(vec![0]),
-            characters: vec![
-                Character {
-                    advance_x: None,
-                    pixmap_index: None,
-                    pixmap_table_index: None,
-                    grapheme_cluster: "o".to_string(),
-                },
-                Character {
-                    advance_x: None,
-                    pixmap_index: None,
-                    pixmap_table_index: None,
-                    grapheme_cluster: "w".to_string(),
-                },
-                Character {
-                    advance_x: None,
-                    pixmap_index: None,
-                    pixmap_table_index: None,
-                    grapheme_cluster: "😊".to_string(),
-                },
-                Character {
-                    advance_x: None,
-                    pixmap_index: None,
-                    pixmap_table_index: None,
-                    grapheme_cluster: "!=".to_string(),
-                },
-            ],
-        }];
+        let mut char1 = Character::default();
+        char1.grapheme_cluster = "o".to_string();
+
+        let mut char2 = Character::default();
+        char2.grapheme_cluster = "w".to_string();
+
+        let mut char3 = Character::default();
+        char3.grapheme_cluster = "😊".to_string();
+
+        let mut char4 = Character::default();
+        char4.grapheme_cluster = "!=".to_string();
+
+        let mut character_table = CharacterTable::default();
+
+        character_table.link_flags = CharacterTableLinkFlags::LinkPixmapTables;
+        character_table.pixmap_table_indexes = Some(vec![0]);
+        
+        character_table.characters = vec![char1, char2, char3, char4];
+
+        font.character_tables = vec![character_table];
         font.pixmap_tables = vec![sample_pixmap_table(), second_sample_pixmap_table()];
         font.color_tables = vec![sample_color_table()];
         font.font_tables = vec![sample_font_table()];
