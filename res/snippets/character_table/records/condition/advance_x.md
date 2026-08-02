@@ -1,0 +1,1 @@
+If [`CharacterTableModifierFlags::UseAdvanceX`] modifier is enabled.

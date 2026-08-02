@@ -1,0 +1,1 @@
+If [`PixmapTableLinkFlags::LinkColorTables`] is enabled.

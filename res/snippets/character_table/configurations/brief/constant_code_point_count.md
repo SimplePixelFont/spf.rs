@@ -1,0 +1,1 @@
+The exact code point length of each [`Character::code_points`] field in this table

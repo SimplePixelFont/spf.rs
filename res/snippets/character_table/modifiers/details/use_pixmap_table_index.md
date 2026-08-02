@@ -1,0 +1,1 @@
+When disabled, the renderer searches linked Pixmap Tables in order until finding a valid pixmap at the character's index. The first pixmap linked will have priority over the last.

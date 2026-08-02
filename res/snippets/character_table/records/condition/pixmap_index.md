@@ -1,0 +1,1 @@
+If [`CharacterTableModifierFlags::UsePixmapIndex`] modifier is enabled.

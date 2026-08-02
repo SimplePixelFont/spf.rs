@@ -1,0 +1,1 @@
+This table links to one or more Color Tables for palette mapping

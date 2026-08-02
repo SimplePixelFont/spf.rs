@@ -1,0 +1,1 @@
+Each record includes a [`Character::pixmap_index`] field to explicitly reference a pixmap by index.

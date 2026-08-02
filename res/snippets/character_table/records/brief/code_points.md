@@ -1,0 +1,1 @@
+UTF-8 encoded code point sequence, null-terminated unless [`CharacterTable::constant_code_point_count`] is set.

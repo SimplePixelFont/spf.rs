@@ -1,0 +1,1 @@
+All pixmaps in this table use the same number of bits to represent a pixel.

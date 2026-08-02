@@ -1,0 +1,1 @@
+All pixmaps in this table share the same width.

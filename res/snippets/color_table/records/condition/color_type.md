@@ -1,0 +1,1 @@
+If [`ColorTableModifierFlags::UseColorType`] modifier is enabled.

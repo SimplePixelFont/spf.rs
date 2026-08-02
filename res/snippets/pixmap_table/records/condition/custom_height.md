@@ -1,0 +1,1 @@
+If [`PixmapTableConfigurationFlags::ConstantHeight`] is not enabled.

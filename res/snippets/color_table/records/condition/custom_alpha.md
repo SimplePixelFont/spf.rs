@@ -1,0 +1,1 @@
+If [`ColorTable::constant_alpha`] configuration is **not** set

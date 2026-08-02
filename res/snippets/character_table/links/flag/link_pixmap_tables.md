@@ -1,0 +1,1 @@
+This table links to one or more Pixmap Tables.

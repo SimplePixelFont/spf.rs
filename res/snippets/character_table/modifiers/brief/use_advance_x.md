@@ -1,0 +1,1 @@
+Each record includes an [`Character::advance_x`] field specifying horizontal pixel advance after rendering.

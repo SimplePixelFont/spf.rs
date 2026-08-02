@@ -1,0 +1,1 @@
+The height in pixels shared by all pixmaps in this table.

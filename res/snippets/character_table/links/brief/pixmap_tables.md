@@ -1,0 +1,1 @@
+Length byte followed by that many Pixmap Table indices this character table may reference.

@@ -1,0 +1,1 @@
+The bits per pixel shared by all pixmaps in this table (only 1-8 supported).

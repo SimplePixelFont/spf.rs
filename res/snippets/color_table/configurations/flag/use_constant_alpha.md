@@ -1,0 +1,1 @@
+All colors in this table share the same alpha value.

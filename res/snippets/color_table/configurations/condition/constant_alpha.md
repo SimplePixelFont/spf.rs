@@ -1,0 +1,1 @@
+If [`ColorTableConfigurationFlags::ConstantAlpha`] is enabled.

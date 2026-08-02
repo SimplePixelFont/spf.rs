@@ -1,0 +1,1 @@
+Length byte followed by that many Character Table indices this font table may reference.

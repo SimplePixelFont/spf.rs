@@ -1,0 +1,1 @@
+If [`FontTableLinkFlags::LinkCharacterTables`] is enabled.
