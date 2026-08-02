@@ -398,18 +398,28 @@ impl TryFrom<u8> for FontType {
 }
 
 #[derive(Debug)]
+/// Errors that can occur while parsing a `.spf` byte buffer into a [`Layout`].
 pub enum DeserializeError {
+    #[doc = include_str!("../../res/snippets/errors/unexpected_end_of_file.md")]
     UnexpectedEndOfFile,
+    #[doc = include_str!("../../res/snippets/errors/invalid_signature.md")]
     InvalidSignature,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_version.md")]
     UnsupportedVersion,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_color_type.md")]
     UnsupportedColorType,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_table_identifier.md")]
     UnsupportedTableIdentifier,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_font_type.md")]
     UnsupportedFontType,
 }
 
 #[derive(Debug)]
+/// Errors that can occur while serializing a [`Layout`] into a `.spf` byte buffer.
 pub enum SerializeError {
+    #[doc = include_str!("../../res/snippets/errors/static_vector_too_large.md")]
     StaticVectorTooLarge,
+    #[doc = include_str!("../../res/snippets/errors/invalid_pixmap_data.md")]
     InvalidPixmapData,
 }
 
