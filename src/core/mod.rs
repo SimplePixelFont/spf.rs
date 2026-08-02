@@ -42,6 +42,7 @@ use core::marker::PhantomData;
 bitflags! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which configuration values are constant for every [`Pixmap`] in a [`PixmapTable`].
     pub struct PixmapTableConfigurationFlags: u8 {
         #[doc = include_str!("../../res/snippets/pixmap_table/configurations/flag/use_constant_width.md")]
         const ConstantWidth = 0b00000001;
@@ -53,6 +54,7 @@ bitflags! {
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which other tables a [`PixmapTable`] links to.
     pub struct PixmapTableLinkFlags: u8 {
         #[doc = include_str!("../../res/snippets/pixmap_table/links/flag/link_color_tables.md")]
         const LinkColorTables = 0b00000001;
@@ -150,9 +152,10 @@ pub struct Layout {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[doc = include_str!("../../res/snippets/pixmap_table/brief.md")]
 pub struct PixmapTable {
+    /// Which configuration values below are constant for every pixmap. See [`PixmapTableConfigurationFlags`].
     pub configuration_flags: PixmapTableConfigurationFlags,
-    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_bits_per_pixel.md")]
-    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_bits_per_pixel.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_width.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_width.md")]
     pub constant_width: Option<u8>,
     #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_height.md")]
     #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_height.md")]
@@ -161,11 +164,13 @@ pub struct PixmapTable {
     #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_bits_per_pixel.md")]
     pub constant_bits_per_pixel: Option<u8>,
 
+    /// Which other tables this table links to. See [`PixmapTableLinkFlags`].
     pub link_flags: PixmapTableLinkFlags,
     #[doc = include_str!("../../res/snippets/pixmap_table/links/condition/color_tables.md")]
     #[doc = include_str!("../../res/snippets/pixmap_table/links/brief/color_tables.md")]
     pub color_table_indexes: Option<Vec<u8>>,
 
+    /// The pixmaps stored in this table, indexed in declaration order.
     pub pixmaps: Vec<Pixmap>,
 }
 
@@ -173,14 +178,14 @@ pub struct PixmapTable {
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Pixmap {
-    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/width.md")]
-    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/width.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/custom_width.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/custom_width.md")]
     pub custom_width: Option<u8>,
-    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/height.md")]
-    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/height.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/custom_height.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/custom_height.md")]
     pub custom_height: Option<u8>,
-    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/bits_per_pixel.md")]
-    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/bits_per_pixel.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/custom_bits_per_pixel.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/custom_bits_per_pixel.md")]
     pub custom_bits_per_pixel: Option<u8>,
     #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/data.md")]
     #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/data.md")]
