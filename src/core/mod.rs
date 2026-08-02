@@ -121,8 +121,10 @@ bitflags! {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/data_types/Version.md")]
 pub enum Version {
     #[default]
+    #[doc = include_str!("../../res/snippets/data_types/Version/FV0.md")]
     FV0 = 0b00000000,
 }
 
@@ -264,9 +266,12 @@ pub struct ColorTable {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/data_types/ColorType.md")]
 pub enum ColorType {
     #[default]
+    #[doc = include_str!("../../res/snippets/data_types/ColorType/Dynamic.md")]
     Dynamic,
+    #[doc = include_str!("../../res/snippets/data_types/ColorType/Absolute.md")]
     Absolute,
 }
 
@@ -295,10 +300,14 @@ pub struct Color {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/data_types/FontType.md")]
 pub enum FontType {
     #[default]
+    #[doc = include_str!("../../res/snippets/data_types/FontType/Regular.md")]
     Regular,
+    #[doc = include_str!("../../res/snippets/data_types/FontType/Bold.md")]
     Bold,
+    #[doc = include_str!("../../res/snippets/data_types/FontType/Italic.md")]
     Italic,
 }
 
