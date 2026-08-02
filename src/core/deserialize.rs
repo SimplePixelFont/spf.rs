@@ -19,6 +19,7 @@ use crate::vec;
 
 impl<'a, T: TagWriter> DeserializeEngine<'a, ByteReaderImpl<'a>, T> {
     #[cfg(feature = "tagging")]
+    /// Creates a [`DeserializeEngine`] reading from a byte slice, recording tags with `tags`.
     pub fn from_data_and_tags(data: &'a [u8], tags: T) -> Self {
         Self {
             bytes: byte::ByteReaderImpl::from(data),
@@ -32,12 +33,14 @@ impl<'a, T: TagWriter> DeserializeEngine<'a, ByteReaderImpl<'a>, T> {
         }
     }
     #[cfg(feature = "tagging")]
+    /// Replaces this engine's [`TagWriter`], discarding any tags already recorded.
     pub fn tagging_engine(&mut self, tags: T) {
         self.tags = tags;
     }
 }
 
 impl<'a> DeserializeEngine<'a, ByteReaderImpl<'a>> {
+    /// Creates a [`DeserializeEngine`] reading from a byte slice, without tag tracking.
     pub fn from_data(data: &'a [u8]) -> Self {
         Self {
             bytes: byte::ByteReaderImpl::from(data),
@@ -53,6 +56,7 @@ impl<'a> DeserializeEngine<'a, ByteReaderImpl<'a>> {
 }
 
 impl<'a, R: ByteReader> DeserializeEngine<'a, R> {
+    /// Creates a [`DeserializeEngine`] reading from any [`ByteReader`] (for example, [`byte::ByteReaderIter`] for streaming input), without tag tracking.
     pub fn from_reader(reader: R) -> Self {
         Self {
             bytes: reader,

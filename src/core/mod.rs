@@ -425,8 +425,10 @@ pub(crate) trait Table: Sized {
 
 pub struct DeserializeEngine<'a, R: ByteReader = ByteReaderImpl<'a>, T: TagWriter = TagWriterNoOp> {
     bytes: R,
+    /// The [`Layout`] built up so far as tables are read from `bytes`.
     pub layout: Layout,
     #[cfg(feature = "tagging")]
+    /// Collects the byte/bit span of every field read, when the `tagging` feature is enabled.
     pub tags: T,
     #[cfg(feature = "tagging")]
     tagging_data: TaggingData,
@@ -442,8 +444,10 @@ pub(crate) struct TaggingData {
 
 pub struct SerializeEngine<'a, T: TagWriter = TagWriterNoOp> {
     bytes: byte::ByteWriter,
+    /// The [`Layout`] being serialized into `bytes`.
     pub layout: &'a Layout,
     #[cfg(feature = "tagging")]
+    /// Collects the byte/bit span of every field written, when the `tagging` feature is enabled.
     pub tags: T,
     #[cfg(feature = "tagging")]
     tagging_data: TaggingData,
@@ -499,6 +503,7 @@ pub(crate) fn deserialize_layout<R: ByteReader, T: TagWriter>(
     Ok(())
 }
 
+/// Deserializes into `engine`'s [`Layout`] using an already-constructed [`DeserializeEngine`]. Prefer [`layout_from_data`] unless you need direct control over the engine (for example, a custom [`ByteReader`] or [`TagWriter`]).
 pub fn deserialize_with_engine<R: ByteReader, T: TagWriter>(
     engine: &mut DeserializeEngine<R, T>,
 ) -> Result<(), DeserializeError> {
@@ -553,6 +558,7 @@ pub(crate) fn serialize_layout<T: TagWriter>(
     Ok(())
 }
 
+/// Serializes `engine`'s [`Layout`] using an already-constructed [`SerializeEngine`]. Prefer [`layout_to_data`] unless you need direct control over the engine (for example, a custom [`TagWriter`]).
 pub fn serialize_with_engine<T: TagWriter>(
     engine: &mut SerializeEngine<T>,
 ) -> Result<(), SerializeError> {

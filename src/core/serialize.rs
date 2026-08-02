@@ -22,6 +22,7 @@ pub(crate) use log::*;
 
 impl<'a, T: TagWriter> SerializeEngine<'a, T> {
     #[cfg(feature = "tagging")]
+    /// Creates a [`SerializeEngine`] for `layout`, recording tags with `tags`.
     pub fn from_layout_and_tags(layout: &'a Layout, tags: T) -> Self {
         Self {
             bytes: byte::ByteWriter::new(),
@@ -34,18 +35,22 @@ impl<'a, T: TagWriter> SerializeEngine<'a, T> {
         }
     }
     #[cfg(feature = "tagging")]
+    /// Replaces this engine's [`TagWriter`], discarding any tags already recorded.
     pub fn tagging_engine(&mut self, tags: T) {
         self.tags = tags;
     }
+    /// Returns the bytes serialized so far.
     pub fn data(&self) -> &[u8] {
         &self.bytes.bytes
     }
+    /// Consumes the engine and returns the serialized bytes.
     pub fn data_owned(self) -> Vec<u8> {
         self.bytes.bytes
     }
 }
 
 impl<'a> SerializeEngine<'a> {
+    /// Creates a [`SerializeEngine`] for `layout`, without tag tracking.
     pub fn from_layout(layout: &'a Layout) -> Self {
         Self {
             bytes: byte::ByteWriter::new(),
