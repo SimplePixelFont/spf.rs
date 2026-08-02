@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// Macro to convert an Option<Vec> into a raw pointer and length
+/// Converts an `Option<Vec<T>>` into a `(pointer, length)` pair for the FFI boundary. A `None` or empty vec produces a null pointer and length `0`.
 #[macro_export]
 macro_rules! option_vec_to_raw {
     ($vec:expr) => {{
@@ -31,7 +31,7 @@ macro_rules! option_vec_to_raw {
     }};
 }
 
-// Macro to convert a Vec into a raw pointer and length
+/// Converts a `Vec<T>` into a `(pointer, length)` pair for the FFI boundary. An empty vec produces a null pointer and length `0`.
 #[macro_export]
 macro_rules! vec_to_raw {
     ($vec:expr) => {{
@@ -49,8 +49,7 @@ macro_rules! vec_to_raw {
 }
 
 #[macro_export]
-// Macro to convert a Vec with element conversion into a raw pointer and length.
-// Used for vectors with elements of structs.
+/// Converts a `Vec<T>` of struct elements into a `(pointer, length)` pair for the FFI boundary, converting each element to `$item_type` via `TryInto` first.
 macro_rules! vec_to_raw_with_conversion {
     ($vec:expr, $item_type:ty) => {{
         let len = $vec.len();
@@ -63,7 +62,7 @@ macro_rules! vec_to_raw_with_conversion {
 }
 
 #[macro_export]
-// Macro to reconstruct a Vec from raw pointer and length, given the vector has struct elements.
+/// Reconstructs a `Vec<T>` of struct elements from an FFI `(pointer, length)` pair, converting each element from its raw form via `TryInto`.
 macro_rules! vec_from_raw_with_conversion {
     ($ptr:expr, $len:expr) => {{
         let len = $len as usize;
@@ -77,7 +76,7 @@ macro_rules! vec_from_raw_with_conversion {
 }
 
 #[macro_export]
-// Macro for FFI to Option<T> conversion
+/// Converts an FFI `has_field`/`field` pair back into an `Option<T>`: `None` if `has_field` is `0`, otherwise `Some(field)`.
 macro_rules! ffi_to_option {
     ($has_field:expr, $field:expr) => {{
         if $has_field == 0 {
