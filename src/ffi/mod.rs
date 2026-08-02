@@ -205,8 +205,8 @@ pub struct SPFFont {
     pub author: *mut c_char,
     pub version: c_uchar,
     pub font_type: c_uchar,
-    pub character_table_indexes: *mut c_uchar,
-    pub character_tables_indexes_length: c_ulong,
+    pub linked_character_table_indexes: *mut c_uchar,
+    pub linked_character_table_indexes_length: c_ulong,
 }
 
 #[derive(Debug, Clone, Copy)]

@@ -163,7 +163,7 @@ unsafe fn free_pixmap_tables(ptr: *mut SPFPixmapTable, len: usize) {
 /// Frees an array of [`SPFFontTable`] values along with all nested allocations.
 ///
 /// For each table: frees each font's `name` and `author` CStrings and its
-/// `character_table_indexes` byte array, then the fonts slice, then the optional
+/// `linked_character_table_indexes` byte array, then the fonts slice, then the optional
 /// table-level `character_table_indexes` array. Finally frees the tables array itself.
 unsafe fn free_font_tables(ptr: *mut SPFFontTable, len: usize) {
     if ptr.is_null() {
@@ -184,10 +184,10 @@ unsafe fn free_font_tables(ptr: *mut SPFFontTable, len: usize) {
                     if !font.author.is_null() {
                         drop(CString::from_raw(font.author));
                     }
-                    if !font.character_table_indexes.is_null() {
+                    if !font.linked_character_table_indexes.is_null() {
                         drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
-                            font.character_table_indexes,
-                            font.character_tables_indexes_length as usize,
+                            font.linked_character_table_indexes,
+                            font.linked_character_table_indexes_length as usize,
                         )));
                     }
                 }

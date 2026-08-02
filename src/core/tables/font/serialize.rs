@@ -211,30 +211,30 @@ pub(crate) fn push_font_type<T: TagWriter>(engine: &mut SerializeEngine<T>, font
     );
 }
 
-pub(crate) fn push_character_table_indexes<T: TagWriter>(
+pub(crate) fn push_linked_character_table_indexes<T: TagWriter>(
     engine: &mut SerializeEngine<T>,
-    character_table_indexes: &Vec<u8>,
+    linked_character_table_indexes: &Vec<u8>,
 ) -> Result<(), SerializeError> {
     #[cfg(feature = "tagging")]
     let start = engine.bytes.byte_index();
 
-    let character_table_indexes_length = character_table_indexes.len();
-    if character_table_indexes_length > 255 {
+    let linked_character_table_indexes_length = linked_character_table_indexes.len();
+    if linked_character_table_indexes_length > 255 {
         return Err(SerializeError::StaticVectorTooLarge);
     }
 
-    engine.bytes.push(character_table_indexes_length as u8);
+    engine.bytes.push(linked_character_table_indexes_length as u8);
     #[cfg(feature = "tagging")]
     engine.tags.tag_byte(
         TagKind::FontCharacterTableIndexesLength {
             table_index: engine.tagging_data.current_table_index,
             font_index: engine.tagging_data.current_record_index,
-            count: character_table_indexes_length as u8,
+            count: linked_character_table_indexes_length as u8,
         },
         engine.bytes.byte_index(),
     );
 
-    for character_table_index in character_table_indexes {
+    for character_table_index in linked_character_table_indexes {
         engine.bytes.push(*character_table_index);
         #[cfg(feature = "tagging")]
         engine.tags.tag_byte(
@@ -252,7 +252,7 @@ pub(crate) fn push_character_table_indexes<T: TagWriter>(
         TagKind::FontCharacterTableIndexes {
             table_index: engine.tagging_data.current_table_index,
             font_index: engine.tagging_data.current_record_index,
-            value: character_table_indexes.clone(),
+            value: linked_character_table_indexes.clone(),
         },
         Span::new(start, engine.bytes.byte_index()),
     );

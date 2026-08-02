@@ -153,8 +153,8 @@ impl Default for SPFFont {
             author: core::ptr::null_mut(),
             version: u8::default(),
             font_type: u8::default(),
-            character_table_indexes: core::ptr::null_mut(),
-            character_tables_indexes_length: 0,
+            linked_character_table_indexes: core::ptr::null_mut(),
+            linked_character_table_indexes_length: 0,
         }
     }
 }

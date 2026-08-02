@@ -260,7 +260,7 @@ pub struct Font {
     pub author: String,
     pub version: u8,
     pub font_type: FontType,
-    pub character_table_indexes: Vec<u8>,
+    pub linked_character_table_indexes: Vec<u8>,
 }
 
 #[repr(u8)]
