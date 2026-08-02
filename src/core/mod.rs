@@ -91,12 +91,16 @@ bitflags! {
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which optional fields are present on every [`Color`] record in a [`ColorTable`].
     pub struct ColorTableModifierFlags: u8 {
+        #[doc = include_str!("../../res/snippets/color_table/modifiers/brief/use_color_type.md")]
+        #[doc = include_str!("../../res/snippets/color_table/modifiers/details/use_color_type.md")]
         const UseColorType = 0b00000001;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which configuration values are constant for every [`Color`] in a [`ColorTable`].
     pub struct ColorTableConfigurationFlags: u8 {
         #[doc = include_str!("../../res/snippets/color_table/configurations/flag/use_constant_alpha.md")]
         const ConstantAlpha = 0b00000001;
@@ -228,12 +232,18 @@ pub struct Character {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/color_table/brief.md")]
 pub struct ColorTable {
+    /// Which optional per-color fields are present. See [`ColorTableModifierFlags`].
     pub modifier_flags: ColorTableModifierFlags,
 
+    /// Which configuration values below are constant for every color. See [`ColorTableConfigurationFlags`].
     pub configuration_flags: ColorTableConfigurationFlags,
+    #[doc = include_str!("../../res/snippets/color_table/configurations/condition/constant_alpha.md")]
+    #[doc = include_str!("../../res/snippets/color_table/configurations/brief/constant_alpha.md")]
     pub constant_alpha: Option<u8>,
 
+    /// The colors stored in this table, indexed in declaration order.
     pub colors: Vec<Color>,
 }
 
@@ -251,10 +261,20 @@ pub enum ColorType {
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Color {
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/color_type.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/color_type.md")]
     pub color_type: Option<ColorType>,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/custom_alpha.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/custom_alpha.md")]
     pub custom_alpha: Option<u8>,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/red.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/red.md")]
     pub red: u8,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/green.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/green.md")]
     pub green: u8,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/blue.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/blue.md")]
     pub blue: u8,
 }
 
