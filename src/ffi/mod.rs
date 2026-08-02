@@ -60,152 +60,272 @@ pub use converters::*;
 #[doc(inline)]
 pub use free::*;
 
+#[doc = include_str!("../../res/snippets/pixmap_table/configurations/flag/use_constant_width.md")]
 pub const SPF_PIXMAP_TABLE_CONFIGURATION_FLAGS_CONSTANT_WIDTH: u8 = 1 << 0;
+#[doc = include_str!("../../res/snippets/pixmap_table/configurations/flag/use_constant_height.md")]
 pub const SPF_PIXMAP_TABLE_CONFIGURATION_FLAGS_CONSTANT_HEIGHT: u8 = 1 << 1;
+#[doc = include_str!("../../res/snippets/pixmap_table/configurations/flag/use_constant_bits_per_pixel.md")]
 pub const SPF_PIXMAP_TABLE_CONFIGURATION_FLAGS_CONSTANT_BITS_PER_PIXEL: u8 = 1 << 2;
+#[doc = include_str!("../../res/snippets/pixmap_table/links/flag/link_color_tables.md")]
 pub const SPF_PIXMAP_TABLE_LINK_FLAGS_LINK_COLOR_TABLES: u8 = 1 << 0;
 
+#[doc = include_str!("../../res/snippets/character_table/modifiers/brief/use_advance_x.md")]
 pub const SPF_CHARACTER_TABLE_MODIFIER_FLAGS_USE_ADVANCE_X: u8 = 1 << 0;
+#[doc = include_str!("../../res/snippets/character_table/modifiers/brief/use_pixmap_index.md")]
 pub const SPF_CHARACTER_TABLE_MODIFIER_FLAGS_USE_PIXMAP_INDEX: u8 = 1 << 1;
+#[doc = include_str!("../../res/snippets/character_table/modifiers/brief/use_pixmap_table_index.md")]
 pub const SPF_CHARACTER_TABLE_MODIFIER_FLAGS_USE_PIXMAP_TABLE_INDEX: u8 = 1 << 2;
 
-pub const SPF_CHARACTER_TABLE_CONFIGURATION_FLAGS_CONSTANT_CLUSTER_CODEPOINTS: u8 = 1 << 0;
+#[doc = include_str!("../../res/snippets/character_table/configurations/flag/use_constant_code_point_count.md")]
+pub const SPF_CHARACTER_TABLE_CONFIGURATION_FLAGS_CONSTANT_CODE_POINT_COUNT: u8 = 1 << 0;
 
+#[doc = include_str!("../../res/snippets/character_table/links/flag/link_pixmap_tables.md")]
 pub const SPF_CHARACTER_TABLE_LINK_FLAGS_LINK_PIXMAP_TABLES: u8 = 1 << 0;
 
+#[doc = include_str!("../../res/snippets/color_table/modifiers/brief/use_color_type.md")]
 pub const SPF_COLOR_TABLE_MODIFIER_FLAGS_USE_COLOR_TYPE: u8 = 1 << 0;
+#[doc = include_str!("../../res/snippets/color_table/configurations/flag/use_constant_alpha.md")]
 pub const SPF_COLOR_TABLE_CONFIGURATION_FLAGS_CONSTANT_ALPHA: u8 = 1 << 0;
 
+#[doc = include_str!("../../res/snippets/font_table/links/flag/link_character_tables.md")]
 pub const SPF_FONT_TABLE_LINK_FLAGS_LINK_CHARACTER_TABLES: u8 = 1 << 0;
 
 #[derive(Debug, Clone)]
 #[repr(C)]
+/// C ABI mirror of [`Layout`].
 pub struct SPFLayout {
+    /// See [`Layout::version`].
     pub version: c_uchar,
 
+    /// See [`Layout::compact`].
     pub compact: c_uchar,
 
+    /// Pointer to the first of `character_tables_length` [`SPFCharacterTable`]s. See [`Layout::character_tables`].
     pub character_tables: *mut SPFCharacterTable,
+    /// Number of elements at `character_tables`.
     pub character_tables_length: c_ulong,
+    /// Pointer to the first of `color_tables_length` [`SPFColorTable`]s. See [`Layout::color_tables`].
     pub color_tables: *mut SPFColorTable,
+    /// Number of elements at `color_tables`.
     pub color_tables_length: c_ulong,
+    /// Pointer to the first of `pixmap_tables_length` [`SPFPixmapTable`]s. See [`Layout::pixmap_tables`].
     pub pixmap_tables: *mut SPFPixmapTable,
+    /// Number of elements at `pixmap_tables`.
     pub pixmap_tables_length: c_ulong,
+    /// Pointer to the first of `font_tables_length` [`SPFFontTable`]s. See [`Layout::font_tables`].
     pub font_tables: *mut SPFFontTable,
+    /// Number of elements at `font_tables`.
     pub font_tables_length: c_ulong,
 }
 
 #[derive(Debug, Clone)]
 #[repr(C)]
+/// C ABI mirror of [`PixmapTable`].
 pub struct SPFPixmapTable {
+    /// See [`PixmapTable::configuration_flags`].
     pub configuration_flags: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_constant_width: c_uchar,
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_width.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_width.md")]
     pub constant_width: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_constant_height: c_uchar,
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_height.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_height.md")]
     pub constant_height: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_constant_bits_per_pixel: c_uchar,
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_bits_per_pixel.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_bits_per_pixel.md")]
     pub constant_bits_per_pixel: c_uchar,
 
+    /// See [`PixmapTable::link_flags`].
     pub link_flags: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_color_table_indexes: c_uchar,
+    #[doc = include_str!("../../res/snippets/pixmap_table/links/condition/color_tables.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/links/brief/color_tables.md")]
     pub color_table_indexes: *mut c_uchar,
+    /// Number of elements at `color_table_indexes`.
     pub color_table_indexes_length: c_ulong,
 
+    /// Pointer to the first of `pixmaps_length` [`SPFPixmap`]s. See [`PixmapTable::pixmaps`].
     pub pixmaps: *mut SPFPixmap,
+    /// Number of elements at `pixmaps`.
     pub pixmaps_length: c_ulong,
 }
 
 #[derive(Debug, Clone)]
 #[repr(C)]
+/// C ABI mirror of [`Pixmap`].
 pub struct SPFPixmap {
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_custom_width: c_uchar,
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/custom_width.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/custom_width.md")]
     pub custom_width: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_custom_height: c_uchar,
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/custom_height.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/custom_height.md")]
     pub custom_height: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_custom_bits_per_pixel: c_uchar,
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/custom_bits_per_pixel.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/custom_bits_per_pixel.md")]
     pub custom_bits_per_pixel: c_uchar,
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/data.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/data.md")]
     pub data: *mut c_uchar,
+    /// Number of elements at `data`.
     pub data_length: c_ulong,
 }
 
 #[derive(Debug, Clone)]
 #[repr(C)]
+/// C ABI mirror of [`CharacterTable`].
 pub struct SPFCharacterTable {
+    /// See [`CharacterTable::modifier_flags`].
     pub modifier_flags: c_uchar,
 
+    /// See [`CharacterTable::configuration_flags`].
     pub configuration_flags: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_constant_code_point_count: c_uchar,
+    #[doc = include_str!("../../res/snippets/character_table/configurations/condition/constant_code_point_count.md")]
+    #[doc = include_str!("../../res/snippets/character_table/configurations/brief/constant_code_point_count.md")]
     pub constant_code_point_count: c_uchar,
 
+    /// See [`CharacterTable::link_flags`].
     pub link_flags: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_pixmap_table_indexes: c_uchar,
+    #[doc = include_str!("../../res/snippets/character_table/links/condition/pixmap_tables.md")]
+    #[doc = include_str!("../../res/snippets/character_table/links/brief/pixmap_tables.md")]
     pub pixmap_table_indexes: *mut c_uchar,
+    /// Number of elements at `pixmap_table_indexes`.
     pub pixmap_table_indexes_length: c_ulong,
 
+    /// Pointer to the first of `characters_length` [`SPFCharacter`]s. See [`CharacterTable::characters`].
     pub characters: *mut SPFCharacter,
+    /// Number of elements at `characters`.
     pub characters_length: c_ulong,
 }
 
 #[derive(Debug, Clone)]
 #[repr(C)]
+/// C ABI mirror of [`Character`].
 pub struct SPFCharacter {
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_advance_x: c_uchar,
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/advance_x.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/advance_x.md")]
     pub advance_x: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_pixmap_index: c_uchar,
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/pixmap_index.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/pixmap_index.md")]
     pub pixmap_index: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_pixmap_table_index: c_uchar,
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/pixmap_table_index.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/pixmap_table_index.md")]
     pub pixmap_table_index: c_uchar,
 
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/code_points.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/code_points.md")]
     pub code_points: *mut c_char,
 }
 
 #[derive(Debug, Clone)]
 #[repr(C)]
+/// C ABI mirror of [`ColorTable`].
 pub struct SPFColorTable {
+    /// See [`ColorTable::modifier_flags`].
     pub modifier_flags: c_uchar,
 
+    /// See [`ColorTable::configuration_flags`].
     pub configuration_flags: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_constant_alpha: c_uchar,
+    #[doc = include_str!("../../res/snippets/color_table/configurations/condition/constant_alpha.md")]
+    #[doc = include_str!("../../res/snippets/color_table/configurations/brief/constant_alpha.md")]
     pub constant_alpha: c_uchar,
 
+    /// Pointer to the first of `colors_length` [`SPFColor`]s. See [`ColorTable::colors`].
     pub colors: *mut SPFColor,
+    /// Number of elements at `colors`.
     pub colors_length: c_ulong,
 }
 
 #[derive(Debug, Clone)]
 #[repr(C)]
+/// C ABI mirror of [`Color`].
 pub struct SPFColor {
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_color_type: c_uchar,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/color_type.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/color_type.md")]
     pub color_type: c_uchar,
 
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_custom_alpha: c_uchar,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/custom_alpha.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/custom_alpha.md")]
     pub custom_alpha: c_uchar,
 
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/red.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/red.md")]
     pub red: c_uchar,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/green.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/green.md")]
     pub green: c_uchar,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/blue.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/blue.md")]
     pub blue: c_uchar,
 }
 
 #[derive(Debug, Clone)]
 #[repr(C)]
+/// C ABI mirror of [`FontTable`].
 pub struct SPFFontTable {
+    /// See [`FontTable::link_flags`].
     pub link_flags: c_uchar,
+    #[doc = include_str!("../../res/snippets/data_types/has_field.md")]
     pub has_character_table_indexes: c_uchar,
+    #[doc = include_str!("../../res/snippets/font_table/links/condition/character_tables.md")]
+    #[doc = include_str!("../../res/snippets/font_table/links/brief/character_tables.md")]
     pub character_table_indexes: *mut c_uchar,
+    /// Number of elements at `character_table_indexes`.
     pub character_table_indexes_length: c_ulong,
 
+    /// Pointer to the first of `fonts_length` [`SPFFont`]s. See [`FontTable::fonts`].
     pub fonts: *mut SPFFont,
+    /// Number of elements at `fonts`.
     pub fonts_length: c_ulong,
 }
 
 #[derive(Debug, Clone)]
 #[repr(C)]
+/// C ABI mirror of [`Font`].
 pub struct SPFFont {
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/name.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/name.md")]
     pub name: *mut c_char,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/author.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/author.md")]
     pub author: *mut c_char,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/version.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/version.md")]
     pub version: c_uchar,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/font_type.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/font_type.md")]
     pub font_type: c_uchar,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/linked_character_table_indexes.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/linked_character_table_indexes.md")]
     pub linked_character_table_indexes: *mut c_uchar,
+    /// Number of elements at `linked_character_table_indexes`.
     pub linked_character_table_indexes_length: c_ulong,
 }
 
@@ -215,7 +335,9 @@ pub struct SPFFont {
 /// which can be reconstructed with the pointer `data` and length `data_length`.
 /// The caller is responsible for freeing this with [`free::spf_free_data`].
 pub struct SPFData {
+    /// Pointer to the first of `data_length` bytes.
     pub data: *mut c_uchar,
+    /// Number of bytes at `data`.
     pub data_length: c_ulong,
 }
 
@@ -224,16 +346,27 @@ pub struct SPFData {
 /// any out-parameter.
 #[repr(C)]
 pub enum SPFStatus {
+    #[doc = include_str!("../../res/snippets/errors/ok.md")]
     Ok = 0,
+    #[doc = include_str!("../../res/snippets/errors/unexpected_end_of_file.md")]
     ErrUnexpectedEndOfFile = 1,
+    #[doc = include_str!("../../res/snippets/errors/invalid_signature.md")]
     ErrInvalidSignature = 2,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_version.md")]
     ErrUnsupportedVersion = 3,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_color_type.md")]
     ErrUnsupportedColorType = 4,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_table_identifier.md")]
     ErrUnsupportedTableIdentifier = 5,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_font_type.md")]
     ErrUnsupportedFontType = 6,
+    #[doc = include_str!("../../res/snippets/errors/static_vector_too_large.md")]
     ErrStaticVectorTooLarge = 10,
+    #[doc = include_str!("../../res/snippets/errors/invalid_pixmap_data.md")]
     ErrInvalidPixmapData = 11,
+    #[doc = include_str!("../../res/snippets/errors/conversion_nul_error.md")]
     ErrConversionNulError = 20,
+    #[doc = include_str!("../../res/snippets/errors/conversion_utf8_error.md")]
     ErrConversionUtf8Error = 21,
 }
 
@@ -274,21 +407,27 @@ impl From<converters::ConversionError> for SPFStatus {
 /// Named constants for the `version` field of [`SPFLayout`].
 #[repr(C)]
 pub enum SPFVersion {
+    #[doc = include_str!("../../res/snippets/data_types/Version/FV0.md")]
     FV0 = 0,
 }
 
 /// Named constants for the `color_type` field of [`SPFColor`].
 #[repr(C)]
 pub enum SPFColorType {
+    #[doc = include_str!("../../res/snippets/data_types/ColorType/Dynamic.md")]
     Dynamic = 0,
+    #[doc = include_str!("../../res/snippets/data_types/ColorType/Absolute.md")]
     Absolute = 1,
 }
 
 /// Named constants for the `font_type` field of [`SPFFont`].
 #[repr(C)]
 pub enum SPFFontType {
+    #[doc = include_str!("../../res/snippets/data_types/FontType/Regular.md")]
     Regular = 0,
+    #[doc = include_str!("../../res/snippets/data_types/FontType/Bold.md")]
     Bold = 1,
+    #[doc = include_str!("../../res/snippets/data_types/FontType/Italic.md")]
     Italic = 2,
 }
 
