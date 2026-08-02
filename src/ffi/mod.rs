@@ -181,9 +181,9 @@ pub struct SPFColor {
     pub has_custom_alpha: c_uchar,
     pub custom_alpha: c_uchar,
 
-    pub r: c_uchar,
-    pub g: c_uchar,
-    pub b: c_uchar,
+    pub red: c_uchar,
+    pub green: c_uchar,
+    pub blue: c_uchar,
 }
 
 #[derive(Debug, Clone)]

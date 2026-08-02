@@ -90,9 +90,9 @@ impl Default for SPFColor {
             color_type: u8::default(),
             has_custom_alpha: u8::default(),
             custom_alpha: u8::default(),
-            r: u8::default(),
-            g: u8::default(),
-            b: u8::default(),
+            red: u8::default(),
+            green: u8::default(),
+            blue: u8::default(),
         }
     }
 }

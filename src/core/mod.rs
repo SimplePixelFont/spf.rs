@@ -226,9 +226,9 @@ pub enum ColorType {
 pub struct Color {
     pub color_type: Option<ColorType>,
     pub custom_alpha: Option<u8>,
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
 }
 
 #[repr(u8)]

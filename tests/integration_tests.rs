@@ -70,16 +70,16 @@ mod tests {
         let mut transparent_color = Color::default();
         transparent_color.color_type = None;
         transparent_color.custom_alpha = Some(0);
-        transparent_color.r = 0;
-        transparent_color.g = 0;
-        transparent_color.b = 0;
+        transparent_color.red = 0;
+        transparent_color.green = 0;
+        transparent_color.blue = 0;
 
         let mut opaque_color = Color::default();
         opaque_color.color_type = None;
         opaque_color.custom_alpha = Some(255);
-        opaque_color.r = 36;
-        opaque_color.g = 174;
-        opaque_color.b = 214;
+        opaque_color.red = 36;
+        opaque_color.green = 174;
+        opaque_color.blue = 214;
 
         let mut color_table = ColorTable::default();
         color_table.colors = vec![transparent_color, opaque_color];

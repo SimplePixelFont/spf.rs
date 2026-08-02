@@ -25,9 +25,9 @@ impl TryFrom<Color> for SPFColor {
             color_type: color.color_type.unwrap_or(ColorType::Dynamic) as c_uchar,
             has_custom_alpha: color.custom_alpha.is_some() as c_uchar,
             custom_alpha: color.custom_alpha.unwrap_or(0) as c_uchar,
-            r: color.r as c_uchar,
-            g: color.g as c_uchar,
-            b: color.b as c_uchar,
+            red: color.red as c_uchar,
+            green: color.green as c_uchar,
+            blue: color.blue as c_uchar,
         })
     }
 }
@@ -48,9 +48,9 @@ impl TryInto<Color> for &SPFColor {
         Ok(Color {
             color_type,
             custom_alpha,
-            r: self.r,
-            g: self.g,
-            b: self.b,
+            red: self.red,
+            green: self.green,
+            blue: self.blue,
         })
     }
 }
