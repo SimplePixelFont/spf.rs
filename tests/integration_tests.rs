@@ -107,16 +107,16 @@ mod tests {
         let mut font = Layout::default();
 
         let mut char1 = Character::default();
-        char1.grapheme_cluster = "o".to_string();
+        char1.code_points = "o".to_string();
 
         let mut char2 = Character::default();
-        char2.grapheme_cluster = "w".to_string();
+        char2.code_points = "w".to_string();
 
         let mut char3 = Character::default();
-        char3.grapheme_cluster = "😊".to_string();
+        char3.code_points = "😊".to_string();
 
         let mut char4 = Character::default();
-        char4.grapheme_cluster = "!=".to_string();
+        char4.code_points = "!=".to_string();
 
         let mut character_table = CharacterTable::default();
 

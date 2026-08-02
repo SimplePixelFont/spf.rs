@@ -20,6 +20,7 @@
 #![doc(
     html_logo_url = "https://github.com/SimplePixelFont/spf.rs/blob/main/res/spf.rs.png?raw=true"
 )]
+#![warn(missing_docs)]
 
 #[cfg(not(feature = "std"))]
 pub(crate) extern crate alloc;

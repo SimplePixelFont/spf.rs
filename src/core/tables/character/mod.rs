@@ -113,7 +113,7 @@ impl Table for CharacterTable {
                 );
             }
 
-            next_grapheme_cluster(
+            next_code_points(
                 engine,
                 &mut character,
                 character_table.constant_cluster_codepoints,
@@ -223,10 +223,10 @@ impl Table for CharacterTable {
                 );
             }
 
-            push_grapheme_cluster(
+            push_code_points(
                 engine,
                 self.constant_cluster_codepoints,
-                &character.grapheme_cluster,
+                &character.code_points,
             );
 
             #[cfg(feature = "tagging")]

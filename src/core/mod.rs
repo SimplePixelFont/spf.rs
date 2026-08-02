@@ -43,14 +43,18 @@ bitflags! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct PixmapTableConfigurationFlags: u8 {
+        #[doc = include_str!("../../res/snippets/pixmap_table/configurations/flag/use_constant_width.md")]
         const ConstantWidth = 0b00000001;
+        #[doc = include_str!("../../res/snippets/pixmap_table/configurations/flag/use_constant_height.md")]
         const ConstantHeight = 0b00000010;
+        #[doc = include_str!("../../res/snippets/pixmap_table/configurations/flag/use_constant_bits_per_pixel.md")]
         const ConstantBitsPerPixel = 0b00000100;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct PixmapTableLinkFlags: u8 {
+        #[doc = include_str!("../../res/snippets/pixmap_table/links/flag/link_color_tables.md")]
         const LinkColorTables = 0b00000001;
     }
 
@@ -65,6 +69,7 @@ bitflags! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct CharacterTableLinkFlags: u8 {
+        #[doc = include_str!("../../res/snippets/character_table/links/flag/link_pixmap_tables.md")]
         const LinkPixmapTables = 0b00000001;
     }
 
@@ -83,12 +88,14 @@ bitflags! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct ColorTableConfigurationFlags: u8 {
+        #[doc = include_str!("../../res/snippets/color_table/configurations/flag/use_constant_alpha.md")]
         const ConstantAlpha = 0b00000001;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct FontTableLinkFlags: u8 {
+        #[doc = include_str!("../../res/snippets/font_table/links/flag/link_character_tables.md")]
         const LinkCharacterTables = 0b00000001;
     }
 }
@@ -126,13 +133,22 @@ pub struct Layout {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/pixmap_table/brief.md")]
 pub struct PixmapTable {
     pub configuration_flags: PixmapTableConfigurationFlags,
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_bits_per_pixel.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_bits_per_pixel.md")]
     pub constant_width: Option<u8>,
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_height.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_height.md")]
     pub constant_height: Option<u8>,
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_bits_per_pixel.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_bits_per_pixel.md")]
     pub constant_bits_per_pixel: Option<u8>,
 
     pub link_flags: PixmapTableLinkFlags,
+    #[doc = include_str!("../../res/snippets/pixmap_table/links/condition/color_tables.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/links/brief/color_tables.md")]
     pub color_table_indexes: Option<Vec<u8>>,
 
     pub pixmaps: Vec<Pixmap>,
@@ -142,9 +158,17 @@ pub struct PixmapTable {
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Pixmap {
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/width.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/width.md")]
     pub custom_width: Option<u8>,
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/height.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/height.md")]
     pub custom_height: Option<u8>,
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/bits_per_pixel.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/bits_per_pixel.md")]
     pub custom_bits_per_pixel: Option<u8>,
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/data.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/data.md")]
     pub data: Vec<u8>,
 }
 
@@ -171,7 +195,7 @@ pub struct Character {
     pub pixmap_index: Option<u8>,
     pub pixmap_table_index: Option<u8>,
 
-    pub grapheme_cluster: String,
+    pub code_points: String,
 }
 
 #[non_exhaustive]

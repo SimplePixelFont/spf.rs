@@ -156,7 +156,7 @@ pub struct SPFCharacter {
     pub has_pixmap_table_index: c_uchar,
     pub pixmap_table_index: c_uchar,
 
-    pub grapheme_cluster: *mut c_char,
+    pub code_points: *mut c_char,
 }
 
 #[derive(Debug, Clone)]

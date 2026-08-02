@@ -206,7 +206,7 @@ impl CharacterTable {
     }
 }
 
-pub(crate) fn push_grapheme_cluster<T: TagWriter>(
+pub(crate) fn push_code_points<T: TagWriter>(
     engine: &mut SerializeEngine<T>,
     constant_cluster_codepoints: Option<u8>,
     string: &String,
@@ -240,7 +240,7 @@ pub(crate) fn push_grapheme_cluster<T: TagWriter>(
 
     #[cfg(feature = "log")]
     info!(
-        "Pushed grapheme cluster '{}' with the following bits: {}",
+        "Pushed code points '{}' with the following bits: {}",
         string, string_bit_string
     );
 }

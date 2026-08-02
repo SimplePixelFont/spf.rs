@@ -63,7 +63,7 @@ impl Default for SPFCharacter {
             pixmap_index: u8::default(),
             has_pixmap_table_index: u8::default(),
             pixmap_table_index: u8::default(),
-            grapheme_cluster: core::ptr::null_mut(),
+            code_points: core::ptr::null_mut(),
         }
     }
 }

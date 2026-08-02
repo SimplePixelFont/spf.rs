@@ -203,7 +203,7 @@ impl CharacterTable {
     }
 }
 
-pub(crate) fn next_grapheme_cluster<R: ByteReader, T: TagWriter>(
+pub(crate) fn next_code_points<R: ByteReader, T: TagWriter>(
     engine: &mut DeserializeEngine<R, T>,
     character: &mut Character,
     constant_cluster_codepoints: Option<u8>,
@@ -211,7 +211,7 @@ pub(crate) fn next_grapheme_cluster<R: ByteReader, T: TagWriter>(
     #[cfg(feature = "tagging")]
     let start = engine.bytes.byte_index();
 
-    let mut grapheme_cluster = String::new();
+    let mut code_points = String::new();
     let mut end_cluster = false;
     let mut codepoint_count = 0;
 
@@ -235,7 +235,7 @@ pub(crate) fn next_grapheme_cluster<R: ByteReader, T: TagWriter>(
             utf8_bytes[3] = engine.bytes.next();
         }
 
-        grapheme_cluster.push(
+        code_points.push(
             String::from_utf8(utf8_bytes.to_vec())
                 .unwrap()
                 .chars()
@@ -259,13 +259,13 @@ pub(crate) fn next_grapheme_cluster<R: ByteReader, T: TagWriter>(
         TagKind::CharacterGraphemeCluster {
             table_index: engine.tagging_data.current_table_index,
             char_index: engine.tagging_data.current_record_index,
-            value: grapheme_cluster.clone(),
+            value: code_points.clone(),
         },
         Span::new(start, engine.bytes.byte_index()),
     );
 
     #[cfg(feature = "log")]
-    info!("Identified grapheme cluster: {:?}", grapheme_cluster);
+    info!("Identified code points: {:?}", code_points);
 
-    character.grapheme_cluster = grapheme_cluster;
+    character.code_points = code_points;
 }
