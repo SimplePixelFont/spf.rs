@@ -1,0 +1,44 @@
+name: snippets-sync
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout spf.rs
+        uses: actions/checkout@v4
+        with:
+          path: spf.rs
+
+      - name: checkout Specification
+        uses: actions/checkout@v4
+        with:
+          repository: SimplePixelFont/Specification
+          path: Specification
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: install Specification tooling
+        working-directory: Specification
+        run: npm ci
+
+      - name: regenerate rust-linked snippets
+        working-directory: Specification
+        run: |
+          npm run snippet:collapse
+          npx tsx scripts/snippet-tool.ts expand-rust-links --output "$GITHUB_WORKSPACE/regenerated-snippets"
+
+      - name: diff against vendored copy
+        run: |
+          if ! diff -r spf.rs/res/snippets regenerated-snippets; then
+            echo "::error::spf.rs/res/snippets is out of sync with Specification. Merge the pending sync PR (or regenerate manually) before this can pass."
+            exit 1
+          fi
