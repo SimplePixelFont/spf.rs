@@ -136,14 +136,21 @@ impl core::fmt::Display for Version {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// The full, decoded contents of a `.spf` file: its format version, packing mode, and every table it defines.
 pub struct Layout {
+    /// The format version this layout was parsed from, or should be serialized as.
     pub version: Version,
 
+    /// Whether partial trailing bytes are packed to the bit (`true`) or padded out to a full byte (`false`). See the pixel/bit packing rules on [`Pixmap`].
     pub compact: bool,
 
+    /// The character tables defined in this file, indexed in declaration order (this index is what [`CharacterTable`] links elsewhere refer to).
     pub character_tables: Vec<CharacterTable>,
+    /// The color tables defined in this file, indexed in declaration order.
     pub color_tables: Vec<ColorTable>,
+    /// The pixmap tables defined in this file, indexed in declaration order.
     pub pixmap_tables: Vec<PixmapTable>,
+    /// The font tables defined in this file, indexed in declaration order.
     pub font_tables: Vec<FontTable>,
 }
 
