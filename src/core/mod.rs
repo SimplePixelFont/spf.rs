@@ -60,14 +60,22 @@ bitflags! {
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which optional fields are present on every [`Character`] record in a [`CharacterTable`].
     pub struct CharacterTableModifierFlags: u8 {
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/brief/use_advance_x.md")]
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/details/use_advance_x.md")]
         const UseAdvanceX = 0b00000001;
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/brief/use_pixmap_index.md")]
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/details/use_pixmap_index.md")]
         const UsePixmapIndex = 0b00000010;
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/brief/use_pixmap_table_index.md")]
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/details/use_pixmap_table_index.md")]
         const UsePixmapTableIndex = 0b00000100;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which other tables a [`CharacterTable`] links to.
     pub struct CharacterTableLinkFlags: u8 {
         #[doc = include_str!("../../res/snippets/character_table/links/flag/link_pixmap_tables.md")]
         const LinkPixmapTables = 0b00000001;
@@ -75,7 +83,9 @@ bitflags! {
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which configuration values are constant for every [`Character`] in a [`CharacterTable`].
     pub struct CharacterTableConfigurationFlags: u8 {
+        #[doc = include_str!("../../res/snippets/character_table/configurations/flag/use_constant_code_point_count.md")]
         const ConstantCodePointCount = 0b00000001;
     }
 
@@ -175,15 +185,24 @@ pub struct Pixmap {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/character_table/brief.md")]
 pub struct CharacterTable {
+    /// Which optional per-character fields are present. See [`CharacterTableModifierFlags`].
     pub modifier_flags: CharacterTableModifierFlags,
 
+    /// Which configuration values below are constant for every character. See [`CharacterTableConfigurationFlags`].
     pub configuration_flags: CharacterTableConfigurationFlags,
+    #[doc = include_str!("../../res/snippets/character_table/configurations/condition/constant_code_point_count.md")]
+    #[doc = include_str!("../../res/snippets/character_table/configurations/brief/constant_code_point_count.md")]
     pub constant_code_point_count: Option<u8>,
 
+    /// Which other tables this table links to. See [`CharacterTableLinkFlags`].
     pub link_flags: CharacterTableLinkFlags,
+    #[doc = include_str!("../../res/snippets/character_table/links/condition/pixmap_tables.md")]
+    #[doc = include_str!("../../res/snippets/character_table/links/brief/pixmap_tables.md")]
     pub pixmap_table_indexes: Option<Vec<u8>>,
 
+    /// The characters stored in this table, indexed in declaration order.
     pub characters: Vec<Character>,
 }
 
@@ -191,10 +210,18 @@ pub struct CharacterTable {
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Character {
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/advance_x.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/advance_x.md")]
     pub advance_x: Option<u8>,
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/pixmap_index.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/pixmap_index.md")]
     pub pixmap_index: Option<u8>,
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/pixmap_table_index.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/pixmap_table_index.md")]
     pub pixmap_table_index: Option<u8>,
 
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/code_points.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/code_points.md")]
     pub code_points: String,
 }
 
