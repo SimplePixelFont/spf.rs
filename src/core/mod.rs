@@ -108,6 +108,7 @@ bitflags! {
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which other tables a [`FontTable`] links to.
     pub struct FontTableLinkFlags: u8 {
         #[doc = include_str!("../../res/snippets/font_table/links/flag/link_character_tables.md")]
         const LinkCharacterTables = 0b00000001;
@@ -292,10 +293,15 @@ pub enum FontType {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/font_table/brief.md")]
 pub struct FontTable {
+    /// Which other tables this table links to. See [`FontTableLinkFlags`].
     pub link_flags: FontTableLinkFlags,
+    #[doc = include_str!("../../res/snippets/font_table/links/condition/character_tables.md")]
+    #[doc = include_str!("../../res/snippets/font_table/links/brief/character_tables.md")]
     pub character_table_indexes: Option<Vec<u8>>,
 
+    /// The fonts stored in this table, indexed in declaration order.
     pub fonts: Vec<Font>,
 }
 
@@ -303,10 +309,20 @@ pub struct FontTable {
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Font {
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/name.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/name.md")]
     pub name: String,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/author.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/author.md")]
     pub author: String,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/version.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/version.md")]
     pub version: u8,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/font_type.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/font_type.md")]
     pub font_type: FontType,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/linked_character_table_indexes.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/linked_character_table_indexes.md")]
     pub linked_character_table_indexes: Vec<u8>,
 }
 
