@@ -186,6 +186,7 @@ pub struct PixmapTable {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// A single glyph's pixel data within a [`PixmapTable`].
 pub struct Pixmap {
     #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/custom_width.md")]
     #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/custom_width.md")]
@@ -228,6 +229,7 @@ pub struct CharacterTable {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// A single character's mapping to a pixmap within a [`CharacterTable`].
 pub struct Character {
     #[doc = include_str!("../../res/snippets/character_table/records/condition/advance_x.md")]
     #[doc = include_str!("../../res/snippets/character_table/records/brief/advance_x.md")]
@@ -278,6 +280,7 @@ pub enum ColorType {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// A single RGBA color value within a [`ColorTable`].
 pub struct Color {
     #[doc = include_str!("../../res/snippets/color_table/records/condition/color_type.md")]
     #[doc = include_str!("../../res/snippets/color_table/records/brief/color_type.md")]
@@ -329,6 +332,7 @@ pub struct FontTable {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// A single named font within a [`FontTable`], grouping the [`CharacterTable`]s it uses.
 pub struct Font {
     #[doc = include_str!("../../res/snippets/font_table/records/condition/name.md")]
     #[doc = include_str!("../../res/snippets/font_table/records/brief/name.md")]
@@ -442,6 +446,7 @@ pub(crate) trait Table: Sized {
     ) -> Result<(), SerializeError>;
 }
 
+/// Drives parsing of a `.spf` byte source into a [`Layout`], one table at a time.
 pub struct DeserializeEngine<'a, R: ByteReader = ByteReaderImpl<'a>, T: TagWriter = TagWriterNoOp> {
     bytes: R,
     /// The [`Layout`] built up so far as tables are read from `bytes`.
@@ -461,6 +466,7 @@ pub(crate) struct TaggingData {
     current_record_index: u8,
 }
 
+/// Drives serialization of a [`Layout`] into `.spf` bytes, one table at a time.
 pub struct SerializeEngine<'a, T: TagWriter = TagWriterNoOp> {
     bytes: byte::ByteWriter,
     /// The [`Layout`] being serialized into `bytes`.
