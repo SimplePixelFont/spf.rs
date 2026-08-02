@@ -39,10 +39,10 @@ impl Default for SPFCharacterTable {
     fn default() -> Self {
         SPFCharacterTable {
             modifier_flags: u8::default(),
-            has_constant_cluster_codepoints: u8::default(),
+            has_constant_code_point_count: u8::default(),
 
             configuration_flags: u8::default(),
-            constant_cluster_codepoints: u8::default(),
+            constant_code_point_count: u8::default(),
             
             link_flags: u8::default(),
             has_pixmap_table_indexes: u8::default(),

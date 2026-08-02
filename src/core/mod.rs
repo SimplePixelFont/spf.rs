@@ -76,7 +76,7 @@ bitflags! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct CharacterTableConfigurationFlags: u8 {
-        const ConstantClusterCodePoints = 0b00000001;
+        const ConstantCodePointCount = 0b00000001;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -179,7 +179,7 @@ pub struct CharacterTable {
     pub modifier_flags: CharacterTableModifierFlags,
 
     pub configuration_flags: CharacterTableConfigurationFlags,
-    pub constant_cluster_codepoints: Option<u8>,
+    pub constant_code_point_count: Option<u8>,
 
     pub link_flags: CharacterTableLinkFlags,
     pub pixmap_table_indexes: Option<Vec<u8>>,

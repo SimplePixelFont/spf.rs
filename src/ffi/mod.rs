@@ -134,8 +134,8 @@ pub struct SPFCharacterTable {
     pub modifier_flags: c_uchar,
 
     pub configuration_flags: c_uchar,
-    pub has_constant_cluster_codepoints: c_uchar,
-    pub constant_cluster_codepoints: c_uchar,
+    pub has_constant_code_point_count: c_uchar,
+    pub constant_code_point_count: c_uchar,
 
     pub link_flags: c_uchar,
     pub has_pixmap_table_indexes: c_uchar,

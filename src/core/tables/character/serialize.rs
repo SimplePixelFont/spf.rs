@@ -82,7 +82,7 @@ impl CharacterTable {
             },
             vec![TagKind::CharacterTableUseConstantClusterCodepoints {
                 table_index: engine.tagging_data.current_table_index,
-                value: self.constant_cluster_codepoints.is_some(),
+                value: self.constant_code_point_count.is_some(),
             }],
             engine.bytes.byte_index(),
         );
@@ -91,13 +91,13 @@ impl CharacterTable {
         #[cfg(feature = "tagging")]
         let configuration_values_start = engine.bytes.byte_index();
 
-        if let Some(constant_cluster_codepoints) = self.constant_cluster_codepoints {
-            engine.bytes.push(constant_cluster_codepoints);
+        if let Some(constant_code_point_count) = self.constant_code_point_count {
+            engine.bytes.push(constant_code_point_count);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::CharacterTableConstantClusterCodepoints {
                     table_index: engine.tagging_data.current_table_index,
-                    value: constant_cluster_codepoints,
+                    value: constant_code_point_count,
                 },
                 engine.bytes.byte_index(),
             );
@@ -208,7 +208,7 @@ impl CharacterTable {
 
 pub(crate) fn push_code_points<T: TagWriter>(
     engine: &mut SerializeEngine<T>,
-    constant_cluster_codepoints: Option<u8>,
+    constant_code_point_count: Option<u8>,
     string: &String,
 ) {
     #[cfg(feature = "log")]
@@ -222,7 +222,7 @@ pub(crate) fn push_code_points<T: TagWriter>(
         #[cfg(feature = "log")]
         string_bit_string.push_str(&format!("{:08b} ", byte));
     });
-    if constant_cluster_codepoints.is_none() {
+    if constant_code_point_count.is_none() {
         engine.bytes.push(0);
         #[cfg(feature = "log")]
         string_bit_string.push_str(&format!("{:08b} ", 0));

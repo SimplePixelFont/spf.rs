@@ -71,9 +71,9 @@ impl CharacterTable {
 
         self.configuration_flags =
             CharacterTableConfigurationFlags::from_bits_retain(engine.bytes.next());
-        let use_constant_cluster_codepoints = self
+        let use_constant_code_point_count = self
             .configuration_flags
-            .contains(CharacterTableConfigurationFlags::ConstantClusterCodePoints);
+            .contains(CharacterTableConfigurationFlags::ConstantCodePointCount);
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
@@ -82,20 +82,20 @@ impl CharacterTable {
             },
             vec![TagKind::CharacterTableUseConstantClusterCodepoints {
                 table_index: engine.tagging_data.current_table_index,
-                value: use_constant_cluster_codepoints,
+                value: use_constant_code_point_count,
             }],
             engine.bytes.byte_index(),
         );
 
         #[cfg(feature = "tagging")]
         let configuration_values_start = engine.bytes.byte_index();
-        if use_constant_cluster_codepoints {
-            self.constant_cluster_codepoints = Some(engine.bytes.next());
+        if use_constant_code_point_count {
+            self.constant_code_point_count = Some(engine.bytes.next());
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
                 TagKind::CharacterTableConstantClusterCodepoints {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_cluster_codepoints.unwrap(),
+                    value: self.constant_code_point_count.unwrap(),
                 },
                 engine.bytes.byte_index(),
             );
@@ -206,7 +206,7 @@ impl CharacterTable {
 pub(crate) fn next_code_points<R: ByteReader, T: TagWriter>(
     engine: &mut DeserializeEngine<R, T>,
     character: &mut Character,
-    constant_cluster_codepoints: Option<u8>,
+    constant_code_point_count: Option<u8>,
 ) {
     #[cfg(feature = "tagging")]
     let start = engine.bytes.byte_index();
@@ -244,8 +244,8 @@ pub(crate) fn next_code_points<R: ByteReader, T: TagWriter>(
         );
         codepoint_count += 1;
 
-        if let Some(constant_cluster_codepoints) = constant_cluster_codepoints {
-            if codepoint_count == constant_cluster_codepoints {
+        if let Some(constant_code_point_count) = constant_code_point_count {
+            if codepoint_count == constant_code_point_count {
                 end_cluster = true;
             }
         } else if engine.bytes.get() == 0 {
