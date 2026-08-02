@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+//! Parser and serializer for the SimplePixelFont (`.spf`) binary font format.
+//!
+//! This crate provides the native Rust API (see [`core`]) and, when the `ffi` feature is enabled, a C ABI compatible layer (see [`ffi`]) for using `spf.rs` from other languages. See the [`articles`] module for usage guides.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(html_playground_url = "https://play.rust-lang.org")]
@@ -57,4 +61,5 @@ pub mod articles;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "tagging")))]
 #[cfg(feature = "tagging")]
+#[allow(missing_docs)] // tagging module documentation is out of scope for this pass; see docs/superpowers/specs/2026-08-01-core-ffi-doc-coverage-design.md
 pub mod tagging;
