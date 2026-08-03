@@ -23,10 +23,11 @@ pub(crate) use std::str::Utf8Error;
 pub(crate) use core::str::Utf8Error;
 
 pub(crate) use super::*;
-pub(crate) use crate::{
+pub(crate) use crate::ffi::macros::{
     ffi_to_option, option_vec_to_raw, vec_from_raw_with_conversion, vec_to_raw,
-    vec_to_raw_with_conversion, ToOwned, Vec,
+    vec_to_raw_with_conversion,
 };
+pub(crate) use crate::{ToOwned, Vec};
 
 pub(crate) mod character;
 pub(crate) mod character_table;
@@ -103,8 +104,8 @@ impl TryInto<Layout> for SPFLayout {
             let font_tables =
                 vec_from_raw_with_conversion!(self.font_tables, self.font_tables_length);
 
-            let version = Version::try_from(self.version)
-                .map_err(|_| ConversionError::UnsupportedVersion)?;
+            let version =
+                Version::try_from(self.version).map_err(|_| ConversionError::UnsupportedVersion)?;
 
             Ok(Layout {
                 version,

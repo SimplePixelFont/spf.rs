@@ -51,7 +51,6 @@ pub mod converters;
 pub mod defaults;
 pub mod free;
 
-#[macro_use]
 pub(crate) mod macros;
 
 #[doc(inline)]
@@ -377,7 +376,9 @@ impl From<DeserializeError> for SPFStatus {
             DeserializeError::InvalidSignature => SPFStatus::ErrInvalidSignature,
             DeserializeError::UnsupportedVersion => SPFStatus::ErrUnsupportedVersion,
             DeserializeError::UnsupportedColorType => SPFStatus::ErrUnsupportedColorType,
-            DeserializeError::UnsupportedTableIdentifier => SPFStatus::ErrUnsupportedTableIdentifier,
+            DeserializeError::UnsupportedTableIdentifier => {
+                SPFStatus::ErrUnsupportedTableIdentifier
+            }
             DeserializeError::UnsupportedFontType => SPFStatus::ErrUnsupportedFontType,
         }
     }
@@ -458,7 +459,10 @@ pub unsafe extern "C" fn spf_core_layout_to_data(
     let data_ptr = boxed.as_mut_ptr();
     core::mem::forget(boxed);
     unsafe {
-        *out = SPFData { data: data_ptr, data_length };
+        *out = SPFData {
+            data: data_ptr,
+            data_length,
+        };
     }
     SPFStatus::Ok
 }
