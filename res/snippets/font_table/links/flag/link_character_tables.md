@@ -1,1 +1,1 @@
-This table links to one or more Character Tables.
+This table links to any number of Character Tables.

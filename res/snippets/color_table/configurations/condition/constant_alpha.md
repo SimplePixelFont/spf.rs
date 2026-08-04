@@ -1,1 +1,1 @@
-If [`ColorTableConfigurationFlags::ConstantAlpha`] is enabled.
+If `use_constant_alpha` is enabled.

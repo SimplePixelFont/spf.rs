@@ -1,1 +1,1 @@
-Length byte followed by that many Color Table indices supplying the palette that pixel values index into.
+Color Tables supplying the colors each record's pixel values map to in this table.

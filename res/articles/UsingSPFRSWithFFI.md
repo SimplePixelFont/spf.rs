@@ -1,10 +1,10 @@
 # `spf.rs` as a library
-This article will discuss how to use `spf.rs` as a library in C. However, the same principles can be applied to any language that has an FFI which adhere to the platform specific C-ABI. This includes programming languages such as Python, Julia, Ruby, Java, WASM, C/C++, etc.
+This article discusses `spf.rs` usage as a library in C. However, the same principles can be applied to any language that has a Foreign Function Interface (FFI) which adhere to the platform specific C-ABI. This includes programming languages such as Python, Julia, Ruby, Java, WASM, C/C++, etc.
 
-To begin you will need the `spf.rs` library binary which you can download from the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section, or your can [compile spf.rs from source](https://docs.rs/spf/0.4.0/spf/articles/installing/index.html#compiling-spfrs-from-source) to obtain the library.
+First obtain a copy of the `spf.rs` library binary by either downloading from the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section, or [compiling spf.rs from source](https://docs.rs/spf/0.4.0/spf/articles/installing/index.html#compiling-spfrs-from-source).
 
 ### Header Files
-Additionally, to use `spf.rs` in C/C++ you will need to download the header files found in the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section. You can then add the following in your C code:
+Additionally, to use `spf.rs` in C/C++, download the header files found in the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section. Then add the following headers in your C code:
 ```c
 #include "libspf.h"
 // You will also need this standard libary for loading libraries.

@@ -1,1 +1,1 @@
-If [`CharacterTableModifierFlags::UseAdvanceX`] modifier is enabled.
+If `use_advance_x` modifier is enabled.

@@ -1,1 +1,1 @@
-If [`CharacterTableModifierFlags::UsePixmapTableIndex`] modifier is enabled.
+If `use_pixmap_table_index` modifier is enabled.

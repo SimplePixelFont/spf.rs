@@ -363,7 +363,7 @@ pub enum SPFStatus {
     ErrStaticVectorTooLarge = 10,
     #[doc = include_str!("../../res/snippets/errors/invalid_pixmap_data.md")]
     ErrInvalidPixmapData = 11,
-    #[doc = include_str!("../../res/snippets/errors/conversion_nul_error.md")]
+    #[doc = include_str!("../../res/snippets/errors/conversion_null_error.md")]
     ErrConversionNulError = 20,
     #[doc = include_str!("../../res/snippets/errors/conversion_utf8_error.md")]
     ErrConversionUtf8Error = 21,

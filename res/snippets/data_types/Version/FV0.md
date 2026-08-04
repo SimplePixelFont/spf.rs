@@ -1,1 +1,1 @@
-The initial, and currently only, SimplePixelFont format version.
+The latest SimplePixelFont format version.

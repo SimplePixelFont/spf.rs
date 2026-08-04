@@ -1,1 +1,1 @@
-Length byte followed by that many Character Table indices this font table may reference.
+Characters Tables supplying the set of characters each record can include.

@@ -1,1 +1,1 @@
-A growable, heap-allocated array. Table records and link index lists are stored as `Vec`s in the native Rust API and as raw pointer and length pairs across the FFI boundary.
+`u8` length byte followed by that many entries of type `T`. Unless otherwise specified.

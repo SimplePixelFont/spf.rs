@@ -1,1 +1,1 @@
-Distinguishes whether a color should be treated as fixed or subject to theming and recoloring by the renderer.
+Distinguishes whether a color should be treated as fixed or can be themed and recolored by the renderer.

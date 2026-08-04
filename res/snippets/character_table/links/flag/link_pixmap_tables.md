@@ -1,1 +1,1 @@
-This table links to one or more Pixmap Tables.
+This table links to any number of Pixmap Tables.

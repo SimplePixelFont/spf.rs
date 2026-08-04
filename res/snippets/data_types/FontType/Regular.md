@@ -1,1 +1,1 @@
-The default, unstyled variant of a font family.
+The default variant of a font family.

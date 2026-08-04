@@ -1,1 +1,1 @@
-Length byte followed by that many Pixmap Table indices this character table may reference.
+Pixmap Tables supplying the pixmaps each record may map to.
