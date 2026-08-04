@@ -135,18 +135,12 @@ mod tests {
     }
 
     #[test]
-    fn write_font_file() -> Result<(), io::Error> {
+    fn write_and_read_font_file() -> Result<(), io::Error> {
         init_logger();
 
         let font = sample_layout();
 
         common::write_to_file("./res/sampleToyFont.spf", &layout_to_data(&font).unwrap())?;
-        Ok(())
-    }
-
-    #[test]
-    fn read_font_file() -> Result<(), io::Error> {
-        init_logger();
 
         let mut buffer: Vec<u8> = vec![];
         common::read_from_file("./res/sampleToyFont.spf", &mut buffer)?;

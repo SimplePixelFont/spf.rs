@@ -24,19 +24,20 @@
 //! WebAssembly.
 //!
 //! To learn about how to use the `spf.rs` library in your language of choice, please refer to the
-//! [`crate::articles::c_usage`] article. Also note that the [`self::converters`] module is not
+//! [`crate::articles::c_usage`] article. Also note that the [`crate::ffi::converters`] module is not
 //! part of the `spf.rs` library and only exposed in the Rust crate.
 //!
 //! # Conventions
 //!
 //! Function names are prefixed with `spf_` followed by the module name they are in. For example, the
-//! function [`spf_core_layout_from_data`] is the C ABI compatible version of the [`layout_from_data`]
-//! function in the [`crate::core`] module.
+//! function [`crate::ffi::spf_core_layout_from_data`] is the C ABI compatible version of the
+//! [`crate::core::layout_from_data`] function in the [`crate::core`] module.
 //!
 //! All structs are prefixed with `SPF` followed by the struct name. For example, the struct
-//! [`SPFLayout`] is the C ABI compatible version of the [`Layout`] struct in the [`crate::core`] module.
+//! [`crate::ffi::SPFLayout`] is the C ABI compatible version of the [`crate::core::Layout`] struct in
+//! the [`crate::core`] module.
 //!
-//! All functions that return a [`Vec<u8>`] return a [`SPFData`] struct instead.
+//! All functions that return a [`Vec<u8>`] return a [`crate::ffi::SPFData`] struct instead.
 
 use crate::core::*;
 use core::slice;
