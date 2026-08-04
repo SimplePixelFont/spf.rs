@@ -80,7 +80,7 @@ impl CharacterTable {
             TagKind::CharacterTableConfigurationFlags {
                 table_index: engine.tagging_data.current_table_index,
             },
-            vec![TagKind::CharacterTableUseConstantClusterCodepoints {
+            vec![TagKind::CharacterTableUseConstantCodePointCount {
                 table_index: engine.tagging_data.current_table_index,
                 value: self.constant_code_point_count.is_some(),
             }],
@@ -95,7 +95,7 @@ impl CharacterTable {
             engine.bytes.push(constant_code_point_count);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::CharacterTableConstantClusterCodepoints {
+                TagKind::CharacterTableConstantCodePointCount {
                     table_index: engine.tagging_data.current_table_index,
                     value: constant_code_point_count,
                 },
@@ -230,7 +230,7 @@ pub(crate) fn push_code_points<T: TagWriter>(
 
     #[cfg(feature = "tagging")]
     engine.tags.tag_span(
-        TagKind::CharacterGraphemeCluster {
+        TagKind::CharacterCodePoints {
             table_index: engine.tagging_data.current_table_index,
             char_index: engine.tagging_data.current_record_index,
             value: string.clone(),

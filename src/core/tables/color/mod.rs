@@ -200,7 +200,7 @@ impl Table for ColorTable {
             color.red = engine.bytes.next();
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorR {
+                TagKind::ColorRed {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
                     value: color.red,
@@ -210,7 +210,7 @@ impl Table for ColorTable {
             color.green = engine.bytes.next();
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorG {
+                TagKind::ColorGreen {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
                     value: color.green,
@@ -220,7 +220,7 @@ impl Table for ColorTable {
             color.blue = engine.bytes.next();
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorB {
+                TagKind::ColorBlue {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
                     value: color.blue,
@@ -314,7 +314,7 @@ impl Table for ColorTable {
             engine.bytes.push(color.red);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorR {
+                TagKind::ColorRed {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
                     value: color.red,
@@ -324,7 +324,7 @@ impl Table for ColorTable {
             engine.bytes.push(color.green);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorG {
+                TagKind::ColorGreen {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
                     value: color.green,
@@ -334,7 +334,7 @@ impl Table for ColorTable {
             engine.bytes.push(color.blue);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorB {
+                TagKind::ColorBlue {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
                     value: color.blue,

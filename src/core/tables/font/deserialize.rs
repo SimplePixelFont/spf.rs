@@ -268,7 +268,7 @@ pub(crate) fn next_linked_character_table_indexes<R: ByteReader, T: TagWriter>(
     let linked_character_table_indexes_length = engine.bytes.next();
     #[cfg(feature = "tagging")]
     engine.tags.tag_byte(
-        TagKind::FontCharacterTableIndexesLength {
+        TagKind::FontLinkedCharacterTableIndexesLength {
             table_index: engine.tagging_data.current_table_index,
             font_index: engine.tagging_data.current_record_index,
             count: linked_character_table_indexes_length,
@@ -282,7 +282,7 @@ pub(crate) fn next_linked_character_table_indexes<R: ByteReader, T: TagWriter>(
         linked_character_table_indexes.push(character_table_index);
         #[cfg(feature = "tagging")]
         engine.tags.tag_byte(
-            TagKind::FontCharacterTableIndexesIndex {
+            TagKind::FontLinkedCharacterTableIndexesIndex {
                 table_index: engine.tagging_data.current_table_index,
                 font_index: engine.tagging_data.current_record_index,
                 index: character_table_index,
@@ -295,7 +295,7 @@ pub(crate) fn next_linked_character_table_indexes<R: ByteReader, T: TagWriter>(
 
     #[cfg(feature = "tagging")]
     engine.tags.tag_span(
-        TagKind::FontCharacterTableIndexes {
+        TagKind::FontLinkedCharacterTableIndexes {
             table_index: engine.tagging_data.current_table_index,
             font_index: engine.tagging_data.current_record_index,
             value: font.linked_character_table_indexes.clone(),

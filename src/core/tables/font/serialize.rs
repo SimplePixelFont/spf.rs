@@ -226,7 +226,7 @@ pub(crate) fn push_linked_character_table_indexes<T: TagWriter>(
     engine.bytes.push(linked_character_table_indexes_length as u8);
     #[cfg(feature = "tagging")]
     engine.tags.tag_byte(
-        TagKind::FontCharacterTableIndexesLength {
+        TagKind::FontLinkedCharacterTableIndexesLength {
             table_index: engine.tagging_data.current_table_index,
             font_index: engine.tagging_data.current_record_index,
             count: linked_character_table_indexes_length as u8,
@@ -238,7 +238,7 @@ pub(crate) fn push_linked_character_table_indexes<T: TagWriter>(
         engine.bytes.push(*character_table_index);
         #[cfg(feature = "tagging")]
         engine.tags.tag_byte(
-            TagKind::FontCharacterTableIndexesIndex {
+            TagKind::FontLinkedCharacterTableIndexesIndex {
                 table_index: engine.tagging_data.current_table_index,
                 font_index: engine.tagging_data.current_record_index,
                 index: *character_table_index,
@@ -249,7 +249,7 @@ pub(crate) fn push_linked_character_table_indexes<T: TagWriter>(
 
     #[cfg(feature = "tagging")]
     engine.tags.tag_span(
-        TagKind::FontCharacterTableIndexes {
+        TagKind::FontLinkedCharacterTableIndexes {
             table_index: engine.tagging_data.current_table_index,
             font_index: engine.tagging_data.current_record_index,
             value: linked_character_table_indexes.clone(),
