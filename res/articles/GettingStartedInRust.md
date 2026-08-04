@@ -1,11 +1,9 @@
-**Note: This article is out of data but will be updated soon as part of the v0.7.x development.**
-
 # Getting Started in Rust
 
 ### Synopsis
 `spf.rs` brings the world of [`SimplePixelFont`](https://github.com/SimplePixelFont)(s) into the programming realm. Written in the Rust
 programming language, `spf.rs` aims to be effective and simple to use, providing a native crate for
-Rust and also an FFI compatible with C-like languages and C-interopable languages. In particular, `spf.rs` rovides a
+Rust and also an FFI compatible with C-like languages and C-interoperable languages. In particular, `spf.rs` provides a
 low-level interface to the binary representation of [`SimplePixelFont`](https://github.com/SimplePixelFont) files via the [`crate::core`]
 module.
 
@@ -16,73 +14,47 @@ language. Additionally, this guide will explain the Rust representation of a [`S
 ### The [`crate::core`] module
 The [`crate::core`] module contains the lowest-level structures to
 represent a [`SimplePixelFont`](https://github.com/SimplePixelFont) file. Included is the [`core::Layout`] struct which is
-the binary representation of a [`SimplePixelFont`](https://github.com/SimplePixelFont) file as a Rust Structure. Lets take a look at an
-example of a font [`core::Layout`] struct:
+the binary representation of a [`SimplePixelFont`](https://github.com/SimplePixelFont) file as a Rust structure. A [`core::Layout`] holds a
+list of tables — [`core::CharacterTable`], [`core::PixmapTable`], [`core::ColorTable`], and [`core::FontTable`] — each
+holding its own records. Every one of these structs is `#[non_exhaustive]`, so you build them with
+`::default()` and then assign the fields you need, rather than a full struct literal. Let's build a
+minimal font with one character, `"w"`, backed by one pixmap:
 
 ```rs
-Layout {
-    version: Version::FV0
-    header: Header { //Header Properties
-        configuration_flags: ConfigurationFlags {
-            constant_cluster_codepoints: false,
-            constant_width: false,
-            constant_height: true,
-        },
-        modifier_flags: ModifierFlags {
-            compact: true // Strips any padding bytes when converting struct to data.
-        },
-        configuration_values: ConfigurationValues {
-            constant_cluster_codepoints: None,
-            constant_width: None,
-            constant_height: Some(3), // Each character in this font will have a height of 3.
-        }
-    },
-    body {
-        characters: vec![ // Includes each chatacter
-            Character {
-                grapheme_cluster: String::from("w"), // A valid grapheme_cluster which may be made up of multiple utf8 characters.
-                custom_width: Some(5), // Since we didn't set the constant_width configuration
-                //flag to true, each character must have a custom width.
-                custom_height: None, // We don't need't set the custom_height because we set the
-                //constant_height configuration flag to true, which means each character must have
-                //a height of 4 in this case.
-                pixmap: vec![ //The pixels of the character. 0 means an empty pixel.
-                    1, 0, 1, 0, 1,
-                    1, 0, 1, 0, 1,
-                    1, 1, 1, 1, 1]
-            }
-        ]
-    }
-}
+use spf::core::*;
+
+let mut pixmap = Pixmap::default();
+pixmap.data = vec![0b10111111, 0b01010110]; // A 5x3, 1-bit-per-pixel glyph, packed LSB-first.
+
+let mut pixmap_table = PixmapTable::default();
+pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantWidth
+    | PixmapTableConfigurationFlags::ConstantHeight
+    | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
+pixmap_table.constant_width = Some(5);
+pixmap_table.constant_height = Some(3);
+pixmap_table.constant_bits_per_pixel = Some(1);
+pixmap_table.pixmaps = vec![pixmap];
+
+let mut character = Character::default();
+character.code_points = String::from("w"); // May be made up of multiple utf8 characters, e.g. "😊".
+character.pixmap_index = Some(0); // Which pixmap in the linked PixmapTable this character uses.
+
+let mut character_table = CharacterTable::default();
+character_table.modifier_flags = CharacterTableModifierFlags::UsePixmapIndex;
+character_table.link_flags = CharacterTableLinkFlags::LinkPixmapTables;
+character_table.pixmap_table_indexes = Some(vec![0]); // Links to pixmap_tables[0] below.
+character_table.characters = vec![character];
+
+let mut layout = Layout::default();
+layout.compact = true; // Strips padding bits when converting the struct to data.
+layout.pixmap_tables = vec![pixmap_table];
+layout.character_tables = vec![character_table];
 ```
 
-This is a lot to take in, luckily in Rust we don't need to write a [`core::Layout`] struct
-directly. Instead we turn to the [`crate::ergonomics`] module which provides the
-[`ergonomics::LayoutBuilder`] struct. Keep in mind that the [`crate::ergonomics`] module is only
-availible in Rust. Lets use the [`ergonomics::LayoutBuilder`] to create the same
-[`core::Layout`] struct we have above:
-
-```rs
-use spf::ergonomics::*;
-
-...
-
-let mut font = LayoutBuilder::new()
-    .constant_height(4)
-    .character("w", Some(4), None, &[
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 1, 1, 1, 1
-    ])
-    .build().unwrap();
-```
-
-This is a lot more easier to read and understand, so now lets explain each method:
-`.constant_height(4)` This method will set the font to have characters with the same height.
-What does this mean? By specifying a constant height each character must have the same height,
-and thus we no longer need to specify the [`Character::custom_height`] field. Note that 255x255 (width x height) is currently
-the largest possible character within a [`SimplePixelFont`](https://github.com/SimplePixelFont) font file. Now that we have defined the header of our font,  we can add characters to our font using the [`LayoutBuilder::character()`] method as used in the sample
-above.
+A few things worth calling out:
+- [`CharacterTableModifierFlags::UsePixmapIndex`] tells the format that every [`Character`] record carries a `pixmap_index`. Without it, [`Character::pixmap_index`] is never read or written.
+- [`CharacterTableLinkFlags::LinkPixmapTables`] plus [`CharacterTable::pixmap_table_indexes`] is how a `CharacterTable` declares which `PixmapTable`(s) its characters' pixmaps live in — `pixmap_index` is then an index into whichever one applies.
+- [`PixmapTableConfigurationFlags::ConstantWidth`]/[`ConstantHeight`](PixmapTableConfigurationFlags::ConstantHeight)/[`ConstantBitsPerPixel`](PixmapTableConfigurationFlags::ConstantBitsPerPixel) mean every pixmap in this table shares the same dimensions, so individual [`Pixmap`] records only need to carry `data`, not their own `custom_width`/`custom_height`/`custom_bits_per_pixel`.
 
 Side Note: To learn more about the different configuration flags and modifier flags, check out the
 [SPF File Specifications](https://github.com/SimplePixelFont/Specification).
@@ -91,34 +63,12 @@ Side Note: To learn more about the different configuration flags and modifier fl
 Before we discuss how to add a character to our font, we first need to learn what a character is in the
 context of a [`SimplePixelFont`](https://github.com/SimplePixelFont) font.
 
-In simple terms a character in [`SimplePixelFont`](https://github.com/SimplePixelFont) is simply a grapheme_cluster which may be made up of multiple utf8 characters such as `a`, `<` `😊`, etc.
-Optional [`Character::custom_width`] and [`Character::custom_height`] which defines the width and height of the character if the font does not have a constant width or height. And a [`Character::pixmap`] that defines what pixels
-the character uses. Lets dig in more into a pixmap. A pixmap is simply a one dimentional vector
-containing either 0 or 1 values (at the moment). If the value something other than 0 the character uses
-the pixel, if it is 0 then the character does not. Lets take a look at an example to clarify
-everything:
+In simple terms a character in [`SimplePixelFont`](https://github.com/SimplePixelFont) is simply a [`Character::code_points`] string, which may be made up of multiple utf8 characters such as `a`, `<`, `😊`, etc.
+A character optionally carries an [`Character::advance_x`], and links to its glyph via [`Character::pixmap_index`] (and, if the table links to more than one [`PixmapTable`], [`Character::pixmap_table_index`]). The glyph itself lives in a [`Pixmap`]'s `data` — a packed vector of bits, one per pixel (at the moment). If a pixel's bit is set the character uses
+the pixel, if it's unset the character does not.
 
-```rs
-Character {
-    grapheme_cluster: String::from("w"),
-    custom_width: Some(5),
-    custom_height: None,
-    pixmap: vec![ //The pixels of the character. 0 means an empty pixel.
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 1, 1, 1, 1]
-}
-```
-
-In particular the pixmap shown above can be rewritten as a vector in a single line:
-
-```rs
-vec![ 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0]
-```
-
-Now we can see that in `SimplePixelFont` [`Character::pixmap`] are defined from top-left corner pixel
-and continue until the rightmost pixel before going down the next row. Here is a diagram which maps
-each pixel of a character to their index in the pixmap vector:
+Pixels are stored row-major, origin top-left, left to right then top to bottom, packed least-significant-bit-first within each byte — pixel 0 is the lowest bit of `data[0]`, and so on. Here is a diagram which maps
+each pixel of a character to their index in the pixmap:
 
 [image link](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wInNumberedFramex4.png)
 ![](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wInNumberedFramex4.png?raw=true)
@@ -128,50 +78,22 @@ And this will result in the following character:
 [image link](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wWithoutNumberedFramex4.png)
 ![](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wWithoutNumberedFramex4.png?raw=true)
 
-### Font Example
-
-We can define as many characters using the [`ergonomics::LayoutBuilder`] and the
-[`LayoutBuilder::character()`] method. Here is an example
-of a font with 3 characters and a [`ConfigurationValues::constant_height`] of 4:
-
-```rs
-let mut font = LayoutBuilder::new()
-    .constant_height(4)
-    .character("o", Some(4), None, &[
-        1, 1, 1, 1,
-        1, 0, 0, 1,
-        1, 0, 0, 1,
-        1, 1, 1, 1,
-    ])
-    .character("w", Some(5), None, &[
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 1, 1, 1, 1,
-    ])
-    .character('😊', Some(4), None, &[
-        0, 1, 1, 0,
-        0, 0, 0, 0,
-        1, 0, 0, 1,
-        0, 1, 1, 0,
-    ])
-    .build();
-```
-
 ### Saving & Loading `spf.rs` fonts with [`std::fs`]
 
-We can then encode the struct and use [`std::fs`] to write to a file:
+We can then encode the layout and use [`std::fs`] to write it to a file:
 
 ```rs
+let data = layout_to_data(&layout).unwrap();
+
 let mut file = std::fs::OpenOptions::new()
     .write(true)
     .create(true)
     .open("./sampleToyFont.spf")
     .unwrap();
-file.write_all(&layout_to_data(&font).unwrap());
+file.write_all(&data).unwrap();
 ```
 
-Or we can load an exsisting `.spf` file using [`std::fs`] aswell:
+Or we can load an existing `.spf` file using [`std::fs`] as well:
 
 ```rs
 let mut file = std::fs::OpenOptions::new()
@@ -180,5 +102,5 @@ let mut file = std::fs::OpenOptions::new()
     .unwrap();
 let mut buffer: Vec<u8> = vec![];
 file.read_to_end(&mut buffer).unwrap();
-let font = layout_from_data(buffer);
+let layout = layout_from_data(&buffer).unwrap();
 ```

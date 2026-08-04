@@ -41,3 +41,8 @@ pub mod installing {
 pub mod c_usage {
     #![doc = include_str!("../res/articles/UsingSPFRSWithFFI.md")]
 }
+
+/// Guide for using the `tagging` feature to inspect a `.spf` file's byte-level structure.
+pub mod tagging_guide {
+    #![doc = include_str!("../res/articles/TaggingWithSPFRS.md")]
+}

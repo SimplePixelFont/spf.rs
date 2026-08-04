@@ -11,4 +11,6 @@ spf.rs is a parser library built in Rust for the [SimplePixelFont file specifica
 The following lists documents which you can read to learn about certain topics in regards to spf.rs.
 
 [Installing spf.rs](https://github.com/SimplePixelFont/spf.rs/wiki/InstallingSPFRS) - Guide for installing `spf.rs` crate and dynamic FFI library.  
-[C Usage](https://github.com/SimplePixelFont/spf.rs/wiki/UsingSPFRSWithFFI) - Guide for using `spf.rs` as an FFI library in C.
+[Getting Started in Rust](https://github.com/SimplePixelFont/spf.rs/wiki/GettingStartedInRust) - Guide for `spf.rs` basics and understanding the file format via Rust.  
+[C Usage](https://github.com/SimplePixelFont/spf.rs/wiki/UsingSPFRSWithFFI) - Guide for using `spf.rs` as an FFI library in C.  
+[Tagging with spf.rs](https://github.com/SimplePixelFont/spf.rs/wiki/TaggingWithSPFRS) - Guide for using the `tagging` feature to inspect a `.spf` file's byte-level structure.

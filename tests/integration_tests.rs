@@ -163,4 +163,54 @@ mod tests {
 
         Ok(())
     }
+
+    #[cfg(feature = "tagging")]
+    #[test]
+    fn tag_spans_nest_correctly() {
+        use spf::tagging::{Span, TagKind, TagWriterImpl};
+
+        init_logger();
+
+        let font = sample_layout();
+        let data = layout_to_data(&font).unwrap();
+
+        let mut engine = DeserializeEngine::from_data_and_tags(&data, TagWriterImpl::default());
+        deserialize_with_engine(&mut engine).unwrap();
+        let tags = engine.tags.tags;
+
+        let variant_name = |kind: &TagKind| -> String {
+            let debug = format!("{:?}", kind);
+            debug
+                .split(['(', '{'])
+                .next()
+                .unwrap_or(&debug)
+                .trim()
+                .to_string()
+        };
+        let span_of = |name: &str| -> Span {
+            tags.iter()
+                .find(|tag| variant_name(&tag.kind) == name)
+                .unwrap_or_else(|| panic!("no tag named {name}"))
+                .span
+        };
+        let contains = |outer: Span, inner: Span| -> bool {
+            (outer.start.byte, outer.start.bit) <= (inner.start.byte, inner.start.bit)
+                && (inner.end.byte, inner.end.bit) <= (outer.end.byte, outer.end.bit)
+        };
+
+        // A table's span must fully contain its records' spans, which must fully
+        // contain their fields' spans - proves TagKind span nesting holds end to end,
+        // not just for one hand-picked pair.
+        assert!(contains(span_of("Header"), span_of("CompactFlag")));
+        assert!(contains(span_of("CharacterTable"), span_of("CharacterRecord")));
+        assert!(contains(span_of("CharacterRecord"), span_of("CharacterCodePoints")));
+        assert!(contains(
+            span_of("PixmapTableConfigurations"),
+            span_of("PixmapTableConfigurationValues")
+        ));
+        assert!(contains(
+            span_of("PixmapTableConfigurationValues"),
+            span_of("PixmapTableConstantHeight")
+        ));
+    }
 }

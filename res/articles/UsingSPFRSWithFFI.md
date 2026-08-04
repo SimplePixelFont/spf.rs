@@ -1,7 +1,7 @@
 # `spf.rs` as a library
 This article discusses `spf.rs` usage as a library in C. However, the same principles can be applied to any language that has a Foreign Function Interface (FFI) which adhere to the platform specific C-ABI. This includes programming languages such as Python, Julia, Ruby, Java, WASM, C/C++, etc.
 
-First obtain a copy of the `spf.rs` library binary by either downloading from the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section, or [compiling spf.rs from source](https://docs.rs/spf/0.4.0/spf/articles/installing/index.html#compiling-spfrs-from-source).
+First obtain a copy of the `spf.rs` library binary by either downloading from the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section, or [compiling spf.rs from source](https://docs.rs/spf/latest/spf/articles/installing/index.html#compiling-spfrs-from-source).
 
 ### Header Files
 Additionally, to use `spf.rs` in C/C++, download the header files found in the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section. Then add the following headers in your C code:
@@ -113,7 +113,7 @@ for(int i = 0; i < layout.character_tables_length; i++) {
             (bool)layout.character_tables[i].characters[j].has_pixmap_index ? "true" : "false",
             layout.character_tables[i].characters[j].pixmap_index
         );
-        printf("    grapheme_cluster: '%s'\n", layout.character_tables[i].characters[j].grapheme_cluster);
+        printf("    code_points: '%s'\n", layout.character_tables[i].characters[j].code_points);
     }
 }
 
@@ -131,9 +131,9 @@ for(int i = 0; i < layout.color_tables_length; i++) {
             (bool)layout.color_tables[i].colors[j].has_custom_alpha ? "true" : "false",
             layout.color_tables[i].colors[j].custom_alpha
         );
-        printf("    r: %d\n", layout.color_tables[i].colors[j].r);
-        printf("    g: %d\n", layout.color_tables[i].colors[j].g);
-        printf("    b: %d\n", layout.color_tables[i].colors[j].b);
+        printf("    red: %d\n", layout.color_tables[i].colors[j].red);
+        printf("    green: %d\n", layout.color_tables[i].colors[j].green);
+        printf("    blue: %d\n", layout.color_tables[i].colors[j].blue);
     }
 }
 
@@ -306,7 +306,7 @@ int main() {
                 (bool)layout.character_tables[i].characters[j].has_pixmap_index ? "true" : "false",
                 layout.character_tables[i].characters[j].pixmap_index
             );
-            printf("    grapheme_cluster: '%s'\n", layout.character_tables[i].characters[j].grapheme_cluster);
+            printf("    code_points: '%s'\n", layout.character_tables[i].characters[j].code_points);
         }
     }
 
@@ -324,9 +324,9 @@ int main() {
                 (bool)layout.color_tables[i].colors[j].has_custom_alpha ? "true" : "false",
                 layout.color_tables[i].colors[j].custom_alpha
             );
-            printf("    r: %d\n", layout.color_tables[i].colors[j].r);
-            printf("    g: %d\n", layout.color_tables[i].colors[j].g);
-            printf("    b: %d\n", layout.color_tables[i].colors[j].b);
+            printf("    red: %d\n", layout.color_tables[i].colors[j].red);
+            printf("    green: %d\n", layout.color_tables[i].colors[j].green);
+            printf("    blue: %d\n", layout.color_tables[i].colors[j].blue);
         }
     }
 
