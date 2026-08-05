@@ -7,12 +7,12 @@ First obtain a copy of the `spf.rs` library binary by either downloading from th
 Additionally, to use `spf.rs` in C/C++, download the header files found in the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section. Then add the following headers in your C code:
 ```c
 #include "libspf.h"
-// You will also need this standard libary for loading libraries.
+// You will also need this standard library for loading libraries.
 #include <dlfcn.h>
 ```
 
 ### Loading the Library
-The first step is to load the `spf.rs` library, in C the `dlopen()` function from the `dlfcn` standard library is used. For windows this may differ
+The first step is to load the `spf.rs` library, in C the `dlopen()` function from the `dlfcn` standard library is used. For windows this may differ.
 ```c
 printf("Loading libspf.so\n");
 

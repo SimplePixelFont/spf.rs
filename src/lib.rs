@@ -53,7 +53,6 @@ pub mod core;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "ffi")))]
 #[cfg(feature = "ffi")]
-/// A C ABI compatible layer for using `spf.rs` from other languages. See [`ffi`] module docs.
 pub mod ffi;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "articles")))]

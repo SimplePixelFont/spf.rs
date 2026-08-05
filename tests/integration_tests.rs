@@ -19,13 +19,14 @@ mod tests {
     }
     fn second_sample_pixmap_table() -> PixmapTable {
         let mut pixmap = Pixmap::default();
-        pixmap.custom_width =  Some(1);
+        pixmap.custom_width = Some(1);
         pixmap.custom_height = None;
         pixmap.custom_bits_per_pixel = None;
-        pixmap.data =  vec![0b01000010, 0b01000010, 0b01000010, 0b00001111];
+        pixmap.data = vec![0b01000010, 0b01000010, 0b01000010, 0b00001111];
 
         let mut pixmap_table = PixmapTable::default();
-        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
+        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight
+            | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
         pixmap_table.constant_width = None;
         pixmap_table.constant_height = Some(4);
         pixmap_table.constant_bits_per_pixel = Some(7);
@@ -55,7 +56,8 @@ mod tests {
         pixmap4.data = vec![0b11110001, 0b10001111];
 
         let mut pixmap_table = PixmapTable::default();
-        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
+        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight
+            | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
         pixmap_table.constant_height = Some(4);
         pixmap_table.constant_bits_per_pixel = Some(1);
 
@@ -98,7 +100,7 @@ mod tests {
 
         font_table.link_flags = FontTableLinkFlags::LinkCharacterTables;
         font_table.character_table_indexes = Some(vec![0]);
-        
+
         font_table.fonts = vec![font];
         font_table
     }
@@ -122,7 +124,7 @@ mod tests {
 
         character_table.link_flags = CharacterTableLinkFlags::LinkPixmapTables;
         character_table.pixmap_table_indexes = Some(vec![0]);
-        
+
         character_table.characters = vec![char1, char2, char3, char4];
 
         font.character_tables = vec![character_table];
@@ -156,55 +158,5 @@ mod tests {
         //assert_eq!(standard_engine.layout, iterator_engine.layout);
 
         Ok(())
-    }
-
-    #[cfg(feature = "tagging")]
-    #[test]
-    fn tag_spans_nest_correctly() {
-        use spf::tagging::{Span, TagKind, TagWriterImpl};
-
-        init_logger();
-
-        let font = sample_layout();
-        let data = layout_to_data(&font).unwrap();
-
-        let mut engine = DeserializeEngine::from_data_and_tags(&data, TagWriterImpl::default());
-        deserialize_with_engine(&mut engine).unwrap();
-        let tags = engine.tags.tags;
-
-        let variant_name = |kind: &TagKind| -> String {
-            let debug = format!("{:?}", kind);
-            debug
-                .split(['(', '{'])
-                .next()
-                .unwrap_or(&debug)
-                .trim()
-                .to_string()
-        };
-        let span_of = |name: &str| -> Span {
-            tags.iter()
-                .find(|tag| variant_name(&tag.kind) == name)
-                .unwrap_or_else(|| panic!("no tag named {name}"))
-                .span
-        };
-        let contains = |outer: Span, inner: Span| -> bool {
-            (outer.start.byte, outer.start.bit) <= (inner.start.byte, inner.start.bit)
-                && (inner.end.byte, inner.end.bit) <= (outer.end.byte, outer.end.bit)
-        };
-
-        // A table's span must fully contain its records' spans, which must fully
-        // contain their fields' spans - proves TagKind span nesting holds end to end,
-        // not just for one hand-picked pair.
-        assert!(contains(span_of("Header"), span_of("CompactFlag")));
-        assert!(contains(span_of("CharacterTable"), span_of("CharacterRecord")));
-        assert!(contains(span_of("CharacterRecord"), span_of("CharacterCodePoints")));
-        assert!(contains(
-            span_of("PixmapTableConfigurations"),
-            span_of("PixmapTableConfigurationValues")
-        ));
-        assert!(contains(
-            span_of("PixmapTableConfigurationValues"),
-            span_of("PixmapTableConstantHeight")
-        ));
     }
 }

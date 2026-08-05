@@ -104,7 +104,7 @@ layout.color_tables = vec![color_table];
 ```
 
 Note:
-- [`PixmapTableLinkFlags::LinkColorTables`] plus [`PixmapTable::color_table_indexes`] links the pixmap table to a palette the same way `CharacterTable` links to `PixmapTable`s. Our two colors mirror what `spf.rs` assumes when no `ColorTable` is linked at all: index `0` is  transparent, everything else opaque. For monochrome fonts, like our example, a Color Tale is not technically needed. However, for showcase we create one, plus now they're real colors, and nothing stops you from adding a third or fourth [`Color`]. Just remember to raise `constant_bits_per_pixel` to fit them.
+- [`PixmapTableLinkFlags::LinkColorTables`] plus [`PixmapTable::color_table_indexes`] links the pixmap table to a palette the same way `CharacterTable` links to `PixmapTable`s. Our two colors mirror what `spf.rs` assumes when no `ColorTable` is linked at all: index `0` is  transparent, everything else opaque. For monochrome fonts, like our example, a Color Table is not technically needed. However, for showcase we create one, plus now they're real colors, and nothing stops you from adding a third or fourth [`Color`]. Just remember to raise `constant_bits_per_pixel` to fit them.
 
 With our color table, pixel values of `0` index our transparent [`Color`], and pixel values of `1` index our opaque `rgb(20, 118, 192)` [`Color`]. The renderer will use these colors as the default foreground and background colors for the text if they are not overridden.
 
