@@ -115,6 +115,16 @@ bitflags! {
         #[doc = include_str!("../../res/snippets/font_table/links/flag/link_character_tables.md")]
         const LinkCharacterTables = 0b00000001;
     }
+
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[doc = include_str!("../../res/snippets/data_types/FontType.md")]
+    pub struct FontType: u8 {
+        #[doc = include_str!("../../res/snippets/data_types/FontType/Bold.md")]
+        const Bold = 0b00000001;
+        #[doc = include_str!("../../res/snippets/data_types/FontType/Italic.md")]
+        const Italic = 0b00000010;
+    }
 }
 
 #[repr(u8)]
@@ -300,21 +310,6 @@ pub struct Color {
     pub blue: u8,
 }
 
-#[repr(u8)]
-#[non_exhaustive]
-#[derive(Default, Debug, Clone, Copy)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[doc = include_str!("../../res/snippets/data_types/FontType.md")]
-pub enum FontType {
-    #[default]
-    #[doc = include_str!("../../res/snippets/data_types/FontType/Regular.md")]
-    Regular,
-    #[doc = include_str!("../../res/snippets/data_types/FontType/Bold.md")]
-    Bold,
-    #[doc = include_str!("../../res/snippets/data_types/FontType/Italic.md")]
-    Italic,
-}
-
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -402,12 +397,7 @@ impl TryFrom<u8> for FontType {
     type Error = DeserializeError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(FontType::Regular),
-            1 => Ok(FontType::Bold),
-            2 => Ok(FontType::Italic),
-            _ => Err(DeserializeError::UnsupportedFontType),
-        }
+        FontType::from_bits(value).ok_or(DeserializeError::UnsupportedFontType)
     }
 }
 

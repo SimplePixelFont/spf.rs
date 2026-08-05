@@ -93,7 +93,6 @@ mod tests {
         font.name = "SampleToyFont".into();
         font.author = "The-Nice-One".into();
         font.version = 0;
-        font.font_type = FontType::Regular;
         font.linked_character_table_indexes = vec![0];
 
         let mut font_table = FontTable::default();

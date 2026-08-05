@@ -199,7 +199,7 @@ pub(crate) fn push_version<T: TagWriter>(engine: &mut SerializeEngine<T>, versio
 }
 
 pub(crate) fn push_font_type<T: TagWriter>(engine: &mut SerializeEngine<T>, font_type: FontType) {
-    engine.bytes.push(font_type as u8);
+    engine.bytes.push(font_type.bits());
     #[cfg(feature = "tagging")]
     engine.tags.tag_byte(
         TagKind::FontFontType {

@@ -422,7 +422,8 @@ pub enum SPFColorType {
     Absolute = 1,
 }
 
-/// Named constants for the `font_type` field of [`SPFFont`].
+/// Named constants for the `font_type` field of [`SPFFont`]. `Bold` and `Italic` are bit flags
+/// and may be OR'd together; `Regular` is the absence of both, which is 0.
 #[repr(C)]
 pub enum SPFFontType {
     #[doc = include_str!("../../res/snippets/data_types/FontType/Regular.md")]

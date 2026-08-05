@@ -120,7 +120,6 @@ let mut font = Font::default();
 font.name = String::from("Sample Toy Font");
 font.author = String::from("You");
 font.version = 1;
-font.font_type = FontType::Regular;
 font.linked_character_table_indexes = vec![0]; // Which CharacterTables this specific font uses.
 
 let mut font_table = FontTable::default();
