@@ -27,9 +27,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Ensure nightly is available (harmless if already installed)
-          rustup toolchain install nightly -q || true
-
           # Build docs and produce target/doc/spf.json
           cargo +nightly doc --no-deps --lib -p spf
 
