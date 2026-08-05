@@ -41,6 +41,8 @@ pub(crate) use std::vec;
 pub(crate) use std::vec::Vec;
 
 #[cfg(not(feature = "std"))]
+pub(crate) use alloc::borrow::ToOwned;
+#[cfg(not(feature = "std"))]
 pub(crate) use alloc::format;
 #[cfg(not(feature = "std"))]
 pub(crate) use alloc::string::String;

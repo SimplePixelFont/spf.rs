@@ -46,7 +46,11 @@ use core::slice;
 pub(crate) use std::ffi::*;
 
 #[cfg(not(feature = "std"))]
+use alloc::boxed::Box;
+#[cfg(not(feature = "std"))]
 pub(crate) use alloc::ffi::*;
+#[cfg(not(feature = "std"))]
+use core::ffi::*;
 
 pub mod converters;
 pub mod defaults;
