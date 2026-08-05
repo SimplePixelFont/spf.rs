@@ -1,1 +1,1 @@
-Style flags of this font (bit 0 = Bold, bit 1 = Italic; no bits set = Regular).
+Style of this font (0 = Regular, 1 = Bold, 2 = Italic).
