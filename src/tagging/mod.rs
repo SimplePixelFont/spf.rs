@@ -66,6 +66,7 @@ impl Span {
 /// A handful of section-grouping variants (like [`TagKind::CharacterTableConfigurations`] or
 /// [`TagKind::CharacterTableLinks`]) span multiple fields at once and have no single backing item —
 /// those are documented with a plain description of what they cover instead.
+#[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum TagKind {
     /// Tags unused padding bits within a bitflags byte.
@@ -703,6 +704,7 @@ pub enum TagKind {
 }
 
 /// Identifies which of the four table kinds a [`TagKind::TableIdentifier`] tag names.
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TableType {
     /// A [`CharacterTable`].
