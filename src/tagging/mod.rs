@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//! Byte-level instrumentation: records the exact byte:bit [`Span`] of every field written or
+//! Tools to record the exact byte:bit [`Span`] of every field written or
 //! read, tagged by [`TagKind`], so a `.spf` file's structure can be inspected after a parse
 //! or serialize pass.
 
@@ -261,9 +261,9 @@ pub enum TagKind {
         /// Index of this table within its `Layout`.
         index: u8,
     },
-    /// Tags the (always-empty) modifier flags byte of a [`PixmapTable`] — `PixmapTable` has
-    /// no per-record optional fields toggled by a modifier byte, unlike `CharacterTable` and
-    /// `ColorTable`; there is no `PixmapTableModifierFlags` struct in [`crate::core`].
+    /// Tags the (always-empty) modifier flags byte of a [`PixmapTable`] — `PixmapTable` records have
+    /// no optional fields toggled by a modifier byte, so there is no `PixmapTableModifierFlags`
+    /// struct in [`crate::core`].
     PixmapTableModifierFlags {
         /// Index of the table this tag belongs to.
         table_index: u8,
@@ -829,7 +829,7 @@ impl TagWriter for TagWriterImpl {
     }
 }
 
-/// The zero-cost [`TagWriter`] used when the `tagging` feature is disabled — records nothing.
+/// The zero-cost [`TagWriter`] used when the `tagging` feature is disabled. This TagWriter records nothing.
 pub struct TagWriterNoOp;
 
 impl TagWriter for TagWriterNoOp {

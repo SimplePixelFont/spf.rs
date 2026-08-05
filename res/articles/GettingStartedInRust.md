@@ -23,18 +23,6 @@ minimal font with one character, `"w"`, backed by one pixmap:
 ```rs
 use spf::core::*;
 
-let mut transparent = Color::default();
-transparent.custom_alpha = Some(0); // Fully transparent.
-
-let mut opaque = Color::default();
-opaque.custom_alpha = Some(255); // Fully opaque.
-opaque.red = 36;
-opaque.green = 174;
-opaque.blue = 214;
-
-let mut color_table = ColorTable::default();
-color_table.colors = vec![transparent, opaque];
-
 let mut pixmap = Pixmap::default();
 pixmap.data = vec![0b10111111, 0b01010110]; // A 5x3, 1-bit-per-pixel glyph, packed LSB-first.
 
@@ -61,7 +49,6 @@ character_table.characters = vec![character];
 
 let mut layout = Layout::default();
 layout.compact = true; // Strips padding bits in certain fields when converting the struct to data, saving space.
-layout.color_tables = vec![color_table];
 layout.pixmap_tables = vec![pixmap_table];
 layout.character_tables = vec![character_table];
 ```
@@ -69,8 +56,7 @@ layout.character_tables = vec![character_table];
 A few things worth calling out:
 - [`CharacterTableModifierFlags::UsePixmapIndex`] tells the format that every [`Character`] record carries a `pixmap_index`. Without it, [`Character::pixmap_index`] is never read or written.
 - [`CharacterTableLinkFlags::LinkPixmapTables`] plus [`CharacterTable::pixmap_table_indexes`] is how a `CharacterTable` declares which `PixmapTable`(s) its characters' pixmaps live in, `pixmap_index` is then an index into whichever one applies.
-- We set `pixmap_index` explicitly above, but strictly speaking didn't have to: per [`CharacterTableModifierFlags::UsePixmapIndex`]'s docs, when that flag is *not* enabled `pixmap_index` defaults to the character's own record index instead — a one-to-one mapping. Our only character is record `0`, so it'd have used pixmap `0` either way. Worth setting explicitly here anyway since it's the clearest way to see a modifier flag in action; it starts to matter for real once characters and pixmaps stop lining up 1:1.
-- [`PixmapTableLinkFlags::LinkColorTables`] plus [`PixmapTable::color_table_indexes`] links the pixmap table to a palette the same way `CharacterTable` links to `PixmapTable`s. Our two colors mirror what `spf.rs` assumes when no `ColorTable` is linked at all — index `0` transparent, everything else opaque — but now they're real colors, and nothing stops you from adding a third or fourth [`Color`] (raising `constant_bits_per_pixel` to fit them) for a bigger palette.
+- We set `pixmap_index` explicitly above, but strictly speaking we didn't have to: per [`CharacterTableModifierFlags::UsePixmapIndex`]'s docs, when that flag is *not* enabled `pixmap_index` defaults to the character's own record index instead which creates a one-to-one mapping. Our only character is record `0`, so it map to pixmap `0` either way. Here we explicitly set the field for clarity and to see a modifier flag in action.
 - [`PixmapTableConfigurationFlags::ConstantWidth`]/[`ConstantHeight`](PixmapTableConfigurationFlags::ConstantHeight)/[`ConstantBitsPerPixel`](PixmapTableConfigurationFlags::ConstantBitsPerPixel) mean every pixmap in this table shares the same dimensions, so individual [`Pixmap`] records only need to carry `data`, not their own `custom_width`/`custom_height`/`custom_bits_per_pixel`.
 
 Side Note: To learn more about the different configuration flags and modifier flags, check out the
@@ -80,12 +66,10 @@ Side Note: To learn more about the different configuration flags and modifier fl
 Lets further discuss what a character is in the
 context of a [`SimplePixelFont`](https://github.com/SimplePixelFont) font.
 
-In simple terms a character in [`SimplePixelFont`](https://github.com/SimplePixelFont) is simply a [`Character::code_points`] string, which may be made up of multiple utf8 characters such as `a`, `<`, `😊`, etc.
-A character optionally carries an [`Character::advance_x`], and links to its glyph via [`Character::pixmap_index`]. Additionally, if the table links to more than one [`PixmapTable`], [`Character::pixmap_table_index`] can be used to specify the exact table the pixmap comes from. 
+In simple terms a character in [`SimplePixelFont`](https://github.com/SimplePixelFont) is simply a [`Character::code_points`] string, which may be made up of multiple utf8 characters such as `a`, `<`, `😊`, `é`, etc.
+A character optionally carries an [`Character::advance_x`], and explicitly links to its glyph via [`Character::pixmap_index`]. Additionally, if the table links to more than one [`PixmapTable`], [`Character::pixmap_table_index`] can be used to specify the exact table the pixmap comes from. 
 
-The glyph itself lives in a [`Pixmap`]'s `data` which is a packed vector of bits, one per pixel is shown in this article, but can be up to 8 bits per pixel for up to 256 different colors.
-
-Each pixel's bits form a value that indexes into the linked [`core::ColorTable`]'s [`ColorTable::colors`] — that's what the `color_table` we built above is for. Pixel value `0` indexes our `transparent` [`Color`], pixel value `1` indexes `opaque`, so our glyph's `1` bits render as `rgb(36, 174, 214)` and its `0` bits render as fully transparent. If no `ColorTable` had been linked at all, renderers fall back to that exact same rule by default — `0` transparent, anything else opaque — just without real color behind it.
+The glyph itself lives in a [`Pixmap`]'s `data` which is a packed vector of bits, one per pixel is shown in this article, but can be up to 8 bits per pixel for up to 256 different colors. We will get into Color tables in a minute. 
 
 Pixels are stored row-major, origin top-left, left to right then top to bottom, packed least-significant-bit-first within each byte. Pixel 0 is the lowest bit of `data[0]`, and so on. Here is a diagram which maps
 each pixel of a character to their index in the pixmap:
@@ -98,9 +82,38 @@ And this will result in the following character:
 [image link](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wWithoutNumberedFramex4.png)
 ![](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wWithoutNumberedFramex4.png?raw=true)
 
+
+### Adding Color
+
+Each pixel's bits form a value that indexes into a linked [`core::ColorTable`]'s [`ColorTable::colors`]. We can add a color table to supply actual colors for our pixmaps:
+
+```rs
+let mut transparent = Color::default();
+transparent.custom_alpha = Some(0); // Fully transparent.
+
+let mut opaque = Color::default();
+opaque.custom_alpha = Some(255); // Fully opaque.
+opaque.red = 20;
+opaque.green = 118;
+opaque.blue = 192;
+
+let mut color_table = ColorTable::default();
+color_table.colors = vec![transparent, opaque];
+
+layout.color_tables = vec![color_table];
+```
+
+Note:
+- [`PixmapTableLinkFlags::LinkColorTables`] plus [`PixmapTable::color_table_indexes`] links the pixmap table to a palette the same way `CharacterTable` links to `PixmapTable`s. Our two colors mirror what `spf.rs` assumes when no `ColorTable` is linked at all: index `0` is  transparent, everything else opaque. For monochrome fonts, like our example, a Color Tale is not technically needed. However, for showcase we create one, plus now they're real colors, and nothing stops you from adding a third or fourth [`Color`]. Just remember to raise `constant_bits_per_pixel` to fit them.
+
+With our color table, pixel values of `0` index our transparent [`Color`], and pixel values of `1` index our opaque `rgb(20, 118, 192)` [`Color`]. The renderer will use these colors as the default foreground and background colors for the text if they are not overridden.
+
+[image link](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wRendered.png)
+![](https://github.com/SimplePixelFont/spf.rs/blob/main/res/articles/res/wRendered.png?raw=true)
+
 ### Grouping characters into a font with the FontTable
 
-A [`core::Layout`] can hold multiple [`CharacterTable`]s. A [`core::FontTable`] is what groups them into a named, authored, versioned font — think Regular/Bold/Italic variants of the same typeface, each pointing at its own `CharacterTable`(s). Let's add one for the character table we already built:
+A [`core::Layout`] can hold multiple [`CharacterTable`]s. A [`core::FontTable`] is what groups them into a named, authored, versioned font. Think Regular/Bold/Italic variants of the same typeface, each pointing at its own `CharacterTable`(s). Let's add one for the character table we already built:
 
 ```rs
 let mut font = Font::default();
@@ -118,9 +131,9 @@ font_table.fonts = vec![font];
 layout.font_tables = vec![font_table];
 ```
 
-Two link arrays are in play here, at two different levels: [`FontTable::character_table_indexes`] is the *pool* of `CharacterTable`s available to every [`Font`] record in this table, while [`Font::linked_character_table_indexes`] is which tables from that pool a *specific* font actually draws from. With one `CharacterTable` and one `Font`, both just point at index `0` — but a file with Regular/Bold/Italic fonts that share some character tables and not others is exactly what this two-level indirection is for.
+Two link arrays are in play here, at two different levels: [`FontTable::character_table_indexes`] is the collection of `CharacterTable`s available to every [`Font`] record in this table, while [`Font::linked_character_table_indexes`] is which tables from that set a *specific* font actually draws from. With one `CharacterTable` and one `Font`, both just point at index `0`. However, a file with Regular/Bold/Italic fonts that share some character tables and not others is exactly what this two-level indirection is for, along with keeping the format architecture consistent.
 
-That's it — `layout` now has everything: a [`Pixmap`], a [`Character`] using it, and a [`Font`] naming the table that character lives in.
+That's it! `Layout` now has everything: a [`Pixmap`], a [`Character`] using it, and a [`Font`] naming the table that character lives in.
 
 ### Saving & Loading `spf.rs` fonts with [`std::fs`]
 
