@@ -28,7 +28,7 @@ jobs:
           set -euo pipefail
 
           # Build docs and produce target/doc/spf.json
-          cargo +nightly doc --no-deps --lib -p spf
+          cargo +nightly rustdoc -- -Z unstable-options --show-coverage --output-format json
 
           JSON_FILE="target/doc/spf.json"
           if [ ! -f "$JSON_FILE" ]; then
