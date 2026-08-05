@@ -197,33 +197,33 @@ impl Table for ColorTable {
                     engine.bytes.byte_index(),
                 );
             }
-            color.r = engine.bytes.next();
+            color.red = engine.bytes.next();
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorR {
+                TagKind::ColorRed {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
-                    value: color.r,
+                    value: color.red,
                 },
                 engine.bytes.byte_index(),
             );
-            color.g = engine.bytes.next();
+            color.green = engine.bytes.next();
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorG {
+                TagKind::ColorGreen {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
-                    value: color.g,
+                    value: color.green,
                 },
                 engine.bytes.byte_index(),
             );
-            color.b = engine.bytes.next();
+            color.blue = engine.bytes.next();
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorB {
+                TagKind::ColorBlue {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
-                    value: color.b,
+                    value: color.blue,
                 },
                 engine.bytes.byte_index(),
             );
@@ -311,33 +311,33 @@ impl Table for ColorTable {
                     engine.bytes.byte_index(),
                 );
             }
-            engine.bytes.push(color.r);
+            engine.bytes.push(color.red);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorR {
+                TagKind::ColorRed {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
-                    value: color.r,
+                    value: color.red,
                 },
                 engine.bytes.byte_index(),
             );
-            engine.bytes.push(color.g);
+            engine.bytes.push(color.green);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorG {
+                TagKind::ColorGreen {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
-                    value: color.g,
+                    value: color.green,
                 },
                 engine.bytes.byte_index(),
             );
-            engine.bytes.push(color.b);
+            engine.bytes.push(color.blue);
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::ColorB {
+                TagKind::ColorBlue {
                     table_index: engine.tagging_data.current_table_index,
                     color_index: engine.tagging_data.current_record_index,
-                    value: color.b,
+                    value: color.blue,
                 },
                 engine.bytes.byte_index(),
             );

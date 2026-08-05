@@ -1,18 +1,18 @@
 # `spf.rs` as a library
-In this article we will discuss how to use `spf.rs` as a library in C, however the same principles can be applied to any language that has a FFI which adhere to the platform specific C-ABI. This includes programming languages such as Python, Julia, Ruby, Java, WASM, C/C++, etc.
+This article discusses `spf.rs` usage as a library in C. However, the same principles can be applied to any language that has a Foreign Function Interface (FFI) which adhere to the platform specific C-ABI. This includes programming languages such as Python, Julia, Ruby, Java, WASM, C/C++, etc.
 
-To being you will need the binary version of the `spf.rs` library which you can download from the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section or your can [compile spf.rs from source](https://docs.rs/spf/0.4.0/spf/articles/installing/index.html#compiling-spfrs-from-source) to obtain the library.
+First obtain a copy of the `spf.rs` library binary by either downloading from the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section, or [compiling spf.rs from source](https://docs.rs/spf/latest/spf/articles/installing/index.html#compiling-spfrs-from-source).
 
 ### Header Files
-If you plan to use `spf.rs` in C/C++ you will also need to download the header file which can be found in the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section. Note that the structs in the header file use an `SPF` prefix instead of `FFI`. You can then add the following in your C code:
+Additionally, to use `spf.rs` in C/C++, download the header files found in the [releases](https://github.com/SimplePixelFont/spf.rs/releases) section. Then add the following headers in your C code:
 ```c
 #include "libspf.h"
-// You will also need this standard libary for loading libraries.
+// You will also need this standard library for loading libraries.
 #include <dlfcn.h>
 ```
 
 ### Loading the Library
-The first step is to load the `spf.rs` library, in C we use the `dlopen()` function from the `dlfcn` standard library.
+The first step is to load the `spf.rs` library, in C the `dlopen()` function from the `dlfcn` standard library is used. For windows this may differ.
 ```c
 printf("Loading libspf.so\n");
 
@@ -113,7 +113,7 @@ for(int i = 0; i < layout.character_tables_length; i++) {
             (bool)layout.character_tables[i].characters[j].has_pixmap_index ? "true" : "false",
             layout.character_tables[i].characters[j].pixmap_index
         );
-        printf("    grapheme_cluster: '%s'\n", layout.character_tables[i].characters[j].grapheme_cluster);
+        printf("    code_points: '%s'\n", layout.character_tables[i].characters[j].code_points);
     }
 }
 
@@ -131,9 +131,9 @@ for(int i = 0; i < layout.color_tables_length; i++) {
             (bool)layout.color_tables[i].colors[j].has_custom_alpha ? "true" : "false",
             layout.color_tables[i].colors[j].custom_alpha
         );
-        printf("    r: %d\n", layout.color_tables[i].colors[j].r);
-        printf("    g: %d\n", layout.color_tables[i].colors[j].g);
-        printf("    b: %d\n", layout.color_tables[i].colors[j].b);
+        printf("    red: %d\n", layout.color_tables[i].colors[j].red);
+        printf("    green: %d\n", layout.color_tables[i].colors[j].green);
+        printf("    blue: %d\n", layout.color_tables[i].colors[j].blue);
     }
 }
 
@@ -306,7 +306,7 @@ int main() {
                 (bool)layout.character_tables[i].characters[j].has_pixmap_index ? "true" : "false",
                 layout.character_tables[i].characters[j].pixmap_index
             );
-            printf("    grapheme_cluster: '%s'\n", layout.character_tables[i].characters[j].grapheme_cluster);
+            printf("    code_points: '%s'\n", layout.character_tables[i].characters[j].code_points);
         }
     }
 
@@ -324,9 +324,9 @@ int main() {
                 (bool)layout.color_tables[i].colors[j].has_custom_alpha ? "true" : "false",
                 layout.color_tables[i].colors[j].custom_alpha
             );
-            printf("    r: %d\n", layout.color_tables[i].colors[j].r);
-            printf("    g: %d\n", layout.color_tables[i].colors[j].g);
-            printf("    b: %d\n", layout.color_tables[i].colors[j].b);
+            printf("    red: %d\n", layout.color_tables[i].colors[j].red);
+            printf("    green: %d\n", layout.color_tables[i].colors[j].green);
+            printf("    blue: %d\n", layout.color_tables[i].colors[j].blue);
         }
     }
 

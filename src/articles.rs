@@ -27,10 +27,10 @@ pub(crate) use crate::*;
 //     #![doc = include_str!("../res/articles/PrinterModuleAndTextRenderings.md")]
 // }
 
-// /// Guide for spf.rs basics and understanding the file format via Rust.
-// pub mod getting_started {
-//     #![doc = include_str!("../res/articles/GettingStartedInRust.md")]
-// }
+/// Guide for `spf.rs` basics and understanding the file format via Rust.
+pub mod getting_started {
+    #![doc = include_str!("../res/articles/GettingStartedInRust.md")]
+}
 
 /// Guide for installing `spf.rs` crate and dynamic FFI library.
 pub mod installing {
@@ -40,4 +40,9 @@ pub mod installing {
 /// Guide for using `spf.rs` as an FFI library in C.
 pub mod c_usage {
     #![doc = include_str!("../res/articles/UsingSPFRSWithFFI.md")]
+}
+
+/// Guide for using the `tagging` feature to inspect a `.spf` file's byte-level structure.
+pub mod tagging_guide {
+    #![doc = include_str!("../res/articles/TaggingWithSPFRS.md")]
 }

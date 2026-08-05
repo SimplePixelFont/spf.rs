@@ -1,0 +1,1 @@
+If `link_character_tables` is enabled.

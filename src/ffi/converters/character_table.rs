@@ -30,8 +30,8 @@ impl TryFrom<CharacterTable> for SPFCharacterTable {
             modifier_flags: table.modifier_flags.bits(),
 
             configuration_flags: table.configuration_flags.bits(),
-            has_constant_cluster_codepoints: table.constant_cluster_codepoints.is_some() as c_uchar,
-            constant_cluster_codepoints: table.constant_cluster_codepoints.unwrap_or(0) as c_uchar,
+            has_constant_code_point_count: table.constant_code_point_count.is_some() as c_uchar,
+            constant_code_point_count: table.constant_code_point_count.unwrap_or(0) as c_uchar,
 
             link_flags: table.link_flags.bits(),
             has_pixmap_table_indexes: table.pixmap_table_indexes.is_some() as c_uchar,
@@ -60,9 +60,9 @@ impl TryInto<CharacterTable> for &SPFCharacterTable {
 
             let characters = vec_from_raw_with_conversion!(self.characters, self.characters_length);
 
-            let constant_cluster_codepoints = ffi_to_option!(
-                self.has_constant_cluster_codepoints,
-                self.constant_cluster_codepoints
+            let constant_code_point_count = ffi_to_option!(
+                self.has_constant_code_point_count,
+                self.constant_code_point_count
             );
             let pixmap_table_indexes =
                 ffi_to_option!(self.has_pixmap_table_indexes, pixmap_table_indexes);
@@ -70,7 +70,7 @@ impl TryInto<CharacterTable> for &SPFCharacterTable {
             Ok(CharacterTable {
                 modifier_flags: CharacterTableModifierFlags::from_bits_retain(self.modifier_flags),
                 configuration_flags: CharacterTableConfigurationFlags::from_bits_retain(self.configuration_flags),
-                constant_cluster_codepoints,
+                constant_code_point_count,
                 link_flags: CharacterTableLinkFlags::from_bits_retain(self.link_flags),
                 pixmap_table_indexes,
                 characters,

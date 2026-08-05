@@ -1,0 +1,1 @@
+When disabled, the default advance is the pixmap's width. Letter spacing, if any, is added to the advance value.

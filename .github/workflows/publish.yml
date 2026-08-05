@@ -1,0 +1,56 @@
+name: Publish to crates.io
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  verify-snippets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout spf.rs
+        uses: actions/checkout@v4
+        with:
+          path: spf.rs
+
+      - name: checkout Specification
+        uses: actions/checkout@v4
+        with:
+          repository: SimplePixelFont/Specification
+          path: Specification
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: install Specification tooling
+        working-directory: Specification
+        run: npm ci
+
+      - name: regenerate rust-linked snippets
+        working-directory: Specification
+        run: |
+          npm run snippet:collapse
+          npx tsx scripts/snippet-tool.ts expand-rust-links --output "$GITHUB_WORKSPACE/regenerated-snippets"
+
+      - name: diff against vendored copy
+        run: |
+          if ! diff -r spf.rs/res/snippets regenerated-snippets; then
+            echo "::error::spf.rs/res/snippets is out of sync with Specification. Refusing to publish stale docs."
+            exit 1
+          fi
+
+  publish:
+    needs: verify-snippets
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+      - run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}

@@ -1,0 +1,1 @@
+Bits used to represent each pixel of this pixmap (only 1-8 supported).

@@ -1,0 +1,1 @@
+This table links to any number of Color Tables.

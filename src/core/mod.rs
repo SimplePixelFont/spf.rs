@@ -42,53 +42,77 @@ use core::marker::PhantomData;
 bitflags! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which configuration values are present for every [`Pixmap`] in a [`PixmapTable`].
     pub struct PixmapTableConfigurationFlags: u8 {
+        #[doc = include_str!("../../res/snippets/pixmap_table/configurations/flag/use_constant_width.md")]
         const ConstantWidth = 0b00000001;
+        #[doc = include_str!("../../res/snippets/pixmap_table/configurations/flag/use_constant_height.md")]
         const ConstantHeight = 0b00000010;
+        #[doc = include_str!("../../res/snippets/pixmap_table/configurations/flag/use_constant_bits_per_pixel.md")]
         const ConstantBitsPerPixel = 0b00000100;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which other tables a [`PixmapTable`] links to.
     pub struct PixmapTableLinkFlags: u8 {
+        #[doc = include_str!("../../res/snippets/pixmap_table/links/flag/link_color_tables.md")]
         const LinkColorTables = 0b00000001;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which optional fields are present on every [`Character`] record in a [`CharacterTable`].
     pub struct CharacterTableModifierFlags: u8 {
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/brief/use_advance_x.md")]
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/details/use_advance_x.md")]
         const UseAdvanceX = 0b00000001;
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/brief/use_pixmap_index.md")]
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/details/use_pixmap_index.md")]
         const UsePixmapIndex = 0b00000010;
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/brief/use_pixmap_table_index.md")]
+        #[doc = include_str!("../../res/snippets/character_table/modifiers/details/use_pixmap_table_index.md")]
         const UsePixmapTableIndex = 0b00000100;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which other tables a [`CharacterTable`] links to.
     pub struct CharacterTableLinkFlags: u8 {
+        #[doc = include_str!("../../res/snippets/character_table/links/flag/link_pixmap_tables.md")]
         const LinkPixmapTables = 0b00000001;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which configuration values are present for every [`Character`] in a [`CharacterTable`].
     pub struct CharacterTableConfigurationFlags: u8 {
-        const ConstantClusterCodePoints = 0b00000001;
+        #[doc = include_str!("../../res/snippets/character_table/configurations/flag/use_constant_code_point_count.md")]
+        const ConstantCodePointCount = 0b00000001;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which optional fields are present on every [`Color`] record in a [`ColorTable`].
     pub struct ColorTableModifierFlags: u8 {
+        #[doc = include_str!("../../res/snippets/color_table/modifiers/brief/use_color_type.md")]
+        #[doc = include_str!("../../res/snippets/color_table/modifiers/details/use_color_type.md")]
         const UseColorType = 0b00000001;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which configuration values are present for every [`Color`] in a [`ColorTable`].
     pub struct ColorTableConfigurationFlags: u8 {
+        #[doc = include_str!("../../res/snippets/color_table/configurations/flag/use_constant_alpha.md")]
         const ConstantAlpha = 0b00000001;
     }
 
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    /// Bit flags selecting which other tables a [`FontTable`] links to.
     pub struct FontTableLinkFlags: u8 {
+        #[doc = include_str!("../../res/snippets/font_table/links/flag/link_character_tables.md")]
         const LinkCharacterTables = 0b00000001;
     }
 }
@@ -97,8 +121,10 @@ bitflags! {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/data_types/Version.md")]
 pub enum Version {
     #[default]
+    #[doc = include_str!("../../res/snippets/data_types/Version/FV0.md")]
     FV0 = 0b00000000,
 }
 
@@ -112,77 +138,130 @@ impl core::fmt::Display for Version {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// The full, decoded contents of a `.spf` file: its format version, packing mode, and every table it defines.
 pub struct Layout {
+    /// The format version this layout was parsed from, or should be serialized as.
     pub version: Version,
 
+    /// Whether partial trailing bytes are packed to the bit (`true`) or padded out to a full byte (`false`).
     pub compact: bool,
 
+    /// The character tables defined in this file.
     pub character_tables: Vec<CharacterTable>,
+    /// The color tables defined in this file.
     pub color_tables: Vec<ColorTable>,
+    /// The pixmap tables defined in this file.
     pub pixmap_tables: Vec<PixmapTable>,
+    /// The font tables defined in this file.
     pub font_tables: Vec<FontTable>,
 }
 
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/pixmap_table/brief.md")]
 pub struct PixmapTable {
+    /// Which configuration values below are present for every pixmap.
     pub configuration_flags: PixmapTableConfigurationFlags,
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_width.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_width.md")]
     pub constant_width: Option<u8>,
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_height.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_height.md")]
     pub constant_height: Option<u8>,
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/condition/constant_bits_per_pixel.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/configurations/brief/constant_bits_per_pixel.md")]
     pub constant_bits_per_pixel: Option<u8>,
 
+    /// Which other tables this table links to.
     pub link_flags: PixmapTableLinkFlags,
+    #[doc = include_str!("../../res/snippets/pixmap_table/links/condition/color_tables.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/links/brief/color_tables.md")]
     pub color_table_indexes: Option<Vec<u8>>,
 
+    /// The pixmaps stored in this table.
     pub pixmaps: Vec<Pixmap>,
 }
 
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// A single glyph's pixel data within a [`PixmapTable`].
 pub struct Pixmap {
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/custom_width.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/custom_width.md")]
     pub custom_width: Option<u8>,
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/custom_height.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/custom_height.md")]
     pub custom_height: Option<u8>,
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/custom_bits_per_pixel.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/custom_bits_per_pixel.md")]
     pub custom_bits_per_pixel: Option<u8>,
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/condition/data.md")]
+    #[doc = include_str!("../../res/snippets/pixmap_table/records/brief/data.md")]
     pub data: Vec<u8>,
 }
 
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/character_table/brief.md")]
 pub struct CharacterTable {
+    /// Modifier flags for this [`CharacterTable`].
     pub modifier_flags: CharacterTableModifierFlags,
 
+    /// Configuration flags for this [`CharacterTable`].
     pub configuration_flags: CharacterTableConfigurationFlags,
-    pub constant_cluster_codepoints: Option<u8>,
+    #[doc = include_str!("../../res/snippets/character_table/configurations/condition/constant_code_point_count.md")]
+    #[doc = include_str!("../../res/snippets/character_table/configurations/brief/constant_code_point_count.md")]
+    pub constant_code_point_count: Option<u8>,
 
+    /// Link flags for this [`CharacterTable`].
     pub link_flags: CharacterTableLinkFlags,
+    #[doc = include_str!("../../res/snippets/character_table/links/condition/pixmap_tables.md")]
+    #[doc = include_str!("../../res/snippets/character_table/links/brief/pixmap_tables.md")]
     pub pixmap_table_indexes: Option<Vec<u8>>,
 
+    /// [`Character`]s stored in this [`CharacterTable`].
     pub characters: Vec<Character>,
 }
 
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// A single character's mapping to a pixmap within a [`CharacterTable`].
 pub struct Character {
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/advance_x.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/advance_x.md")]
     pub advance_x: Option<u8>,
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/pixmap_index.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/pixmap_index.md")]
     pub pixmap_index: Option<u8>,
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/pixmap_table_index.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/pixmap_table_index.md")]
     pub pixmap_table_index: Option<u8>,
 
-    pub grapheme_cluster: String,
+    #[doc = include_str!("../../res/snippets/character_table/records/condition/code_points.md")]
+    #[doc = include_str!("../../res/snippets/character_table/records/brief/code_points.md")]
+    #[doc = "`spf` handles optional null characters automatically."]
+    pub code_points: String,
 }
 
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/color_table/brief.md")]
 pub struct ColorTable {
+    /// Which optional per-color fields are present.
     pub modifier_flags: ColorTableModifierFlags,
 
+    /// Which configuration values below are present for every color.
     pub configuration_flags: ColorTableConfigurationFlags,
+    #[doc = include_str!("../../res/snippets/color_table/configurations/condition/constant_alpha.md")]
+    #[doc = include_str!("../../res/snippets/color_table/configurations/brief/constant_alpha.md")]
     pub constant_alpha: Option<u8>,
 
+    /// The colors stored in this table.
     pub colors: Vec<Color>,
 }
 
@@ -190,53 +269,87 @@ pub struct ColorTable {
 #[non_exhaustive]
 #[derive(Default, Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/data_types/ColorType.md")]
 pub enum ColorType {
     #[default]
+    #[doc = include_str!("../../res/snippets/data_types/ColorType/Dynamic.md")]
     Dynamic,
+    #[doc = include_str!("../../res/snippets/data_types/ColorType/Absolute.md")]
     Absolute,
 }
 
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// A single RGBA color value within a [`ColorTable`].
 pub struct Color {
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/color_type.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/color_type.md")]
     pub color_type: Option<ColorType>,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/custom_alpha.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/custom_alpha.md")]
     pub custom_alpha: Option<u8>,
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/red.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/red.md")]
+    pub red: u8,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/green.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/green.md")]
+    pub green: u8,
+    #[doc = include_str!("../../res/snippets/color_table/records/condition/blue.md")]
+    #[doc = include_str!("../../res/snippets/color_table/records/brief/blue.md")]
+    pub blue: u8,
 }
 
 #[repr(u8)]
 #[non_exhaustive]
 #[derive(Default, Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/data_types/FontType.md")]
 pub enum FontType {
     #[default]
+    #[doc = include_str!("../../res/snippets/data_types/FontType/Regular.md")]
     Regular,
+    #[doc = include_str!("../../res/snippets/data_types/FontType/Bold.md")]
     Bold,
+    #[doc = include_str!("../../res/snippets/data_types/FontType/Italic.md")]
     Italic,
 }
 
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[doc = include_str!("../../res/snippets/font_table/brief.md")]
 pub struct FontTable {
+    /// Which other tables this table links to.
     pub link_flags: FontTableLinkFlags,
+    #[doc = include_str!("../../res/snippets/font_table/links/condition/character_tables.md")]
+    #[doc = include_str!("../../res/snippets/font_table/links/brief/character_tables.md")]
     pub character_table_indexes: Option<Vec<u8>>,
 
+    /// The fonts stored in this table.
     pub fonts: Vec<Font>,
 }
 
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// A single named font within a [`FontTable`], grouping the [`CharacterTable`]s it uses.
 pub struct Font {
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/name.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/name.md")]
     pub name: String,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/author.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/author.md")]
     pub author: String,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/version.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/version.md")]
     pub version: u8,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/font_type.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/font_type.md")]
     pub font_type: FontType,
-    pub character_table_indexes: Vec<u8>,
+    #[doc = include_str!("../../res/snippets/font_table/records/condition/linked_character_table_indexes.md")]
+    #[doc = include_str!("../../res/snippets/font_table/records/brief/linked_character_table_indexes.md")]
+    pub linked_character_table_indexes: Vec<u8>,
 }
 
 #[repr(u8)]
@@ -299,18 +412,28 @@ impl TryFrom<u8> for FontType {
 }
 
 #[derive(Debug)]
+/// Errors that can occur while parsing a `.spf` byte buffer into a [`Layout`].
 pub enum DeserializeError {
+    #[doc = include_str!("../../res/snippets/errors/unexpected_end_of_file.md")]
     UnexpectedEndOfFile,
+    #[doc = include_str!("../../res/snippets/errors/invalid_signature.md")]
     InvalidSignature,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_version.md")]
     UnsupportedVersion,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_color_type.md")]
     UnsupportedColorType,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_table_identifier.md")]
     UnsupportedTableIdentifier,
+    #[doc = include_str!("../../res/snippets/errors/unsupported_font_type.md")]
     UnsupportedFontType,
 }
 
 #[derive(Debug)]
+/// Errors that can occur while serializing a [`Layout`] into a `.spf` byte buffer.
 pub enum SerializeError {
+    #[doc = include_str!("../../res/snippets/errors/static_vector_too_large.md")]
     StaticVectorTooLarge,
+    #[doc = include_str!("../../res/snippets/errors/invalid_pixmap_data.md")]
     InvalidPixmapData,
 }
 
@@ -324,10 +447,13 @@ pub(crate) trait Table: Sized {
     ) -> Result<(), SerializeError>;
 }
 
+/// Drives parsing of a `.spf` byte source into a [`Layout`].
 pub struct DeserializeEngine<'a, R: ByteReader = ByteReaderImpl<'a>, T: TagWriter = TagWriterNoOp> {
     bytes: R,
+    /// The resulting [`Layout`] after reading from `bytes`.
     pub layout: Layout,
     #[cfg(feature = "tagging")]
+    /// Collection of tags marking the byte/bit span of every field read, when the `tagging` feature is enabled.
     pub tags: T,
     #[cfg(feature = "tagging")]
     tagging_data: TaggingData,
@@ -341,10 +467,13 @@ pub(crate) struct TaggingData {
     current_record_index: u8,
 }
 
+/// Drives serialization of a [`Layout`] into `.spf` bytes.
 pub struct SerializeEngine<'a, T: TagWriter = TagWriterNoOp> {
     bytes: byte::ByteWriter,
+    /// The [`Layout`] being serialized into `bytes`.
     pub layout: &'a Layout,
     #[cfg(feature = "tagging")]
+    /// Collection of tags marking the byte/bit span of every field written, when the `tagging` feature is enabled.
     pub tags: T,
     #[cfg(feature = "tagging")]
     tagging_data: TaggingData,
@@ -400,6 +529,7 @@ pub(crate) fn deserialize_layout<R: ByteReader, T: TagWriter>(
     Ok(())
 }
 
+/// Deserializes into `engine`'s [`Layout`] using an already-constructed [`DeserializeEngine`]. Use [`layout_from_data`] unless you need direct control over the engine (for example, a custom [`ByteReader`] or [`TagWriter`]).
 pub fn deserialize_with_engine<R: ByteReader, T: TagWriter>(
     engine: &mut DeserializeEngine<R, T>,
 ) -> Result<(), DeserializeError> {
@@ -407,7 +537,7 @@ pub fn deserialize_with_engine<R: ByteReader, T: TagWriter>(
     Ok(())
 }
 
-/// Parses a [`&[u8]`] into a font [`Layout`]. This function interally creates a [`DeserializeEngine`]
+/// Parses a [`&[u8]`] into a font [`Layout`]. This function internally creates a [`DeserializeEngine`]
 /// and calls [`deserialize_with_engine`].
 pub fn layout_from_data(buffer: &[u8]) -> Result<Layout, DeserializeError> {
     let mut engine = DeserializeEngine::from_data(buffer);
@@ -454,6 +584,7 @@ pub(crate) fn serialize_layout<T: TagWriter>(
     Ok(())
 }
 
+/// Serializes `engine`'s [`Layout`] using an already-constructed [`SerializeEngine`]. Use [`layout_to_data`] unless you need direct control over the engine (for example, a custom [`TagWriter`]).
 pub fn serialize_with_engine<T: TagWriter>(
     engine: &mut SerializeEngine<T>,
 ) -> Result<(), SerializeError> {
@@ -461,7 +592,7 @@ pub fn serialize_with_engine<T: TagWriter>(
     Ok(())
 }
 
-/// Encodes the provided font [`Layout`] into a [`Vec<u8>`]. This function interally creates a
+/// Encodes the provided font [`Layout`] into a [`Vec<u8>`]. This function internally creates a
 /// [`SerializeEngine`] and calls [`serialize_with_engine`].
 pub fn layout_to_data(layout: &Layout) -> Result<Vec<u8>, SerializeError> {
     let mut engine = SerializeEngine::from_layout(layout);

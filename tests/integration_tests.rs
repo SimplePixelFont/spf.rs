@@ -19,13 +19,14 @@ mod tests {
     }
     fn second_sample_pixmap_table() -> PixmapTable {
         let mut pixmap = Pixmap::default();
-        pixmap.custom_width =  Some(1);
+        pixmap.custom_width = Some(1);
         pixmap.custom_height = None;
         pixmap.custom_bits_per_pixel = None;
-        pixmap.data =  vec![0b01000010, 0b01000010, 0b01000010, 0b00001111];
+        pixmap.data = vec![0b01000010, 0b01000010, 0b01000010, 0b00001111];
 
         let mut pixmap_table = PixmapTable::default();
-        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
+        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight
+            | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
         pixmap_table.constant_width = None;
         pixmap_table.constant_height = Some(4);
         pixmap_table.constant_bits_per_pixel = Some(7);
@@ -55,7 +56,8 @@ mod tests {
         pixmap4.data = vec![0b11110001, 0b10001111];
 
         let mut pixmap_table = PixmapTable::default();
-        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
+        pixmap_table.configuration_flags = PixmapTableConfigurationFlags::ConstantHeight
+            | PixmapTableConfigurationFlags::ConstantBitsPerPixel;
         pixmap_table.constant_height = Some(4);
         pixmap_table.constant_bits_per_pixel = Some(1);
 
@@ -70,16 +72,16 @@ mod tests {
         let mut transparent_color = Color::default();
         transparent_color.color_type = None;
         transparent_color.custom_alpha = Some(0);
-        transparent_color.r = 0;
-        transparent_color.g = 0;
-        transparent_color.b = 0;
+        transparent_color.red = 0;
+        transparent_color.green = 0;
+        transparent_color.blue = 0;
 
         let mut opaque_color = Color::default();
         opaque_color.color_type = None;
         opaque_color.custom_alpha = Some(255);
-        opaque_color.r = 36;
-        opaque_color.g = 174;
-        opaque_color.b = 214;
+        opaque_color.red = 36;
+        opaque_color.green = 174;
+        opaque_color.blue = 214;
 
         let mut color_table = ColorTable::default();
         color_table.colors = vec![transparent_color, opaque_color];
@@ -92,13 +94,13 @@ mod tests {
         font.author = "The-Nice-One".into();
         font.version = 0;
         font.font_type = FontType::Regular;
-        font.character_table_indexes = vec![0];
+        font.linked_character_table_indexes = vec![0];
 
         let mut font_table = FontTable::default();
 
         font_table.link_flags = FontTableLinkFlags::LinkCharacterTables;
         font_table.character_table_indexes = Some(vec![0]);
-        
+
         font_table.fonts = vec![font];
         font_table
     }
@@ -107,22 +109,22 @@ mod tests {
         let mut font = Layout::default();
 
         let mut char1 = Character::default();
-        char1.grapheme_cluster = "o".to_string();
+        char1.code_points = "o".to_string();
 
         let mut char2 = Character::default();
-        char2.grapheme_cluster = "w".to_string();
+        char2.code_points = "w".to_string();
 
         let mut char3 = Character::default();
-        char3.grapheme_cluster = "😊".to_string();
+        char3.code_points = "😊".to_string();
 
         let mut char4 = Character::default();
-        char4.grapheme_cluster = "!=".to_string();
+        char4.code_points = "!=".to_string();
 
         let mut character_table = CharacterTable::default();
 
         character_table.link_flags = CharacterTableLinkFlags::LinkPixmapTables;
         character_table.pixmap_table_indexes = Some(vec![0]);
-        
+
         character_table.characters = vec![char1, char2, char3, char4];
 
         font.character_tables = vec![character_table];
@@ -135,18 +137,12 @@ mod tests {
     }
 
     #[test]
-    fn write_font_file() -> Result<(), io::Error> {
+    fn write_and_read_font_file() -> Result<(), io::Error> {
         init_logger();
 
         let font = sample_layout();
 
         common::write_to_file("./res/sampleToyFont.spf", &layout_to_data(&font).unwrap())?;
-        Ok(())
-    }
-
-    #[test]
-    fn read_font_file() -> Result<(), io::Error> {
-        init_logger();
 
         let mut buffer: Vec<u8> = vec![];
         common::read_from_file("./res/sampleToyFont.spf", &mut buffer)?;

@@ -1,0 +1,1 @@
+Color Tables supplying the colors each record's pixel values map to in this table.

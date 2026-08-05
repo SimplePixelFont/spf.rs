@@ -1,0 +1,1 @@
+If `use_pixmap_index` modifier is enabled.

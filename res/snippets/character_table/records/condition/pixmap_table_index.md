@@ -1,0 +1,1 @@
+If `use_pixmap_table_index` modifier is enabled.

@@ -1,0 +1,1 @@
+If `use_color_type` modifier is enabled.

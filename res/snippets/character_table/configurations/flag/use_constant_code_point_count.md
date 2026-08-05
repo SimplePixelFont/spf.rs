@@ -1,0 +1,1 @@
+All characters in this table have the same number of code points.

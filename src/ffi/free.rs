@@ -63,7 +63,7 @@ pub unsafe extern "C" fn spf_free_layout(layout: SPFLayout) {
 
 /// Frees an array of [`SPFCharacterTable`] values along with all nested allocations.
 ///
-/// For each table: frees each character's `grapheme_cluster` CString, then the characters
+/// For each table: frees each character's `code_points` CString, then the characters
 /// array, then the optional `pixmap_table_indexes` array. Finally frees the tables array itself.
 unsafe fn free_character_tables(ptr: *mut SPFCharacterTable, len: usize) {
     if ptr.is_null() {
@@ -78,8 +78,8 @@ unsafe fn free_character_tables(ptr: *mut SPFCharacterTable, len: usize) {
                     table.characters_length as usize,
                 );
                 for ch in chars {
-                    if !ch.grapheme_cluster.is_null() {
-                        drop(CString::from_raw(ch.grapheme_cluster));
+                    if !ch.code_points.is_null() {
+                        drop(CString::from_raw(ch.code_points));
                     }
                 }
                 drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
@@ -163,7 +163,7 @@ unsafe fn free_pixmap_tables(ptr: *mut SPFPixmapTable, len: usize) {
 /// Frees an array of [`SPFFontTable`] values along with all nested allocations.
 ///
 /// For each table: frees each font's `name` and `author` CStrings and its
-/// `character_table_indexes` byte array, then the fonts slice, then the optional
+/// `linked_character_table_indexes` byte array, then the fonts slice, then the optional
 /// table-level `character_table_indexes` array. Finally frees the tables array itself.
 unsafe fn free_font_tables(ptr: *mut SPFFontTable, len: usize) {
     if ptr.is_null() {
@@ -184,10 +184,10 @@ unsafe fn free_font_tables(ptr: *mut SPFFontTable, len: usize) {
                     if !font.author.is_null() {
                         drop(CString::from_raw(font.author));
                     }
-                    if !font.character_table_indexes.is_null() {
+                    if !font.linked_character_table_indexes.is_null() {
                         drop(Box::from_raw(core::ptr::slice_from_raw_parts_mut(
-                            font.character_table_indexes,
-                            font.character_tables_indexes_length as usize,
+                            font.linked_character_table_indexes,
+                            font.linked_character_table_indexes_length as usize,
                         )));
                     }
                 }

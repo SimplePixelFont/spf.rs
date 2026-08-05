@@ -1,0 +1,1 @@
+If `link_color_tables` is enabled.

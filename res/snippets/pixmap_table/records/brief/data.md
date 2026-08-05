@@ -1,0 +1,1 @@
+Packed pixel data as a bit array

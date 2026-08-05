@@ -71,31 +71,31 @@ impl CharacterTable {
 
         self.configuration_flags =
             CharacterTableConfigurationFlags::from_bits_retain(engine.bytes.next());
-        let use_constant_cluster_codepoints = self
+        let use_constant_code_point_count = self
             .configuration_flags
-            .contains(CharacterTableConfigurationFlags::ConstantClusterCodePoints);
+            .contains(CharacterTableConfigurationFlags::ConstantCodePointCount);
 
         #[cfg(feature = "tagging")]
         engine.tags.tag_bitflag(
             TagKind::CharacterTableConfigurationFlags {
                 table_index: engine.tagging_data.current_table_index,
             },
-            vec![TagKind::CharacterTableUseConstantClusterCodepoints {
+            vec![TagKind::CharacterTableUseConstantCodePointCount {
                 table_index: engine.tagging_data.current_table_index,
-                value: use_constant_cluster_codepoints,
+                value: use_constant_code_point_count,
             }],
             engine.bytes.byte_index(),
         );
 
         #[cfg(feature = "tagging")]
         let configuration_values_start = engine.bytes.byte_index();
-        if use_constant_cluster_codepoints {
-            self.constant_cluster_codepoints = Some(engine.bytes.next());
+        if use_constant_code_point_count {
+            self.constant_code_point_count = Some(engine.bytes.next());
             #[cfg(feature = "tagging")]
             engine.tags.tag_byte(
-                TagKind::CharacterTableConstantClusterCodepoints {
+                TagKind::CharacterTableConstantCodePointCount {
                     table_index: engine.tagging_data.current_table_index,
-                    value: self.constant_cluster_codepoints.unwrap(),
+                    value: self.constant_code_point_count.unwrap(),
                 },
                 engine.bytes.byte_index(),
             );
@@ -203,15 +203,15 @@ impl CharacterTable {
     }
 }
 
-pub(crate) fn next_grapheme_cluster<R: ByteReader, T: TagWriter>(
+pub(crate) fn next_code_points<R: ByteReader, T: TagWriter>(
     engine: &mut DeserializeEngine<R, T>,
     character: &mut Character,
-    constant_cluster_codepoints: Option<u8>,
+    constant_code_point_count: Option<u8>,
 ) {
     #[cfg(feature = "tagging")]
     let start = engine.bytes.byte_index();
 
-    let mut grapheme_cluster = String::new();
+    let mut code_points = String::new();
     let mut end_cluster = false;
     let mut codepoint_count = 0;
 
@@ -235,7 +235,7 @@ pub(crate) fn next_grapheme_cluster<R: ByteReader, T: TagWriter>(
             utf8_bytes[3] = engine.bytes.next();
         }
 
-        grapheme_cluster.push(
+        code_points.push(
             String::from_utf8(utf8_bytes.to_vec())
                 .unwrap()
                 .chars()
@@ -244,8 +244,8 @@ pub(crate) fn next_grapheme_cluster<R: ByteReader, T: TagWriter>(
         );
         codepoint_count += 1;
 
-        if let Some(constant_cluster_codepoints) = constant_cluster_codepoints {
-            if codepoint_count == constant_cluster_codepoints {
+        if let Some(constant_code_point_count) = constant_code_point_count {
+            if codepoint_count == constant_code_point_count {
                 end_cluster = true;
             }
         } else if engine.bytes.get() == 0 {
@@ -256,16 +256,16 @@ pub(crate) fn next_grapheme_cluster<R: ByteReader, T: TagWriter>(
 
     #[cfg(feature = "tagging")]
     engine.tags.tag_span(
-        TagKind::CharacterGraphemeCluster {
+        TagKind::CharacterCodePoints {
             table_index: engine.tagging_data.current_table_index,
             char_index: engine.tagging_data.current_record_index,
-            value: grapheme_cluster.clone(),
+            value: code_points.clone(),
         },
         Span::new(start, engine.bytes.byte_index()),
     );
 
     #[cfg(feature = "log")]
-    info!("Identified grapheme cluster: {:?}", grapheme_cluster);
+    info!("Identified code points: {:?}", code_points);
 
-    character.grapheme_cluster = grapheme_cluster;
+    character.code_points = code_points;
 }

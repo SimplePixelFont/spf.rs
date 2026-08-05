@@ -1,0 +1,1 @@
+If `use_constant_alpha` is enabled.

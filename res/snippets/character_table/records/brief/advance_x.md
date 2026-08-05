@@ -1,0 +1,1 @@
+Number of pixels to advance horizontally after rendering this character.

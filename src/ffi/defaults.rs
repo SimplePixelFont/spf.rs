@@ -39,10 +39,10 @@ impl Default for SPFCharacterTable {
     fn default() -> Self {
         SPFCharacterTable {
             modifier_flags: u8::default(),
-            has_constant_cluster_codepoints: u8::default(),
+            has_constant_code_point_count: u8::default(),
 
             configuration_flags: u8::default(),
-            constant_cluster_codepoints: u8::default(),
+            constant_code_point_count: u8::default(),
             
             link_flags: u8::default(),
             has_pixmap_table_indexes: u8::default(),
@@ -63,7 +63,7 @@ impl Default for SPFCharacter {
             pixmap_index: u8::default(),
             has_pixmap_table_index: u8::default(),
             pixmap_table_index: u8::default(),
-            grapheme_cluster: core::ptr::null_mut(),
+            code_points: core::ptr::null_mut(),
         }
     }
 }
@@ -90,9 +90,9 @@ impl Default for SPFColor {
             color_type: u8::default(),
             has_custom_alpha: u8::default(),
             custom_alpha: u8::default(),
-            r: u8::default(),
-            g: u8::default(),
-            b: u8::default(),
+            red: u8::default(),
+            green: u8::default(),
+            blue: u8::default(),
         }
     }
 }
@@ -153,8 +153,8 @@ impl Default for SPFFont {
             author: core::ptr::null_mut(),
             version: u8::default(),
             font_type: u8::default(),
-            character_table_indexes: core::ptr::null_mut(),
-            character_tables_indexes_length: 0,
+            linked_character_table_indexes: core::ptr::null_mut(),
+            linked_character_table_indexes_length: 0,
         }
     }
 }

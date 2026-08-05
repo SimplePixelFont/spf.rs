@@ -1,0 +1,1 @@
+Each record includes an `advance_x` field specifying horizontal pixel advance after rendering.

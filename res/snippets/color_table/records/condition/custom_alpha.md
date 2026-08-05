@@ -1,0 +1,1 @@
+If `constant_alpha` configuration is **not** set

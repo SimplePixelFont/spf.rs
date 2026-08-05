@@ -1,0 +1,1 @@
+Height of this pixmap in pixels.

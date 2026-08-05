@@ -1,0 +1,1 @@
+Color Type value (0 = Dynamic, 1 = Absolute).

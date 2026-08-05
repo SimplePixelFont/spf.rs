@@ -1,0 +1,1 @@
+`u8` length byte followed by that many entries of type `T`. Unless otherwise specified.

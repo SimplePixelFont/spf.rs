@@ -1,0 +1,1 @@
+Alpha channel value (0 = fully transparent, 255 = fully opaque).

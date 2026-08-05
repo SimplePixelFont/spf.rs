@@ -1,0 +1,1 @@
+Pixmap Tables supplying the pixmaps each record may map to.

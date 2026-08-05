@@ -1,0 +1,1 @@
+Style of this font (0 = Regular, 1 = Bold, 2 = Italic).

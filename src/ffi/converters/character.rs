@@ -20,8 +20,8 @@ impl TryFrom<Character> for SPFCharacter {
     type Error = ConversionError;
 
     fn try_from(character: Character) -> Result<Self, Self::Error> {
-        let grapheme_cluster = CString::new(character.grapheme_cluster.as_str())?;
-        let grapheme_cluster_ptr = grapheme_cluster.into_raw();
+        let code_points = CString::new(character.code_points.as_str())?;
+        let code_points_ptr = code_points.into_raw();
 
         Ok(SPFCharacter {
             has_advance_x: character.advance_x.is_some() as c_uchar,
@@ -30,7 +30,7 @@ impl TryFrom<Character> for SPFCharacter {
             pixmap_index: character.pixmap_index.unwrap_or(0) as c_uchar,
             has_pixmap_table_index: character.pixmap_table_index.is_some() as c_uchar,
             pixmap_table_index: character.pixmap_table_index.unwrap_or(0) as c_uchar,
-            grapheme_cluster: grapheme_cluster_ptr,
+            code_points: code_points_ptr,
         })
     }
 }
@@ -40,7 +40,7 @@ impl TryInto<Character> for &SPFCharacter {
 
     fn try_into(self) -> Result<Character, Self::Error> {
         unsafe {
-            let grapheme_cluster = CStr::from_ptr(self.grapheme_cluster)
+            let code_points = CStr::from_ptr(self.code_points)
                 .to_str()?
                 .to_owned();
             let advance_x = ffi_to_option!(self.has_advance_x, self.advance_x);
@@ -52,7 +52,7 @@ impl TryInto<Character> for &SPFCharacter {
                 advance_x,
                 pixmap_index,
                 pixmap_table_index,
-                grapheme_cluster,
+                code_points,
             })
         }
     }

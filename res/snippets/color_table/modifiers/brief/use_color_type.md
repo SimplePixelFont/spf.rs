@@ -1,0 +1,1 @@
+Each record includes a `color_type` field indicating the color mutability type.

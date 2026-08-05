@@ -1,0 +1,1 @@
+Each record includes a `pixmap_index` field to explicitly reference a pixmap by index.

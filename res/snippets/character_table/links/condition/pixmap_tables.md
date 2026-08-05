@@ -1,0 +1,1 @@
+If `link_pixmap_tables` is enabled.

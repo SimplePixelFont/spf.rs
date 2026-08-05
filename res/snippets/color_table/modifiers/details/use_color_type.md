@@ -1,0 +1,1 @@
+When disabled, the default color type is dynamic. The rendering engine may change the RGBA color to support features such as, but not limited to; text color, and/or palette theming.

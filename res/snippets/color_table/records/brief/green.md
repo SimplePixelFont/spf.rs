@@ -1,0 +1,1 @@
+Green channel value.

@@ -1,0 +1,1 @@
+The alpha channel value applied to all colors in this table.

@@ -1,0 +1,1 @@
+Width of this pixmap in pixels.
