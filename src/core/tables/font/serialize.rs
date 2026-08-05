@@ -24,6 +24,9 @@ use crate::{vec, Vec};
 #[cfg(feature = "tagging")]
 use crate::tagging::{Span, TagKind};
 
+#[cfg(not(feature = "std"))]
+use crate::ToOwned;
+
 impl FontTable {
     pub(crate) fn push_table_identifier<T: TagWriter>(&self, engine: &mut SerializeEngine<T>) {
         engine.bytes.push(TableIdentifier::Font as u8);
@@ -199,7 +202,7 @@ pub(crate) fn push_version<T: TagWriter>(engine: &mut SerializeEngine<T>, versio
 }
 
 pub(crate) fn push_font_type<T: TagWriter>(engine: &mut SerializeEngine<T>, font_type: FontType) {
-    engine.bytes.push(font_type as u8);
+    engine.bytes.push(font_type.bits());
     #[cfg(feature = "tagging")]
     engine.tags.tag_byte(
         TagKind::FontFontType {
@@ -223,7 +226,9 @@ pub(crate) fn push_linked_character_table_indexes<T: TagWriter>(
         return Err(SerializeError::StaticVectorTooLarge);
     }
 
-    engine.bytes.push(linked_character_table_indexes_length as u8);
+    engine
+        .bytes
+        .push(linked_character_table_indexes_length as u8);
     #[cfg(feature = "tagging")]
     engine.tags.tag_byte(
         TagKind::FontLinkedCharacterTableIndexesLength {

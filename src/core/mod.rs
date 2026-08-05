@@ -40,6 +40,7 @@ use crate::{String, Vec};
 use core::marker::PhantomData;
 
 bitflags! {
+    #[non_exhaustive]
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     /// Bit flags selecting which configuration values are present for every [`Pixmap`] in a [`PixmapTable`].
@@ -52,6 +53,7 @@ bitflags! {
         const ConstantBitsPerPixel = 0b00000100;
     }
 
+    #[non_exhaustive]
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     /// Bit flags selecting which other tables a [`PixmapTable`] links to.
@@ -60,6 +62,7 @@ bitflags! {
         const LinkColorTables = 0b00000001;
     }
 
+    #[non_exhaustive]
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     /// Bit flags selecting which optional fields are present on every [`Character`] record in a [`CharacterTable`].
@@ -75,6 +78,7 @@ bitflags! {
         const UsePixmapTableIndex = 0b00000100;
     }
 
+    #[non_exhaustive]
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     /// Bit flags selecting which other tables a [`CharacterTable`] links to.
@@ -83,6 +87,7 @@ bitflags! {
         const LinkPixmapTables = 0b00000001;
     }
 
+    #[non_exhaustive]
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     /// Bit flags selecting which configuration values are present for every [`Character`] in a [`CharacterTable`].
@@ -91,6 +96,7 @@ bitflags! {
         const ConstantCodePointCount = 0b00000001;
     }
 
+    #[non_exhaustive]
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     /// Bit flags selecting which optional fields are present on every [`Color`] record in a [`ColorTable`].
@@ -100,6 +106,7 @@ bitflags! {
         const UseColorType = 0b00000001;
     }
 
+    #[non_exhaustive]
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     /// Bit flags selecting which configuration values are present for every [`Color`] in a [`ColorTable`].
@@ -108,12 +115,24 @@ bitflags! {
         const ConstantAlpha = 0b00000001;
     }
 
+    #[non_exhaustive]
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     /// Bit flags selecting which other tables a [`FontTable`] links to.
     pub struct FontTableLinkFlags: u8 {
         #[doc = include_str!("../../res/snippets/font_table/links/flag/link_character_tables.md")]
         const LinkCharacterTables = 0b00000001;
+    }
+
+    #[non_exhaustive]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[doc = include_str!("../../res/snippets/data_types/FontType.md")]
+    pub struct FontType: u8 {
+        #[doc = include_str!("../../res/snippets/data_types/FontType/Bold.md")]
+        const Bold = 0b00000001;
+        #[doc = include_str!("../../res/snippets/data_types/FontType/Italic.md")]
+        const Italic = 0b00000010;
     }
 }
 
@@ -300,21 +319,6 @@ pub struct Color {
     pub blue: u8,
 }
 
-#[repr(u8)]
-#[non_exhaustive]
-#[derive(Default, Debug, Clone, Copy)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[doc = include_str!("../../res/snippets/data_types/FontType.md")]
-pub enum FontType {
-    #[default]
-    #[doc = include_str!("../../res/snippets/data_types/FontType/Regular.md")]
-    Regular,
-    #[doc = include_str!("../../res/snippets/data_types/FontType/Bold.md")]
-    Bold,
-    #[doc = include_str!("../../res/snippets/data_types/FontType/Italic.md")]
-    Italic,
-}
-
 #[non_exhaustive]
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -353,6 +357,7 @@ pub struct Font {
 }
 
 #[repr(u8)]
+#[non_exhaustive]
 #[rustfmt::skip]
 enum TableIdentifier {
     Character = 0b00000001,
@@ -402,15 +407,11 @@ impl TryFrom<u8> for FontType {
     type Error = DeserializeError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(FontType::Regular),
-            1 => Ok(FontType::Bold),
-            2 => Ok(FontType::Italic),
-            _ => Err(DeserializeError::UnsupportedFontType),
-        }
+        FontType::from_bits(value).ok_or(DeserializeError::UnsupportedFontType)
     }
 }
 
+#[non_exhaustive]
 #[derive(Debug)]
 /// Errors that can occur while parsing a `.spf` byte buffer into a [`Layout`].
 pub enum DeserializeError {
@@ -428,6 +429,7 @@ pub enum DeserializeError {
     UnsupportedFontType,
 }
 
+#[non_exhaustive]
 #[derive(Debug)]
 /// Errors that can occur while serializing a [`Layout`] into a `.spf` byte buffer.
 pub enum SerializeError {
@@ -461,6 +463,7 @@ pub struct DeserializeEngine<'a, R: ByteReader = ByteReaderImpl<'a>, T: TagWrite
     _phantom2: &'a PhantomData<R>,
 }
 
+#[non_exhaustive]
 #[derive(Default)]
 pub(crate) struct TaggingData {
     current_table_index: u8,

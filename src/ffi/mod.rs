@@ -46,7 +46,11 @@ use core::slice;
 pub(crate) use std::ffi::*;
 
 #[cfg(not(feature = "std"))]
+use alloc::boxed::Box;
+#[cfg(not(feature = "std"))]
 pub(crate) use alloc::ffi::*;
+#[cfg(not(feature = "std"))]
+use core::ffi::*;
 
 pub mod converters;
 pub mod defaults;
@@ -422,7 +426,8 @@ pub enum SPFColorType {
     Absolute = 1,
 }
 
-/// Named constants for the `font_type` field of [`SPFFont`].
+/// Named constants for the `font_type` field of [`SPFFont`]. `Bold` and `Italic` are bit flags
+/// and may be OR'd together; `Regular` is the absence of both, which is 0.
 #[repr(C)]
 pub enum SPFFontType {
     #[doc = include_str!("../../res/snippets/data_types/FontType/Regular.md")]

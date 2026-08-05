@@ -31,7 +31,7 @@ impl TryFrom<Font> for SPFFont {
             name: name_ptr,
             author: author_ptr,
             version: font.version as c_uchar,
-            font_type: font.font_type as c_uchar,
+            font_type: font.font_type.bits(),
             linked_character_table_indexes: linked_character_table_indexes_ptr,
             linked_character_table_indexes_length: linked_character_table_indexes_len as c_ulong,
         })
