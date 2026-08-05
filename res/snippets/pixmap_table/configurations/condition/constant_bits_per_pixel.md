@@ -1,1 +1,1 @@
-If `use_constant_bits_per_pixel` is enabled
+If [`PixmapTableConfigurationFlags::ConstantBitsPerPixel`] is enabled

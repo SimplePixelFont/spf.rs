@@ -1,1 +1,1 @@
-Each record includes a `pixmap_table_index` field to specify which linked Pixmap Table to reference.
+Each record includes a [`Character::pixmap_table_index`] field to specify which linked Pixmap Table to reference.

@@ -1,1 +1,1 @@
-If `link_pixmap_tables` is enabled.
+If [`CharacterTableLinkFlags::LinkPixmapTables`] is enabled.

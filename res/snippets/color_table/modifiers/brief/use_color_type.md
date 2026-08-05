@@ -1,1 +1,1 @@
-Each record includes a `color_type` field indicating the color mutability type.
+Each record includes a [`Color::color_type`] field indicating the color mutability type.

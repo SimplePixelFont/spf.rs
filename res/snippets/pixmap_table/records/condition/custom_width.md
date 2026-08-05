@@ -1,1 +1,1 @@
-If `use_constant_width` is not enabled.
+If [`PixmapTableConfigurationFlags::ConstantWidth`] is not enabled.

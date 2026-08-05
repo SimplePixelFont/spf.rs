@@ -1,1 +1,1 @@
-If `link_color_tables` is enabled.
+If [`PixmapTableLinkFlags::LinkColorTables`] is enabled.
