@@ -61,10 +61,10 @@ impl Span {
 /// What piece of a `.spf` file a [`Tag`]'s [`Span`] corresponds to.
 ///
 /// Most variants name a real item in [`crate::core`] — either the whole struct/enum
-/// (`Tags [`CharacterTable`]`), a specific field (`Tags [`Character::code_points`]`), or a
-/// bitflags constant (`Tags [`CharacterTableConfigurationFlags::ConstantCodePointCount`]`).
-/// A handful of section-grouping variants (e.g. `CharacterTableConfigurations`,
-/// `CharacterTableLinks`) span multiple fields at once and have no single backing item —
+/// (Tags [`CharacterTable`]), a specific field (Tags [`Character::code_points`]), or a
+/// bitflags constant (Tags [`CharacterTableConfigurationFlags::ConstantCodePointCount`]).
+/// A handful of section-grouping variants (like [`TagKind::CharacterTableConfigurations`] or
+/// [`TagKind::CharacterTableLinks`]) span multiple fields at once and have no single backing item —
 /// those are documented with a plain description of what they cover instead.
 #[derive(Debug, Clone)]
 pub enum TagKind {
