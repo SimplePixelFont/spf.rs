@@ -24,12 +24,83 @@ jobs:
 
       - name: calculation
         id: coverage
-        uses: bewee/rustdoc-coverage-action@v1
-        with:
-          percentage-format: 0%
+        run: |
+          set -euo pipefail
 
-      - name: write
-        run: echo "${{ steps.coverage.outputs.table }}" > documentation.md
+          # Ensure nightly is available (harmless if already installed)
+          rustup toolchain install nightly -q || true
+
+          # Build docs and produce target/doc/spf.json
+          cargo +nightly doc --no-deps --lib -p spf
+
+          JSON_FILE="target/doc/spf.json"
+          if [ ! -f "$JSON_FILE" ]; then
+            echo "No coverage JSON found at $JSON_FILE" >&2
+            # Fallback outputs
+            echo "documented=0%" >> $GITHUB_OUTPUT
+            echo "table<<EOF" >> $GITHUB_OUTPUT
+            echo "No coverage JSON found." >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "json<<EOF" >> $GITHUB_OUTPUT
+            echo "{}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Node script: parse spf.json and produce a markdown table + documented percent
+          cat > coverage-report.js <<'NODE'
+          const fs = require('fs');
+          const raw = fs.readFileSync('target/doc/spf.json', 'utf8');
+          const parsed = JSON.parse(raw);
+          // rustdoc json layout: coverage may be top-level or under `coverage`
+          const cov = parsed.coverage || parsed;
+
+          const rows = [['File', 'Documented', 'Percentage', 'Examples', 'Percentage']];
+          let total = 0, with_docs = 0, total_examples = 0, with_examples = 0;
+
+          const files = Object.keys(cov).sort();
+          for (const file of files) {
+            const e = cov[file] || {};
+            const t = Number(e.total || 0);
+            const wd = Number(e.with_docs || 0);
+            const te = Number(e.total_examples || 0);
+            const we = Number(e.with_examples || 0);
+            total += t; with_docs += wd; total_examples += te; with_examples += we;
+            const pctDocs = t ? Math.round(100 * wd / t) : 0;
+            const pctEx = te ? Math.round(100 * we / te) : 0;
+            rows.push([file, String(wd), `${pctDocs}%`, String(we), `${pctEx}%`]);
+          }
+
+          const pctTotal = total ? Math.round(100 * with_docs / total) : 0;
+          const pctExTotal = total_examples ? Math.round(100 * with_examples / total_examples) : 0;
+          rows.push(['**Total**', String(with_docs), `${pctTotal}%`, String(with_examples), `${pctExTotal}%`]);
+
+          // Render a simple aligned markdown table
+          const colWidths = [];
+          rows.forEach(r => r.forEach((c, i) => colWidths[i] = Math.max(colWidths[i] || 0, String(c).length)));
+          const pad = (s, w) => s + ' '.repeat(w - String(s).length);
+          const line = r => '| ' + r.map((c, i) => pad(c, colWidths[i])).join(' | ') + ' |';
+          const sep = '| ' + colWidths.map(w => '-'.repeat(w)).join(' | ') + ' |';
+          const table = [line(rows[0]), sep].concat(rows.slice(1).map(line)).join('\n');
+
+          const out = { documented: `${pctTotal}%`, table, json: cov };
+          fs.writeFileSync('coverage-result.json', JSON.stringify(out, null, 2), 'utf8');
+          NODE
+
+          # Run parser
+          node coverage-report.js
+
+          # Set GitHub Actions outputs
+          documented=$(node -e "console.log(JSON.parse(require('fs').readFileSync('coverage-result.json','utf8')).documented)")
+          echo "documented=$documented" >> $GITHUB_OUTPUT
+
+          echo "table<<EOF" >> $GITHUB_OUTPUT
+          node -e "console.log(JSON.parse(require('fs').readFileSync('coverage-result.json','utf8')).table)" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "json<<EOF" >> $GITHUB_OUTPUT
+          node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('coverage-result.json','utf8')).json))" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: update
         uses: exuanbo/actions-deploy-gist@v1
