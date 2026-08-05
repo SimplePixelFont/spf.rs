@@ -1,1 +1,1 @@
-If `use_constant_code_point_count` is enabled.
+If [`CharacterTableConfigurationFlags::ConstantCodePointCount`] is enabled.

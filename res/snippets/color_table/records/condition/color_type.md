@@ -1,1 +1,1 @@
-If `use_color_type` modifier is enabled.
+If [`ColorTableModifierFlags::UseColorType`] modifier is enabled.

@@ -1,1 +1,1 @@
-If `link_character_tables` is enabled.
+If [`FontTableLinkFlags::LinkCharacterTables`] is enabled.

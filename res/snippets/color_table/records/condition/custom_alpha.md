@@ -1,1 +1,1 @@
-If `constant_alpha` configuration is **not** set
+If [`ColorTable::constant_alpha`] configuration is **not** set

@@ -1,1 +1,1 @@
-If `use_constant_height` is not enabled.
+If [`PixmapTableConfigurationFlags::ConstantHeight`] is not enabled.
