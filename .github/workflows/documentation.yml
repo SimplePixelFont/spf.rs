@@ -102,6 +102,11 @@ jobs:
           node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('coverage-result.json','utf8')).json))" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: write
+        run: |
+          # Preserve newlines; write the table output to documentation.md for the gist deploy step
+          printf '%s\n' "${{ steps.coverage.outputs.table }}" > documentation.md
+
       - name: update
         uses: exuanbo/actions-deploy-gist@v1
         with:
