@@ -21,8 +21,6 @@ cargo add spf
 
 ### Usage
 
-**Note:** `spf.rs` documentation is currently out of date, however actively being updated to reflect the SimplePixelFont new standardized specification.
-
 Usage varies depending on the programming language you choose. For a guide using the native Rust interface check out the [Getting Started in Rust](https://docs.rs/spf/latest/spf/articles/getting_started/index.html) article. You can also check out the [Using the FFI in C](https://docs.rs/spf/latest/spf/articles/c_usage/index.html) article for usage with the `spf.rs` library.
 
 ### Supported SPF Tables
